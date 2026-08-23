@@ -1,0 +1,7 @@
+﻿# Ignored files
+__pycache__/
+*.pyc
+generate.py
+data.py
+build_icons.py
+test.txt
