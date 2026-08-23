@@ -1,0 +1,49 @@
+﻿{
+  "name": "برنامه هفتگی تمرین حاجی | Haji Workout",
+  "short_name": "برنامه حاجی",
+  "description": "برنامه تخصصی هفتگی تمرین با وزنه، تمرینات خانه و ریکاوری با ثبت ست‌ها و تایمر استراحت",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#090d16",
+  "theme_color": "#090d16",
+  "orientation": "portrait-primary",
+  "dir": "rtl",
+  "lang": "fa",
+  "scope": "./",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "برنامه امروز",
+      "short_name": "امروز",
+      "description": "مشاهده مستقیم برنامه تمرینی امروز",
+      "url": "./index.html#today",
+      "icons": [{ "src": "icons/icon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "تایمر استراحت",
+      "short_name": "تایمر",
+      "description": "کرنومتر و تایمر استراحت بین ست‌ها",
+      "url": "./index.html#timer",
+      "icons": [{ "src": "icons/icon.svg", "sizes": "any" }]
+    }
+  ]
+}
