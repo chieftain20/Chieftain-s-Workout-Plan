@@ -1,7 +1,7 @@
-﻿{
-  "name": "برنامه هفتگی تمرین حاجی | Haji Workout",
-  "short_name": "برنامه حاجی",
-  "description": "برنامه تخصصی هفتگی تمرین با وزنه، تمرینات خانه و ریکاوری با ثبت ست‌ها و تایمر استراحت",
+{
+  "name": "برنامه تمرینی Hossein Chieftain",
+  "short_name": "تمرین Chieftain",
+  "description": "برنامه تخصصی هفتگی هایپرتروفی و ثبات مفاصل Hossein Chieftain با قابلیت ثبت ست‌ها و ساخت برنامه اختصاصی",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#090d16",
