@@ -14,12 +14,19 @@ function loadAppData() {
     const rawProfiles = localStorage.getItem('chieftain_profiles_v2');
     if (rawProfiles) {
       allProfiles = JSON.parse(rawProfiles);
+      // Ensure Hossein profile has default pin 'gym' if missing
+      const hProf = allProfiles.find(p => p.id === 'hossein_chieftain');
+      if (hProf && !hProf.pin) hProf.pin = 'gym';
     } else {
-      allProfiles = [HOSSEIN_PROFILE];
+      const defaultProf = JSON.parse(JSON.stringify(HOSSEIN_PROFILE));
+      defaultProf.pin = 'gym';
+      allProfiles = [defaultProf];
       localStorage.setItem('chieftain_profiles_v2', JSON.stringify(allProfiles));
     }
   } catch(e) {
-    allProfiles = [HOSSEIN_PROFILE];
+    const defaultProf = JSON.parse(JSON.stringify(HOSSEIN_PROFILE));
+    defaultProf.pin = 'gym';
+    allProfiles = [defaultProf];
   }
 
   const savedActiveId = localStorage.getItem('chieftain_active_profile_id');
@@ -290,6 +297,55 @@ function renderWorkoutDays() {
   container.innerHTML = daysHtml + summaryCardHtml;
 }
 
+// --- PIN & Access Control ---
+function requestEditPlanAccess() {
+  const prof = getActiveProfile();
+  if (prof.pin) {
+    document.getElementById('profilePinInput').value = '';
+    document.getElementById('pinErrorMsg').style.display = 'none';
+    document.getElementById('pinModal').classList.add('open');
+    setTimeout(() => document.getElementById('profilePinInput').focus(), 200);
+  } else {
+    openEditPlanModalDirect();
+  }
+}
+
+function closePinModal() {
+  document.getElementById('pinModal').classList.remove('open');
+}
+
+function confirmProfilePin() {
+  const prof = getActiveProfile();
+  const enteredPin = document.getElementById('profilePinInput').value.trim();
+
+  if (enteredPin === prof.pin) {
+    closePinModal();
+    openEditPlanModalDirect();
+  } else {
+    document.getElementById('pinErrorMsg').style.display = 'block';
+  }
+}
+
+function openEditPlanModalDirect() {
+  const prof = getActiveProfile();
+  document.getElementById('editPlanProfileBadge').innerText = 'برنامه: ' + prof.name;
+  document.getElementById('editProfilePinInput').value = prof.pin || '';
+  renderEditPlanDaysList();
+  document.getElementById('editPlanModal').classList.add('open');
+}
+
+function closeEditPlanModal() {
+  document.getElementById('editPlanModal').classList.remove('open');
+}
+
+function updateProfilePin() {
+  const prof = getActiveProfile();
+  const newPin = document.getElementById('editProfilePinInput').value.trim();
+  prof.pin = newPin;
+  saveProfiles();
+  alert(newPin ? `رمز عبور برنامه به "${newPin}" تغییر یافت.` : 'رمز عبور این برنامه حذف شد.');
+}
+
 // --- Profile Switching & Creation ---
 function onProfileChange(newId) {
   activeProfileId = newId;
@@ -299,6 +355,7 @@ function onProfileChange(newId) {
 
 function openNewProfileModal() {
   document.getElementById('newProfileName').value = '';
+  document.getElementById('newProfilePin').value = '';
   document.getElementById('newProfileModal').classList.add('open');
 }
 
@@ -314,6 +371,7 @@ function saveNewProfile() {
   }
 
   const template = document.getElementById('newProfileTemplate').value;
+  const pin = document.getElementById('newProfilePin').value.trim();
   const newId = 'prof_' + Date.now();
 
   let newDays = [];
@@ -329,6 +387,7 @@ function saveNewProfile() {
     id: newId,
     name: name,
     isDefault: false,
+    pin: pin,
     days: newDays
   };
 
@@ -347,13 +406,40 @@ function deleteActiveProfile() {
     return;
   }
 
-  if (confirm(`آیا از حذف برنامه "${prof.name}" اطمینان دارید؟`)) {
+  if (confirm(`آیا از حذف کامل برنامه "${prof.name}" اطمینان دارید؟`)) {
     allProfiles = allProfiles.filter(p => p.id !== prof.id);
     saveProfiles();
     activeProfileId = 'hossein_chieftain';
     localStorage.setItem('chieftain_active_profile_id', 'hossein_chieftain');
     closeEditPlanModal();
     renderApp();
+  }
+}
+
+function factoryResetActiveProfile() {
+  const prof = getActiveProfile();
+  if (confirm(`آیا می‌خواهید برنامه "${prof.name}" به تنظیمات اولیه کارخانه بازنشانی شود؟`)) {
+    if (prof.isDefault) {
+      prof.days = JSON.parse(JSON.stringify(HOSSEIN_PROFILE.days));
+      prof.pin = 'gym';
+    } else {
+      prof.days = JSON.parse(JSON.stringify(HOSSEIN_PROFILE.days));
+    }
+    saveProfiles();
+    renderEditPlanDaysList();
+    renderApp();
+    alert('برنامه به تنظیمات اولیه بازنشانی شد.');
+  }
+}
+
+function resetCurrentSets() {
+  const prof = getActiveProfile();
+  if (confirm(`آیا می‌خواهید تمام تیک‌های ثبت‌شده برای "${prof.name}" ریست شوند تا جلسه تمرینی جدید را شروع کنید؟`)) {
+    localStorage.removeItem('chieftain_sets_' + activeProfileId);
+    document.querySelectorAll('.set-btn').forEach(btn => btn.classList.remove('done'));
+    document.querySelectorAll('.exercise-card').forEach(card => card.classList.remove('completed'));
+    updateAllProgressBars();
+    alert('تمام ست‌ها ریست شدند. آماده تمرین جدید! 💪');
   }
 }
 
@@ -368,42 +454,94 @@ function exportActiveProfile() {
   downloadAnchor.remove();
 }
 
-// --- Routine Builder & Day Editor ---
-function openEditPlanModal() {
-  renderEditPlanDaysList();
-  document.getElementById('editPlanModal').classList.add('open');
-}
-
-function closeEditPlanModal() {
-  document.getElementById('editPlanModal').classList.remove('open');
-}
-
+// --- Detailed Routine & Exercise Editor ---
 function renderEditPlanDaysList() {
   const prof = getActiveProfile();
   const container = document.getElementById('editPlanDaysList');
 
-  container.innerHTML = prof.days.map((day, dIdx) => `
-    <div style="background:#152033; border:1px solid var(--border-color); border-radius:12px; padding:12px; margin-bottom:10px;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
-        <div style="display:flex; gap:6px; align-items:center;">
-          <input type="text" value="${day.title}" class="form-input" style="font-weight:700; width:120px; display:inline-block;" onchange="updateDayTitle(${dIdx}, this.value)">
-          <select class="form-select" style="width:110px; display:inline-block;" onchange="updateDayType(${dIdx}, this.value)">
-            <option value="gym" ${day.type==='gym'?'selected':''}>🏋️ باشگاه</option>
-            <option value="home" ${day.type==='home'?'selected':''}>🏠 خانه</option>
-            <option value="rest" ${day.type==='rest'?'selected':''}>🛌 استراحت</option>
-          </select>
+  container.innerHTML = prof.days.map((day, dIdx) => {
+    // Supersets List HTML
+    let supersetsHtml = '';
+    if (day.supersets && day.supersets.length > 0) {
+      supersetsHtml = day.supersets.map((ss, ssIdx) => `
+        <div style="background:#10192a; border:1px solid rgba(56,189,248,0.25); border-radius:10px; padding:10px; margin-bottom:8px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <span style="font-size:12px; font-weight:800; color:#38bdf8;">⚡ ${ss.title}</span>
+            <button class="btn-header-action" style="padding:2px 7px; font-size:11px; color:#f87171;" onclick="removeSuperset(${dIdx}, ${ssIdx})">حذف سوپرست</button>
+          </div>
+          ${ss.exercises.map((item, exIdx) => {
+            const ex = findExerciseById(item.exId);
+            return `
+              <div style="display:flex; justify-content:space-between; align-items:center; padding:4px 0; border-bottom:1px dashed rgba(255,255,255,0.05); font-size:12.5px;">
+                <span>${ex.fa}</span>
+                <div style="display:flex; gap:4px; align-items:center;">
+                  <input type="text" value="${item.reps || '3 × 8–12'}" class="form-input" style="width:90px; padding:3px 6px; font-size:11.5px; direction:ltr;" onchange="updateSsExReps(${dIdx}, ${ssIdx}, ${exIdx}, this.value)">
+                </div>
+              </div>
+            `;
+          }).join('')}
         </div>
-        <div style="display:flex; gap:6px;">
-          <button class="btn-header-action btn-action-primary" style="padding:4px 9px; font-size:11.5px" onclick="openAddExToDayModal('${day.id}')">+ حرکت</button>
-          <button class="btn-header-action" style="padding:4px 7px; color:#f87171;" onclick="removeDay(${dIdx})">✕</button>
+      `).join('');
+    }
+
+    // Singles List HTML
+    let singlesHtml = '';
+    if (day.singles && day.singles.length > 0) {
+      singlesHtml = day.singles.map((item, sIdx) => {
+        const ex = findExerciseById(item.exId);
+        return `
+          <div style="background:#10192a; border:1px solid var(--border-color); border-radius:8px; padding:8px 10px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:13px; font-weight:700; color:#fff;">${ex.fa}</span>
+              ${ex.en ? `<span style="font-size:11px; color:var(--accent-cyan); direction:ltr;">(${ex.en})</span>` : ''}
+            </div>
+            <div style="display:flex; gap:6px; align-items:center;">
+              <input type="text" value="${item.reps || '3 × 8–12'}" class="form-input" style="width:95px; padding:3px 6px; font-size:11.5px; direction:ltr;" title="تغییر ست و تکرار" onchange="updateSingleExReps(${dIdx}, ${sIdx}, this.value)">
+              <button class="btn-header-action" style="padding:2px 6px; font-size:11px;" title="انتقال به بالا" onclick="moveSingleEx(${dIdx}, ${sIdx}, -1)">▲</button>
+              <button class="btn-header-action" style="padding:2px 6px; font-size:11px;" title="انتقال به پایین" onclick="moveSingleEx(${dIdx}, ${sIdx}, 1)">▼</button>
+              <button class="btn-header-action" style="padding:2px 6px; font-size:11px; color:#f87171;" title="حذف حرکت" onclick="removeSingleEx(${dIdx}, ${sIdx})">✕</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    return `
+      <div style="background:#152033; border:1px solid var(--border-color); border-radius:14px; padding:14px; margin-bottom:14px;">
+        <!-- Day Header -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px; border-bottom:1px solid var(--border-color); padding-bottom:8px;">
+          <div style="display:flex; gap:6px; align-items:center;">
+            <input type="text" value="${day.title}" class="form-input" style="font-weight:800; width:110px; display:inline-block;" onchange="updateDayTitle(${dIdx}, this.value)">
+            <select class="form-select" style="width:110px; display:inline-block;" onchange="updateDayType(${dIdx}, this.value)">
+              <option value="gym" ${day.type==='gym'?'selected':''}>🏋️ باشگاه</option>
+              <option value="home" ${day.type==='home'?'selected':''}>🏠 خانه</option>
+              <option value="rest" ${day.type==='rest'?'selected':''}>🛌 استراحت</option>
+            </select>
+          </div>
+          <div style="display:flex; gap:6px;">
+            <button class="btn-header-action btn-action-primary" style="padding:5px 10px; font-size:12px;" onclick="openAddExToDayModal('${day.id}')">+ افزودن حرکت</button>
+            <button class="btn-header-action" style="padding:5px 8px; color:#f87171;" title="حذف روز" onclick="removeDay(${dIdx})">🗑️</button>
+          </div>
+        </div>
+
+        <!-- Note & Treadmill -->
+        <div style="display:flex; gap:10px; margin-bottom:10px; flex-wrap:wrap;">
+          <input type="text" value="${day.note || ''}" placeholder="یادداشت این جلسه..." class="form-input" style="flex:1; min-width:180px; font-size:12px;" onchange="updateDayNote(${dIdx}, this.value)">
+          <label style="display:flex; align-items:center; gap:5px; font-size:12px; color:#cbd5e1; cursor:pointer;">
+            <input type="checkbox" ${day.treadmill ? 'checked' : ''} onchange="updateDayTreadmill(${dIdx}, this.checked)">
+            🏃 تردمیل آخر جلسه
+          </label>
+        </div>
+
+        <!-- Exercises List -->
+        <div style="margin-top:8px;">
+          ${supersetsHtml}
+          ${singlesHtml}
+          ${(!supersetsHtml && !singlesHtml) ? '<div style="font-size:12px; color:var(--text-muted); text-align:center; padding:10px;">هنوز حرکتی برای این روز ثبت نشده است.</div>' : ''}
         </div>
       </div>
-      
-      <div style="font-size:12px; color:var(--text-muted);">
-        ${(day.supersets?.length || 0) + (day.singles?.length || 0)} بخش تمرینی ثبت شده
-      </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
 function updateDayTitle(dIdx, newTitle) {
@@ -420,16 +558,81 @@ function updateDayType(dIdx, newType) {
   renderApp();
 }
 
+function updateDayNote(dIdx, note) {
+  const prof = getActiveProfile();
+  prof.days[dIdx].note = note;
+  saveProfiles();
+  renderApp();
+}
+
+function updateDayTreadmill(dIdx, treadmill) {
+  const prof = getActiveProfile();
+  prof.days[dIdx].treadmill = treadmill;
+  saveProfiles();
+  renderApp();
+}
+
+function updateSingleExReps(dIdx, sIdx, reps) {
+  const prof = getActiveProfile();
+  prof.days[dIdx].singles[sIdx].reps = reps;
+  saveProfiles();
+  renderApp();
+}
+
+function moveSingleEx(dIdx, sIdx, dir) {
+  const prof = getActiveProfile();
+  const list = prof.days[dIdx].singles;
+  const targetIdx = sIdx + dir;
+  if (targetIdx < 0 || targetIdx >= list.length) return;
+  const temp = list[sIdx];
+  list[sIdx] = list[targetIdx];
+  list[targetIdx] = temp;
+  saveProfiles();
+  renderEditPlanDaysList();
+  renderApp();
+}
+
+function removeSingleEx(dIdx, sIdx) {
+  const prof = getActiveProfile();
+  const ex = findExerciseById(prof.days[dIdx].singles[sIdx].exId);
+  if (confirm(`آیا حرکت "${ex.fa}" حذف شود؟`)) {
+    prof.days[dIdx].singles.splice(sIdx, 1);
+    saveProfiles();
+    renderEditPlanDaysList();
+    renderApp();
+  }
+}
+
+function updateSsExReps(dIdx, ssIdx, exIdx, reps) {
+  const prof = getActiveProfile();
+  prof.days[dIdx].supersets[ssIdx].exercises[exIdx].reps = reps;
+  saveProfiles();
+  renderApp();
+}
+
+function removeSuperset(dIdx, ssIdx) {
+  const prof = getActiveProfile();
+  if (confirm(`آیا کل این سوپرست حذف شود؟`)) {
+    prof.days[dIdx].supersets.splice(ssIdx, 1);
+    saveProfiles();
+    renderEditPlanDaysList();
+    renderApp();
+  }
+}
+
 function removeDay(dIdx) {
   const prof = getActiveProfile();
   if (prof.days.length <= 1) {
     alert('حداقل یک روز باید در برنامه باقی بماند.');
     return;
   }
-  prof.days.splice(dIdx, 1);
-  saveProfiles();
-  renderEditPlanDaysList();
-  renderApp();
+  const dayTitle = prof.days[dIdx].title;
+  if (confirm(`آیا از حذف روز "${dayTitle}" و تمام حرکات داخل آن اطمینان دارید؟`)) {
+    prof.days.splice(dIdx, 1);
+    saveProfiles();
+    renderEditPlanDaysList();
+    renderApp();
+  }
 }
 
 function addNewDayToActiveProfile() {

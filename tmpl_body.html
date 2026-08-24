@@ -68,9 +68,14 @@
       <span>برنامه جدید</span>
     </button>
 
-    <button id="editPlanBtn" class="btn-header-action btn-action-primary" onclick="openEditPlanModal()" title="ویرایش و افزودن حرکات به این برنامه">
-      <span>✏️</span>
+    <button id="editPlanBtn" class="btn-header-action btn-action-primary" onclick="requestEditPlanAccess()" title="ویرایش و افزودن حرکات به این برنامه (نیازمند رمز عبور)">
+      <span>🔒</span>
       <span>ویرایش برنامه</span>
+    </button>
+
+    <button class="btn-header-action" onclick="resetCurrentSets()" title="ریست کردن تیک تمام ست‌های انجام‌شده برای جلسه جدید" style="color:#fcd34d; border-color:#fcd34d55;">
+      <span>🔄</span>
+      <span>ریست ست‌ها</span>
     </button>
 
     <button id="todayJumpBtn" class="btn-header-action" title="پرش به روز جاری">
