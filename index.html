@@ -21,7 +21,7 @@
 </head>
 <body>
 
-﻿<div class="container">
+<div class="container">
   <!-- Header -->
   <header>
     <div class="header-top">
@@ -68,6 +68,11 @@
       <span>بانک حرکات</span>
     </button>
 
+    <button class="btn-header-action" onclick="openMuscleWikiModal()" title="دسترسی به بانک جهانی و ویدیوهای تمام حرکات در MuscleWiki" style="border-color:#38bdf888; color:#38bdf8;">
+      <span>🌐</span>
+      <span>MuscleWiki</span>
+    </button>
+
     <button class="btn-header-action" onclick="openNewProfileModal()" title="ایجاد کاربر یا برنامه شخصی جدید">
       <span>➕</span>
       <span>برنامه جدید</span>
@@ -99,7 +104,7 @@
   <span id="fabTimerLabel">تایمر استراحت</span>
 </button>
 
-﻿<!-- Rest Timer Modal -->
+<!-- Rest Timer Modal -->
 <div id="timerModal" class="modal-overlay">
   <div class="modal-dialog" style="max-width: 360px; text-align: center;">
     <button class="modal-close-btn" onclick="closeTimerModal()">✕</button>
@@ -147,6 +152,86 @@
     </div>
 
     <div id="libraryListContainer" class="library-grid"></div>
+
+    <div style="margin-top:16px; padding:12px; background:#141f33; border:1px dashed var(--border-light); border-radius:12px; text-align:center;">
+      <div style="font-size:13px; font-weight:700; color:#38bdf8; margin-bottom:4px;">حرکت مورد نظرت رو پیدا نکردی؟</div>
+      <p style="font-size:11.5px; color:var(--text-muted); margin-bottom:8px;">می‌تونی در مرجع جهانی MuscleWiki تمام حرکات و ویدیوهای دنیا رو پیدا کنی:</p>
+      <button class="btn-header-action btn-action-primary" style="margin:0 auto; justify-content:center;" onclick="openMuscleWikiModal()">
+        🌐 باز کردن بانک جهانی MuscleWiki
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MuscleWiki Integration Modal -->
+<div id="muscleWikiModal" class="modal-overlay">
+  <div class="modal-dialog" style="max-width: 540px;">
+    <button class="modal-close-btn" onclick="closeMuscleWikiModal()">✕</button>
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+      <span style="font-size:24px;">🌐</span>
+      <h3 style="margin:0;">بانک جهانی حرکات MuscleWiki</h3>
+    </div>
+    <p style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 14px;">
+      دسترسی مستقیم به کامل‌ترین پایگاه داده حرکات بدنسازی با آناتومی و ویدیوهای آموزشی 4K:
+    </p>
+
+    <!-- Direct Search on MuscleWiki -->
+    <div style="background:#152033; border:1px solid var(--border-color); border-radius:12px; padding:12px; margin-bottom:14px;">
+      <label class="form-label">🔍 جستجوی مستقیم نام انگلیسی هر حرکت در MuscleWiki:</label>
+      <div style="display:flex; gap:6px;">
+        <input type="text" id="mwSearchQuery" class="form-input" placeholder="مثلاً: Bulgarian Split Squat, Arnold Press..." style="direction:ltr">
+        <button class="btn-header-action btn-action-primary" onclick="searchMuscleWikiDirect()" style="white-space:nowrap;">
+          جستجو ↗
+        </button>
+      </div>
+    </div>
+
+    <!-- Muscle Anatomy Quick Categories -->
+    <div style="font-size:12.5px; font-weight:700; color:#cbd5e1; margin-bottom:8px;">🎯 انتخاب بر اساس عضله هدف در MuscleWiki:</div>
+    <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:8px; margin-bottom:14px;">
+      <a href="https://musclewiki.com/exercises/male/chest" target="_blank" rel="noopener" class="btn-header-action" style="justify-content:flex-start; text-decoration:none;">
+        <span>🏋️‍♂️</span> <span>عضلات سینه (Chest)</span>
+      </a>
+      <a href="https://musclewiki.com/exercises/male/lats" target="_blank" rel="noopener" class="btn-header-action" style="justify-content:flex-start; text-decoration:none;">
+        <span>🦅</span> <span>زیر بغل و پشت (Lats/Back)</span>
+      </a>
+      <a href="https://musclewiki.com/exercises/male/quads" target="_blank" rel="noopener" class="btn-header-action" style="justify-content:flex-start; text-decoration:none;">
+        <span>🦵</span> <span>چهارسر ران (Quads)</span>
+      </a>
+      <a href="https://musclewiki.com/exercises/male/hamstrings" target="_blank" rel="noopener" class="btn-header-action" style="justify-content:flex-start; text-decoration:none;">
+        <span>🦵</span> <span>همسترینگ و باسن (Hamstrings)</span>
+      </a>
+      <a href="https://musclewiki.com/exercises/male/shoulders" target="_blank" rel="noopener" class="btn-header-action" style="justify-content:flex-start; text-decoration:none;">
+        <span>🎯</span> <span>سرشانه (Shoulders)</span>
+      </a>
+      <a href="https://musclewiki.com/exercises/male/biceps" target="_blank" rel="noopener" class="btn-header-action" style="justify-content:flex-start; text-decoration:none;">
+        <span>💪</span> <span>جلو بازو (Biceps)</span>
+      </a>
+      <a href="https://musclewiki.com/exercises/male/triceps" target="_blank" rel="noopener" class="btn-header-action" style="justify-content:flex-start; text-decoration:none;">
+        <span>⚡</span> <span>پشت بازو (Triceps)</span>
+      </a>
+      <a href="https://musclewiki.com/exercises/male/abdominals" target="_blank" rel="noopener" class="btn-header-action" style="justify-content:flex-start; text-decoration:none;">
+        <span>🧱</span> <span>شکم و Core (Abs)</span>
+      </a>
+      <a href="https://musclewiki.com/exercises/male/calves" target="_blank" rel="noopener" class="btn-header-action" style="justify-content:flex-start; text-decoration:none;">
+        <span>🦿</span> <span>ساق پا (Calves)</span>
+      </a>
+      <a href="https://musclewiki.com/exercises/male/traps" target="_blank" rel="noopener" class="btn-header-action" style="justify-content:flex-start; text-decoration:none;">
+        <span>🛡️</span> <span>کول و تراپز (Traps)</span>
+      </a>
+      <a href="https://musclewiki.com/bodyweight/male/chest" target="_blank" rel="noopener" class="btn-header-action" style="grid-column: span 2; justify-content:center; text-decoration:none; color:#34d399; border-color:#34d39955;">
+        <span>🏠</span> <span>تمرینات با وزن بدن و خانگی (Bodyweight)</span>
+      </a>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-color); padding-top:12px;">
+      <a href="https://musclewiki.com/" target="_blank" rel="noopener" class="btn-header-action" style="text-decoration:none;">
+        صفحه اصلی MuscleWiki ↗
+      </a>
+      <button class="btn-header-action btn-action-primary" onclick="closeMuscleWikiModal(); openCustomExerciseModal();">
+        + ثبت حرکت جدید در برنامه‌ام
+      </button>
+    </div>
   </div>
 </div>
 
@@ -165,7 +250,10 @@
     </div>
 
     <div class="form-group">
-      <label class="form-label">نام انگلیسی حرکت (اختیاری)</label>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+        <label class="form-label" style="margin:0;">نام انگلیسی حرکت (اختیاری)</label>
+        <a href="javascript:void(0)" onclick="searchMuscleWikiFromCustom()" style="font-size:11.5px; color:#38bdf8; text-decoration:none;">🔍 جستجو در MuscleWiki</a>
+      </div>
       <input type="text" id="custEnName" class="form-input" placeholder="e.g. Incline Neutral Dumbbell Press" style="direction:ltr">
     </div>
 
@@ -188,8 +276,8 @@
     </div>
 
     <div class="form-group">
-      <label class="form-label">لینک‌های ویدیو آموزشی (یوتیوب / اینستاگرام) - هر لینک در یک خط</label>
-      <textarea id="custVideos" class="form-input" rows="3" placeholder="https://youtube.com/shorts/...&#10;https://youtube.com/watch?v=..." style="direction:ltr"></textarea>
+      <label class="form-label">لینک‌های ویدیو آموزشی (یوتیوب / اینستاگرام / MuscleWiki) - هر لینک در یک خط</label>
+      <textarea id="custVideos" class="form-input" rows="3" placeholder="https://youtube.com/shorts/...&#10;https://musclewiki.com/..." style="direction:ltr"></textarea>
     </div>
 
     <button class="btn-header-action btn-action-primary" style="width:100%; justify-content:center; padding:11px;" onclick="saveCustomExercise()">
@@ -209,7 +297,7 @@
 
     <div class="form-group">
       <label class="form-label">نام کاربر یا عنوان برنامه *</label>
-      <input type="text" id="newProfileName" class="form-input" placeholder="مثلاً: برنامه اختصاصی آرش، برنامه حجم ۴ روزه">
+      <input type="text" id="newProfileName" class="form-input" placeholder="مثلاً: برنامه اختصاصی ببرعلی، برنامه حجم ۴ روزه">
     </div>
 
     <div class="form-group">
@@ -2153,7 +2241,7 @@ function closeLibraryModal() {
 function renderLibraryList(list) {
   const container = document.getElementById('libraryListContainer');
   if (!list || list.length === 0) {
-    container.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding:20px;">حرکتی با این مشخصات یافت نشد.</div>';
+    container.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding:20px;">حرکتی با این مشخصات یافت نشد. می‌توانید از بخش زیر در MuscleWiki جستجو کنید.</div>';
     return;
   }
 
@@ -2226,6 +2314,36 @@ function quickAddExFromLibrary(exId) {
   saveProfiles();
   renderApp();
   alert(`حرکت "${ex.fa}" به روز "${firstDay.title}" برنامه اضافه شد!`);
+}
+
+// --- MuscleWiki Integration Logic ---
+function openMuscleWikiModal() {
+  document.getElementById('muscleWikiModal').classList.add('open');
+}
+
+function closeMuscleWikiModal() {
+  document.getElementById('muscleWikiModal').classList.remove('open');
+}
+
+function searchMuscleWikiDirect() {
+  const query = document.getElementById('mwSearchQuery').value.trim();
+  if (!query) {
+    window.open('https://musclewiki.com/', '_blank');
+    return;
+  }
+  // Open MuscleWiki search or search query
+  const targetUrl = 'https://www.google.com/search?q=' + encodeURIComponent('site:musclewiki.com ' + query);
+  window.open(targetUrl, '_blank');
+}
+
+function searchMuscleWikiFromCustom() {
+  const en = document.getElementById('custEnName').value.trim() || document.getElementById('custFaName').value.trim();
+  if (!en) {
+    window.open('https://musclewiki.com/', '_blank');
+    return;
+  }
+  const targetUrl = 'https://www.google.com/search?q=' + encodeURIComponent('site:musclewiki.com ' + en);
+  window.open(targetUrl, '_blank');
 }
 
 // --- Custom Exercise Modal ---
