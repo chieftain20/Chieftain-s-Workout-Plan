@@ -1,0 +1,333 @@
+<!-- Rest Timer Modal -->
+<div id="timerModal" class="modal-overlay">
+  <div class="modal-dialog" style="max-width: 360px; text-align: center;">
+    <button class="modal-close-btn" onclick="closeTimerModal()">✕</button>
+    <h3 style="font-size: 16px; font-weight: 800; color: #fff; margin-bottom: 4px; justify-content: center;">⏱️ تایمر استراحت بین ست‌ها</h3>
+    <p style="font-size: 12px; color: var(--text-muted);">برای حفظ ریتم تمرین زمان استراحت را مدیریت کن</p>
+
+    <div class="timer-display" id="timerDisplay">01:30</div>
+
+    <div class="timer-presets">
+      <button class="preset-btn" onclick="setTimerDuration(45)">۴۵ ثانیه</button>
+      <button class="preset-btn" onclick="setTimerDuration(60)">۶۰ ثانیه</button>
+      <button class="preset-btn active" onclick="setTimerDuration(90)">۹۰ ثانیه</button>
+      <button class="preset-btn" onclick="setTimerDuration(120)">۲ دقیقه</button>
+    </div>
+
+    <div class="timer-controls">
+      <button id="startTimerBtn" class="timer-ctl-btn btn-start" onclick="toggleTimer()">شروع ⚡</button>
+      <button class="timer-ctl-btn btn-reset" onclick="resetTimer()">ریست ↺</button>
+    </div>
+  </div>
+</div>
+
+<!-- Master Exercise Library Explorer Modal -->
+<div id="libraryModal" class="modal-overlay">
+  <div class="modal-dialog">
+    <button class="modal-close-btn" onclick="closeLibraryModal()">✕</button>
+    <h3>📚 بانک جامع حرکات ورزشی (با تمام ویدیوها)</h3>
+    <p style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 12px;">
+      مرجع کامل تمام ۵۰+ حرکت تمرینی به همراه ویدیوهای آموزشی یوتیوب
+    </p>
+
+    <div style="display:flex; gap:8px; margin-bottom:12px;">
+      <input type="text" id="librarySearchInput" class="form-input" placeholder="جستجو در بانک حرکات (مثلاً: لت، پرس، سینه)..." oninput="filterLibrary(this.value)">
+      <button class="btn-header-action btn-action-primary" onclick="openCustomExerciseModal()">+ حرکت دلخواه</button>
+    </div>
+
+    <div id="libraryCategoryFilter" style="display:flex; gap:5px; flex-wrap:wrap; margin-bottom:12px;">
+      <button class="btn-header-action" onclick="filterLibraryCat('all')" style="padding:4px 9px; font-size:11.5px">همه</button>
+      <button class="btn-header-action" onclick="filterLibraryCat('gym')" style="padding:4px 9px; font-size:11.5px">🏋️ باشگاه</button>
+      <button class="btn-header-action" onclick="filterLibraryCat('home')" style="padding:4px 9px; font-size:11.5px">🏠 خانه / Core</button>
+      <button class="btn-header-action" onclick="filterLibraryCat('سینه')" style="padding:4px 9px; font-size:11.5px">سینه</button>
+      <button class="btn-header-action" onclick="filterLibraryCat('پا')" style="padding:4px 9px; font-size:11.5px">پا</button>
+      <button class="btn-header-action" onclick="filterLibraryCat('پشت')" style="padding:4px 9px; font-size:11.5px">پشت / زیر بغل</button>
+      <button class="btn-header-action" onclick="filterLibraryCat('سرشانه')" style="padding:4px 9px; font-size:11.5px">سرشانه</button>
+    </div>
+
+    <div id="libraryListContainer" class="library-grid"></div>
+
+    <div style="margin-top:16px; padding:12px; background:#141f33; border:1px dashed var(--border-light); border-radius:12px; text-align:center;">
+      <div style="font-size:13px; font-weight:700; color:#38bdf8; margin-bottom:4px;">حرکت مورد نظرت رو پیدا نکردی؟</div>
+      <p style="font-size:11.5px; color:var(--text-muted); margin-bottom:8px;">می‌تونی در مرجع جهانی MuscleWiki تمام حرکات و ویدیوهای دنیا رو پیدا کنی:</p>
+      <button class="btn-header-action btn-action-primary" style="margin:0 auto; justify-content:center;" onclick="openMuscleWikiModal()">
+        🌐 باز کردن بانک جهانی MuscleWiki
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MuscleWiki Integration Modal -->
+<div id="muscleWikiModal" class="modal-overlay">
+  <div class="modal-dialog" style="max-width: 540px;">
+    <button class="modal-close-btn" onclick="closeMuscleWikiModal()">✕</button>
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+      <span style="font-size:24px;">🌐</span>
+      <h3 style="margin:0;">بانک جهانی حرکات MuscleWiki</h3>
+    </div>
+    <p style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 14px;">
+      دسترسی مستقیم به کامل‌ترین پایگاه داده حرکات بدنسازی با آناتومی و ویدیوهای آموزشی 4K:
+    </p>
+
+    <!-- Direct Search on MuscleWiki -->
+    <div style="background:#152033; border:1px solid var(--border-color); border-radius:12px; padding:12px; margin-bottom:14px;">
+      <label class="form-label">🔍 جستجوی مستقیم نام انگلیسی هر حرکت در MuscleWiki:</label>
+      <div style="display:flex; gap:6px;">
+        <input type="text" id="mwSearchQuery" class="form-input" placeholder="مثلاً: Bulgarian Split Squat, Arnold Press..." style="direction:ltr">
+        <button class="btn-header-action btn-action-primary" onclick="searchMuscleWikiDirect()" style="white-space:nowrap;">
+          جستجو ↗
+        </button>
+      </div>
+    </div>
+
+    <!-- Muscle Anatomy Quick Categories -->
+    <div style="font-size:12.5px; font-weight:700; color:#cbd5e1; margin-bottom:8px;">🎯 انتخاب بر اساس عضله هدف در MuscleWiki:</div>
+    <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:8px; margin-bottom:14px;">
+      <a href="https://musclewiki.com/exercises/male/chest" target="_blank" rel="noopener" class="btn-header-action" style="justify-content:flex-start; text-decoration:none;">
+        <span>🏋️‍♂️</span> <span>عضلات سینه (Chest)</span>
+      </a>
+      <a href="https://musclewiki.com/exercises/male/lats" target="_blank" rel="noopener" class="btn-header-action" style="justify-content:flex-start; text-decoration:none;">
+        <span>🦅</span> <span>زیر بغل و پشت (Lats/Back)</span>
+      </a>
+      <a href="https://musclewiki.com/exercises/male/quads" target="_blank" rel="noopener" class="btn-header-action" style="justify-content:flex-start; text-decoration:none;">
+        <span>🦵</span> <span>چهارسر ران (Quads)</span>
+      </a>
+      <a href="https://musclewiki.com/exercises/male/hamstrings" target="_blank" rel="noopener" class="btn-header-action" style="justify-content:flex-start; text-decoration:none;">
+        <span>🦵</span> <span>همسترینگ و باسن (Hamstrings)</span>
+      </a>
+      <a href="https://musclewiki.com/exercises/male/shoulders" target="_blank" rel="noopener" class="btn-header-action" style="justify-content:flex-start; text-decoration:none;">
+        <span>🎯</span> <span>سرشانه (Shoulders)</span>
+      </a>
+      <a href="https://musclewiki.com/exercises/male/biceps" target="_blank" rel="noopener" class="btn-header-action" style="justify-content:flex-start; text-decoration:none;">
+        <span>💪</span> <span>جلو بازو (Biceps)</span>
+      </a>
+      <a href="https://musclewiki.com/exercises/male/triceps" target="_blank" rel="noopener" class="btn-header-action" style="justify-content:flex-start; text-decoration:none;">
+        <span>⚡</span> <span>پشت بازو (Triceps)</span>
+      </a>
+      <a href="https://musclewiki.com/exercises/male/abdominals" target="_blank" rel="noopener" class="btn-header-action" style="justify-content:flex-start; text-decoration:none;">
+        <span>🧱</span> <span>شکم و Core (Abs)</span>
+      </a>
+      <a href="https://musclewiki.com/exercises/male/calves" target="_blank" rel="noopener" class="btn-header-action" style="justify-content:flex-start; text-decoration:none;">
+        <span>🦿</span> <span>ساق پا (Calves)</span>
+      </a>
+      <a href="https://musclewiki.com/exercises/male/traps" target="_blank" rel="noopener" class="btn-header-action" style="justify-content:flex-start; text-decoration:none;">
+        <span>🛡️</span> <span>کول و تراپز (Traps)</span>
+      </a>
+      <a href="https://musclewiki.com/bodyweight/male/chest" target="_blank" rel="noopener" class="btn-header-action" style="grid-column: span 2; justify-content:center; text-decoration:none; color:#34d399; border-color:#34d39955;">
+        <span>🏠</span> <span>تمرینات با وزن بدن و خانگی (Bodyweight)</span>
+      </a>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-color); padding-top:12px;">
+      <a href="https://musclewiki.com/" target="_blank" rel="noopener" class="btn-header-action" style="text-decoration:none;">
+        صفحه اصلی MuscleWiki ↗
+      </a>
+      <button class="btn-header-action btn-action-primary" onclick="closeMuscleWikiModal(); openCustomExerciseModal();">
+        + ثبت حرکت جدید در برنامه‌ام
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Exercise Creator Modal -->
+<div id="customExerciseModal" class="modal-overlay">
+  <div class="modal-dialog" style="max-width: 460px;">
+    <button class="modal-close-btn" onclick="closeCustomExerciseModal()">✕</button>
+    <h3>➕ ثبت حرکت تمرینی دلخواه جدید</h3>
+    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
+      حرکت جدید خود را به بانک حرکات اضافه کنید تا در برنامه‌ها قابل انتخاب باشد.
+    </p>
+
+    <div class="form-group">
+      <label class="form-label">نام فارسی حرکت *</label>
+      <input type="text" id="custFaName" class="form-input" placeholder="مثلاً: پرس بالا سینه دمبل موازی">
+    </div>
+
+    <div class="form-group">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+        <label class="form-label" style="margin:0;">نام انگلیسی حرکت (اختیاری)</label>
+        <a href="javascript:void(0)" onclick="searchMuscleWikiFromCustom()" style="font-size:11.5px; color:#38bdf8; text-decoration:none;">🔍 جستجو در MuscleWiki</a>
+      </div>
+      <input type="text" id="custEnName" class="form-input" placeholder="e.g. Incline Neutral Dumbbell Press" style="direction:ltr">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">محیط تمرین</label>
+      <select id="custCategory" class="form-select">
+        <option value="gym">🏋️ باشگاه</option>
+        <option value="home">🏠 خانه / بدون وسیله</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">عضلات هدف</label>
+      <input type="text" id="custMuscles" class="form-input" placeholder="مثلاً: بالا سینه، پشت بازو">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">ست و تکرار پیشنهادی</label>
+      <input type="text" id="custReps" class="form-input" placeholder="مثلاً: 3 × 10–12" style="direction:ltr">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">لینک‌های ویدیو آموزشی (یوتیوب / اینستاگرام / MuscleWiki) - هر لینک در یک خط</label>
+      <textarea id="custVideos" class="form-input" rows="3" placeholder="https://youtube.com/shorts/...&#10;https://musclewiki.com/..." style="direction:ltr"></textarea>
+    </div>
+
+    <button class="btn-header-action btn-action-primary" style="width:100%; justify-content:center; padding:11px;" onclick="saveCustomExercise()">
+      💾 ذخیره حرکت در بانک حرکات
+    </button>
+  </div>
+</div>
+
+<!-- New Profile / Plan Modal -->
+<div id="newProfileModal" class="modal-overlay">
+  <div class="modal-dialog" style="max-width: 440px;">
+    <button class="modal-close-btn" onclick="closeNewProfileModal()">✕</button>
+    <h3>👤 ایجاد کاربر یا برنامه تمرینی جدید</h3>
+    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
+      یک پروفایل مجزا بسازید تا برنامه، ست‌ها و روزهای شخصی خود را داشته باشید.
+    </p>
+
+    <div class="form-group">
+      <label class="form-label">نام کاربر یا عنوان برنامه *</label>
+      <input type="text" id="newProfileName" class="form-input" placeholder="مثلاً: برنامه اختصاصی ببرعلی، برنامه حجم ۴ روزه">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">قالب اولیه برنامه</label>
+      <select id="newProfileTemplate" class="form-select">
+        <option value="clone">کپی از برنامه Hossein Chieftain (شروع سریع با امکان ویرایش)</option>
+        <option value="empty">شروع از برنامه خالی (صفحه سفید)</option>
+      </select>
+    </div>
+
+    <button class="btn-header-action btn-action-primary" style="width:100%; justify-content:center; padding:11px;" onclick="saveNewProfile()">
+      ✨ ساخت برنامه شخصی جدید
+    </button>
+  </div>
+</div>
+
+<!-- Edit Plan / Routine Builder Modal -->
+<div id="editPlanModal" class="modal-overlay">
+  <div class="modal-dialog">
+    <button class="modal-close-btn" onclick="closeEditPlanModal()">✕</button>
+    <h3>✏️ ویرایش و شخصی‌سازی برنامه</h3>
+    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
+      حرکات، سوپرست‌ها یا روزهای برنامه فعال را کم یا زیاد کنید.
+    </p>
+
+    <div id="editPlanDaysList"></div>
+
+    <div style="display:flex; gap:8px; margin-top:16px;">
+      <button class="btn-header-action btn-action-primary" onclick="addNewDayToActiveProfile()" style="flex:1; justify-content:center;">
+        + افزودن روز تمرینی جدید
+      </button>
+      <button class="btn-header-action" onclick="exportActiveProfile()" style="padding:10px 14px;" title="خروجی گرفتن فایل JSON برنامه">
+        📥 خروجی (JSON)
+      </button>
+      <button id="deleteProfileBtn" class="btn-header-action" onclick="deleteActiveProfile()" style="color:#f87171; border-color:#f8717155;" title="حذف این پروفایل">
+        🗑️ حذف
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Exercise to Day Modal -->
+<div id="addExToDayModal" class="modal-overlay">
+  <div class="modal-dialog" style="max-width: 480px;">
+    <button class="modal-close-btn" onclick="closeAddExToDayModal()">✕</button>
+    <h3 id="addExModalTitle">➕ افزودن حرکت به روز تمرین</h3>
+
+    <div class="form-group">
+      <label class="form-label">نوع افزودن</label>
+      <select id="addExType" class="form-select" onchange="onAddExTypeChange(this.value)">
+        <option value="single">حرکت تکی</option>
+        <option value="superset">سوپرست (۲ حرکت متوالی)</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">انتخاب حرکت اول *</label>
+      <select id="addExSelect1" class="form-select"></select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">ست و تکرار حرکت اول</label>
+      <input type="text" id="addExReps1" class="form-input" value="3 × 8–12" style="direction:ltr">
+    </div>
+
+    <div id="supersetSecondExGroup" style="display:none; border-top:1px dashed var(--border-color); padding-top:12px; margin-top:12px;">
+      <div class="form-group">
+        <label class="form-label">عنوان سوپرست</label>
+        <input type="text" id="addSupersetTitle" class="form-input" placeholder="مثلاً: A1 + A2 · پرس پا + ریورس پک‌دک">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">انتخاب حرکت دوم *</label>
+        <select id="addExSelect2" class="form-select"></select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">ست و تکرار حرکت دوم</label>
+        <input type="text" id="addExReps2" class="form-input" value="3 × 12–20" style="direction:ltr">
+      </div>
+    </div>
+
+    <button class="btn-header-action btn-action-primary" style="width:100%; justify-content:center; padding:11px; margin-top:10px;" onclick="confirmAddExerciseToDay()">
+      ➕ اضافه کردن به برنامه
+    </button>
+  </div>
+</div>
+
+<!-- PWA Install Guide Modal (for iOS & Android Guide) -->
+<div id="installGuideModal" class="modal-overlay">
+  <div class="modal-dialog" style="max-width: 440px;">
+    <button class="modal-close-btn" onclick="closeInstallGuide()">✕</button>
+    <h3>📲 نحوه نصب برنامه روی گوشی</h3>
+
+    <div id="iosGuideContent">
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">
+        برای نصب این صفحه به شکل اپلیکیشن اختصاصی روی آیفون (iOS Safari):
+      </p>
+      
+      <div style="display:flex; align-items:flex-start; gap:12px; margin-bottom:14px; background:rgba(30,41,59,0.5); border:1px solid var(--border-color); border-radius:10px; padding:12px;">
+        <div style="width:28px; height:28px; border-radius:50%; background:#38bdf8; color:#090d16; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:13px;">۱</div>
+        <div style="font-size:13px; color:#e2e8f0; line-height:1.6;">در نوار ابزار پایین یا بالای مرورگر Safari، دکمه <strong>اشتراک‌گذاری (Share ⎋)</strong> را تپ کنید.</div>
+      </div>
+
+      <div style="display:flex; align-items:flex-start; gap:12px; margin-bottom:14px; background:rgba(30,41,59,0.5); border:1px solid var(--border-color); border-radius:10px; padding:12px;">
+        <div style="width:28px; height:28px; border-radius:50%; background:#38bdf8; color:#090d16; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:13px;">۲</div>
+        <div style="font-size:13px; color:#e2e8f0; line-height:1.6;">در منوی باز شده به پایین اسکرول کرده و گزینه <strong>Add to Home Screen (افزودن به صفحه اصلی ➕)</strong> را انتخاب نمایید.</div>
+      </div>
+
+      <div style="display:flex; align-items:flex-start; gap:12px; margin-bottom:14px; background:rgba(30,41,59,0.5); border:1px solid var(--border-color); border-radius:10px; padding:12px;">
+        <div style="width:28px; height:28px; border-radius:50%; background:#38bdf8; color:#090d16; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:13px;">۳</div>
+        <div style="font-size:13px; color:#e2e8f0; line-height:1.6;">در گوشه بالای صفحه روی دکمه <strong>Add (افزودن)</strong> بزنید. آیکون برنامه در صفحه اصلی گوشی ذخیره می‌شود!</div>
+      </div>
+    </div>
+
+    <div id="androidGuideContent" style="display:none;">
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">
+        روی دکمه زیر تپ کنید تا برنامه مستقیماً روی دستگاه اندرویدی شما نصب شود:
+      </p>
+      <button id="triggerNativeInstall" class="btn-header-action btn-action-primary" style="width:100%; justify-content:center; font-weight:800; padding:12px;">
+        📲 نصب سریع برنامه روی گوشی
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Install Banner -->
+<div id="installBanner" class="install-banner">
+  <div class="install-banner-inner">
+    <div class="install-banner-text">
+      <b>📲 نصب نسخه اپلیکیشن Chieftain Workout</b>
+      <span>دسترسی سریع و آفلاین بدون نیاز به باز کردن مرورگر</span>
+    </div>
+    <div class="install-banner-actions">
+      <button id="bannerInstallBtn" class="btn-install-now">نصب اپ</button>
+      <button class="btn-banner-close" onclick="dismissBanner()">✕</button>
+    </div>
+  </div>
+</div>

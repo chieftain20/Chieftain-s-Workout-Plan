@@ -1,0 +1,82 @@
+<div class="container">
+  <!-- Header -->
+  <header>
+    <div class="header-top">
+      <div class="brand-title">
+        <div class="brand-logo">
+          <svg viewBox="0 0 24 24">
+            <path d="M20.57 14.86L22 13.43L20.57 12L17 15.57L8.43 7L12 3.43L10.57 2L9.14 3.43L7.71 2L5.57 4.14L4.14 2.71L2.71 4.14L4.14 5.57L2 7.71L3.43 9.14L2 10.57L5.57 14.14L14.14 22.71L17.71 19.14L19.14 20.57L20.57 19.14L19.14 17.71L21.29 15.57L19.86 14.14L21.29 12.71L20.57 14.86Z"/>
+          </svg>
+        </div>
+        <div>
+          <h1 id="appTitle">برنامه تمرینی Hossein Chieftain</h1>
+          <div class="header-subtitle" id="greetingText">برنامه تخصصی هایپرتروفی، ثبات مفاصل و کنترل تنه</div>
+        </div>
+      </div>
+
+      <div class="header-controls">
+        <div class="profile-selector-wrap">
+          <span style="font-size:12px; color:var(--text-muted)">👤 کاربر:</span>
+          <select id="profileSelect" class="profile-select" onchange="onProfileChange(this.value)"></select>
+        </div>
+        <button id="headerInstallBtn" class="btn-header-action">
+          <span>📲</span>
+          <span>نصب اپ</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="header-badges" id="headerBadges">
+      <div class="header-badge">🏋️ شنبه، دوشنبه، پنجشنبه: باشگاه</div>
+      <div class="header-badge">🏠 یکشنبه، سه‌شنبه، جمعه: خانه</div>
+      <div class="header-badge">🛌 چهارشنبه: استراحت کامل</div>
+    </div>
+  </header>
+
+  <!-- Actions Toolbar -->
+  <div class="action-row">
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" class="search-input" placeholder="جستجوی حرکت یا عضله هدف در برنامه...">
+    </div>
+    
+    <button class="btn-header-action" onclick="openLibraryModal()" title="مشاهده بانک کامل تمام حرکات با ویدیو">
+      <span>📚</span>
+      <span>بانک حرکات</span>
+    </button>
+
+    <button class="btn-header-action" onclick="openMuscleWikiModal()" title="دسترسی به بانک جهانی و ویدیوهای تمام حرکات در MuscleWiki" style="border-color:#38bdf888; color:#38bdf8;">
+      <span>🌐</span>
+      <span>MuscleWiki</span>
+    </button>
+
+    <button class="btn-header-action" onclick="openNewProfileModal()" title="ایجاد کاربر یا برنامه شخصی جدید">
+      <span>➕</span>
+      <span>برنامه جدید</span>
+    </button>
+
+    <button id="editPlanBtn" class="btn-header-action btn-action-primary" onclick="openEditPlanModal()" title="ویرایش و افزودن حرکات به این برنامه">
+      <span>✏️</span>
+      <span>ویرایش برنامه</span>
+    </button>
+
+    <button id="todayJumpBtn" class="btn-header-action" title="پرش به روز جاری">
+      <span>🎯</span>
+      <span>امروز</span>
+    </button>
+  </div>
+
+  <!-- Day Navigation Bar -->
+  <div class="nav-container">
+    <nav id="dayNav"></nav>
+  </div>
+
+  <!-- Main Workout Content -->
+  <main id="workoutContent"></main>
+</div>
+
+<!-- Floating Rest Timer Button -->
+<button id="openTimerBtn" class="timer-fab">
+  <span>⏱️</span>
+  <span id="fabTimerLabel">تایمر استراحت</span>
+</button>
