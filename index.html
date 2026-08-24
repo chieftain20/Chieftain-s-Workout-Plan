@@ -1,346 +1,27 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>برنامه هفتگی تمرین حاجی | Haji Workout Pro</title>
-  
-  <!-- PWA & Mobile Meta Tags -->
+  <title>برنامه تمرینی Hossein Chieftain | Chieftain Workout Pro</title>
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#090d16">
   <meta name="background-color" content="#090d16">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="برنامه حاجی">
+  <meta name="apple-mobile-web-app-title" content="تمرین Chieftain">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
-
-  <!-- Google Fonts - Vazirmatn -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-
-  <style>
-/* Haji Workout Pro Styling */
-:root {
-  --bg-main: #070a11;
-  --bg-card: #0f1726;
-  --bg-card-elevated: #162035;
-  --bg-superset: rgba(22, 32, 53, 0.65);
-  --border-color: #1e2c42;
-  --border-light: #2c3e5a;
-  --accent-cyan: #00f2fe;
-  --accent-teal: #00e599;
-  --accent-emerald: #10b981;
-  --accent-amber: #f59e0b;
-  --accent-blue: #3b82f6;
-  --accent-purple: #8b5cf6;
-  --text-main: #f1f5f9;
-  --text-muted: #94a3b8;
-  --text-sub: #cbd5e1;
-  --radius-sm: 10px;
-  --radius-md: 16px;
-  --radius-lg: 22px;
-  --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.4);
-  --shadow-glow: 0 0 25px rgba(0, 242, 254, 0.18);
-}
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-body {
-  background-color: var(--bg-main);
-  color: var(--text-main);
-  font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Tahoma, sans-serif;
-  line-height: 1.7;
-  min-height: 100vh;
-  overflow-x: hidden;
-  padding-bottom: 90px;
-  background-image: 
-    radial-gradient(circle at 15% 15%, rgba(0, 242, 254, 0.04) 0%, transparent 40%),
-    radial-gradient(circle at 85% 85%, rgba(0, 229, 153, 0.04) 0%, transparent 40%);
-  background-attachment: fixed;
-}
-.container { max-width: 920px; margin: 0 auto; padding: 16px 14px; }
-header {
-  background: linear-gradient(145deg, #10192a, #0b111e);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  padding: 22px 18px;
-  position: relative;
-  overflow: hidden;
-  box-shadow: var(--shadow-card);
-  margin-bottom: 16px;
-}
-header::before {
-  content: '';
-  position: absolute;
-  top: 0; right: 0; width: 150px; height: 150px;
-  background: radial-gradient(circle, rgba(0, 242, 254, 0.12) 0%, transparent 70%);
-  pointer-events: none;
-}
-.header-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
-.brand-title { display: flex; align-items: center; gap: 10px; }
-.brand-logo {
-  width: 44px; height: 44px; border-radius: 12px;
-  background: linear-gradient(135deg, #00f2fe, #00e599);
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 4px 15px rgba(0, 229, 153, 0.35);
-}
-.brand-logo svg { width: 26px; height: 26px; fill: #090d16; }
-h1 {
-  font-size: 20px; font-weight: 800;
-  background: linear-gradient(90deg, #ffffff, #e2e8f0);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0;
-}
-.header-subtitle { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
-.header-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
-.header-badge {
-  background: rgba(30, 44, 66, 0.7); border: 1px solid var(--border-color);
-  color: #93c5fd; font-size: 11.5px; padding: 4px 10px; border-radius: 20px;
-  display: inline-flex; align-items: center; gap: 5px;
-}
-.action-row { display: flex; gap: 8px; margin-bottom: 14px; align-items: center; }
-.search-box { flex: 1; position: relative; }
-.search-input {
-  width: 100%; background: var(--bg-card); border: 1px solid var(--border-color);
-  border-radius: var(--radius-md); padding: 10px 38px 10px 14px;
-  color: #fff; font-family: inherit; font-size: 13.5px; outline: none; transition: all 0.2s ease;
-}
-.search-input:focus { border-color: var(--accent-cyan); box-shadow: 0 0 12px rgba(0, 242, 254, 0.2); }
-.search-icon { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
-.btn-header-action {
-  background: linear-gradient(135deg, #1e293b, #0f172a);
-  border: 1px solid var(--border-color); color: #f1f5f9;
-  font-family: inherit; font-size: 13px; font-weight: 600; padding: 10px 14px;
-  border-radius: var(--radius-md); cursor: pointer; display: flex; align-items: center; gap: 6px;
-  transition: all 0.2s ease; white-space: nowrap;
-}
-.btn-header-action:hover, .btn-header-action:active { border-color: var(--accent-cyan); color: var(--accent-cyan); transform: translateY(-1px); }
-.nav-container { position: sticky; top: 8px; z-index: 100; margin-bottom: 18px; }
-nav {
-  display: flex; gap: 6px; padding: 8px;
-  background: rgba(15, 23, 38, 0.88); border: 1px solid var(--border-color);
-  border-radius: var(--radius-md); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-  overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
-}
-nav::-webkit-scrollbar { display: none; }
-.nav-tab {
-  flex: 0 0 auto; padding: 8px 13px; border-radius: 11px; font-size: 13px;
-  font-weight: 600; color: var(--text-muted); background: transparent;
-  border: 1px solid transparent; text-decoration: none; display: flex; align-items: center; gap: 6px;
-  transition: all 0.2s ease; cursor: pointer;
-}
-.nav-tab.active {
-  background: linear-gradient(135deg, #1e3a5f, #152744); color: #38bdf8;
-  border-color: #38bdf866; box-shadow: 0 2px 10px rgba(56, 189, 248, 0.2);
-}
-.nav-tab .tab-badge { font-size: 10px; padding: 2px 6px; border-radius: 6px; background: rgba(255, 255, 255, 0.08); }
-.nav-tab.is-today { position: relative; }
-.nav-tab.is-today::after {
-  content: ''; position: absolute; top: 4px; left: 4px; width: 6px; height: 6px;
-  background: #10b981; border-radius: 50%; box-shadow: 0 0 6px #10b981;
-}
-.day-section {
-  background: var(--bg-card); border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg); padding: 20px 16px; margin-bottom: 22px;
-  box-shadow: var(--shadow-card); scroll-margin-top: 75px; transition: border-color 0.2s ease;
-}
-.day-section.today-highlight {
-  border-color: rgba(0, 242, 254, 0.4); box-shadow: var(--shadow-card), 0 0 20px rgba(0, 242, 254, 0.08);
-}
-.day-header {
-  display: flex; justify-content: space-between; align-items: center;
-  margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);
-  flex-wrap: wrap; gap: 8px;
-}
-.day-title-wrap { display: flex; align-items: center; gap: 10px; }
-.day-title { font-size: 18px; font-weight: 800; color: #fff; margin: 0; }
-.day-location-badge { font-size: 11.5px; font-weight: 700; padding: 3px 10px; border-radius: 20px; display: inline-flex; align-items: center; gap: 4px; }
-.badge-gym { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
-.badge-home { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
-.badge-rest { background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); }
-.day-progress-wrap { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); }
-.day-progress-bar { width: 80px; height: 6px; background: #1e293b; border-radius: 99px; overflow: hidden; }
-.day-progress-fill { height: 100%; background: linear-gradient(90deg, #00e599, #00f2fe); width: 0%; transition: width 0.3s ease; }
-.session-note {
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.7));
-  border: 1px solid var(--border-color); border-right: 4px solid var(--accent-amber);
-  border-radius: var(--radius-sm); padding: 10px 14px; font-size: 12.5px;
-  color: #e2e8f0; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
-}
-.superset-block {
-  background: var(--bg-superset); border: 1px solid var(--border-color);
-  border-radius: var(--radius-md); padding: 12px; margin-bottom: 14px; position: relative;
-}
-.superset-header {
-  display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 800;
-  color: #38bdf8; background: rgba(14, 165, 233, 0.12); padding: 5px 10px;
-  border-radius: 8px; margin-bottom: 10px; width: fit-content; border: 1px solid rgba(56, 189, 248, 0.25);
-}
-.exercise-card {
-  background: var(--bg-card-elevated); border: 1px solid var(--border-color);
-  border-radius: 14px; padding: 14px; margin-bottom: 10px; transition: all 0.2s ease; position: relative;
-}
-.exercise-card:last-child { margin-bottom: 0; }
-.exercise-card:hover { border-color: var(--border-light); }
-.exercise-card.completed { background: rgba(16, 26, 42, 0.6); border-color: rgba(16, 185, 129, 0.35); opacity: 0.85; }
-.exercise-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
-.exercise-name-fa { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 2px; display: flex; align-items: center; gap: 6px; }
-.exercise-name-en { font-size: 12px; color: var(--accent-cyan); font-family: Arial, sans-serif; direction: ltr; text-align: right; font-weight: 500; }
-.reps-badge {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.18), rgba(217, 119, 6, 0.25));
-  border: 1px solid rgba(245, 158, 11, 0.45); color: #fcd34d; font-size: 13px; font-weight: 800;
-  padding: 4px 10px; border-radius: 8px; white-space: nowrap; direction: ltr; letter-spacing: 0.5px;
-}
-.muscles-row { display: flex; flex-wrap: wrap; gap: 5px; margin: 8px 0; }
-.muscle-tag { font-size: 11px; background: rgba(30, 41, 59, 0.8); color: #cbd5e1; padding: 2px 8px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.05); }
-.card-footer { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255, 255, 255, 0.04); }
-.video-btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  background: linear-gradient(135deg, rgba(14, 165, 233, 0.15), rgba(2, 132, 199, 0.25));
-  border: 1px solid rgba(56, 189, 248, 0.35); color: #7dd3fc; font-size: 12px; font-weight: 600;
-  padding: 5px 11px; border-radius: 8px; text-decoration: none; transition: all 0.2s ease;
-}
-.video-btn:hover { background: rgba(14, 165, 233, 0.3); color: #fff; border-color: #38bdf8; }
-.video-missing { font-size: 11.5px; color: var(--text-muted); }
-.sets-tracker { display: flex; align-items: center; gap: 6px; }
-.set-btn {
-  width: 32px; height: 32px; border-radius: 8px; background: #1e293b; border: 1px solid #334155;
-  color: #cbd5e1; font-size: 12px; font-weight: 700; font-family: inherit; cursor: pointer;
-  display: flex; align-items: center; justify-content: center; transition: all 0.15s ease;
-}
-.set-btn.done {
-  background: linear-gradient(135deg, #059669, #10b981); border-color: #10b981; color: #ffffff;
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);
-}
-.treadmill-banner {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.12), rgba(185, 28, 28, 0.18));
-  border: 1px solid rgba(239, 68, 68, 0.3); border-radius: var(--radius-sm);
-  padding: 12px 14px; color: #fca5a5; font-size: 13.5px; font-weight: 700;
-  display: flex; justify-content: space-between; align-items: center; margin-top: 14px;
-}
-.rest-day-card {
-  text-align: center; padding: 35px 20px; background: linear-gradient(145deg, #131a29, #0e1420);
-  border-radius: var(--radius-md); border: 1px dashed #334155;
-}
-.rest-day-card .rest-icon { font-size: 40px; margin-bottom: 10px; }
-.rest-day-card h3 { font-size: 17px; color: #e2e8f0; margin-bottom: 6px; }
-.rest-day-card p { font-size: 13px; color: var(--text-muted); max-width: 420px; margin: 0 auto; }
-.summary-card {
-  background: var(--bg-card); border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg); padding: 20px 16px; margin-bottom: 22px;
-  box-shadow: var(--shadow-card); scroll-margin-top: 75px;
-}
-.table-container { overflow-x: auto; border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-top: 12px; }
-table { width: 100%; border-collapse: collapse; text-align: right; font-size: 13px; }
-th { background: #162035; color: #fcd34d; font-weight: 700; padding: 12px 14px; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
-td { padding: 11px 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.04); color: #cbd5e1; }
-tr:nth-child(even) td { background: rgba(255, 255, 255, 0.015); }
-.set-highlight { font-weight: 800; color: #38bdf8; background: rgba(56, 189, 248, 0.12); padding: 2px 8px; border-radius: 6px; display: inline-block; }
-.timer-fab {
-  position: fixed; bottom: 20px; left: 18px; z-index: 990;
-  background: linear-gradient(135deg, #0ea5e9, #0284c7); color: #ffffff;
-  border: none; border-radius: 50px; padding: 12px 18px; font-family: inherit;
-  font-size: 13.5px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 8px;
-  box-shadow: 0 8px 25px rgba(14, 165, 233, 0.45); transition: all 0.2s ease;
-}
-.timer-fab:hover { transform: scale(1.04); box-shadow: 0 10px 30px rgba(14, 165, 233, 0.6); }
-.timer-fab.running {
-  background: linear-gradient(135deg, #10b981, #059669);
-  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.45); animation: pulseTimer 1.5s infinite;
-}
-@keyframes pulseTimer { 0% { transform: scale(1); } 50% { transform: scale(1.03); } 100% { transform: scale(1); } }
-.timer-modal {
-  display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-  z-index: 1000; align-items: center; justify-content: center; padding: 16px;
-}
-.timer-modal.open { display: flex; }
-.timer-dialog {
-  background: #0f172a; border: 1px solid var(--border-light);
-  border-radius: var(--radius-lg); width: 100%; max-width: 360px;
-  padding: 24px 20px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.6); position: relative;
-}
-.timer-close-btn {
-  position: absolute; top: 14px; left: 14px; background: #1e293b;
-  border: none; color: #94a3b8; width: 32px; height: 32px; border-radius: 50%;
-  cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center;
-}
-.timer-display {
-  font-size: 54px; font-weight: 900; font-family: Arial, sans-serif;
-  color: #38bdf8; letter-spacing: 2px; margin: 12px 0; text-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
-}
-.timer-presets { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 16px; }
-.preset-btn {
-  background: #1e293b; border: 1px solid #334155; color: #e2e8f0;
-  padding: 8px 0; border-radius: 8px; font-family: inherit; font-size: 12px;
-  font-weight: 700; cursor: pointer; transition: all 0.15s;
-}
-.preset-btn:hover, .preset-btn.active { background: #38bdf8; color: #0f172a; border-color: #38bdf8; }
-.timer-controls { display: flex; gap: 8px; justify-content: center; }
-.timer-ctl-btn {
-  flex: 1; padding: 10px; border-radius: 10px; font-family: inherit;
-  font-size: 14px; font-weight: 800; border: none; cursor: pointer; transition: all 0.2s;
-}
-.btn-start { background: linear-gradient(135deg, #10b981, #059669); color: #fff; }
-.btn-pause { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; }
-.btn-reset { background: #1e293b; color: #cbd5e1; border: 1px solid #334155; }
-.install-modal {
-  display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-  z-index: 1050; align-items: center; justify-content: center; padding: 16px;
-}
-.install-modal.open { display: flex; }
-.install-dialog {
-  background: #10192a; border: 1px solid var(--border-light);
-  border-radius: var(--radius-lg); width: 100%; max-width: 440px;
-  padding: 24px; position: relative; box-shadow: 0 25px 50px rgba(0,0,0,0.7);
-}
-.install-dialog h3 { font-size: 18px; font-weight: 800; color: #fff; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-.install-step {
-  display: flex; align-items: flex-start; gap: 12px; margin-bottom: 14px;
-  background: rgba(30, 41, 59, 0.5); border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm); padding: 12px;
-}
-.install-step-num {
-  width: 28px; height: 28px; border-radius: 50%; background: #38bdf8;
-  color: #090d16; font-weight: 800; display: flex; align-items: center;
-  justify-content: center; flex-shrink: 0; font-size: 13px;
-}
-.install-step-text { font-size: 13px; color: #e2e8f0; line-height: 1.6; }
-.install-step-text strong { color: #38bdf8; }
-.install-banner {
-  display: none; position: fixed; bottom: 12px; left: 12px; right: 12px;
-  max-width: 500px; margin: 0 auto; z-index: 900;
-  background: linear-gradient(135deg, #132034, #0d1522);
-  border: 1px solid #38bdf866; border-radius: 16px; padding: 12px 16px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.7), 0 0 15px rgba(56, 189, 248, 0.2);
-}
-.install-banner-inner { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.install-banner-text b { display: block; font-size: 14px; color: #fff; }
-.install-banner-text span { font-size: 11.5px; color: var(--text-muted); }
-.install-banner-actions { display: flex; align-items: center; gap: 6px; }
-.btn-install-now {
-  background: linear-gradient(135deg, #00f2fe, #00e599); color: #071018;
-  border: none; border-radius: 10px; padding: 8px 14px; font-family: inherit;
-  font-size: 12.5px; font-weight: 800; cursor: pointer; white-space: nowrap;
-}
-.btn-banner-close { background: transparent; border: none; color: #64748b; font-size: 18px; cursor: pointer; padding: 4px; }
-@media (max-width: 600px) {
-  .container { padding: 10px 8px; }
-  header { padding: 16px 14px; border-radius: 16px; }
-  h1 { font-size: 18px; }
-  .day-section { padding: 14px 12px; border-radius: 16px; }
-  .timer-fab { bottom: 14px; left: 12px; padding: 10px 14px; font-size: 12.5px; }
-}
-
-  </style>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-<div class="container">
-
+﻿<div class="container">
   <!-- Header -->
   <header>
     <div class="header-top">
@@ -351,30 +32,52 @@ tr:nth-child(even) td { background: rgba(255, 255, 255, 0.015); }
           </svg>
         </div>
         <div>
-          <h1>برنامه هفتگی تمرین حاجی</h1>
+          <h1 id="appTitle">برنامه تمرینی Hossein Chieftain</h1>
           <div class="header-subtitle" id="greetingText">برنامه تخصصی هایپرتروفی، ثبات مفاصل و کنترل تنه</div>
         </div>
       </div>
 
-      <button id="headerInstallBtn" class="btn-header-action">
-        <span>📲</span>
-        <span>نصب روی گوشی</span>
-      </button>
+      <div class="header-controls">
+        <div class="profile-selector-wrap">
+          <span style="font-size:12px; color:var(--text-muted)">👤 کاربر:</span>
+          <select id="profileSelect" class="profile-select" onchange="onProfileChange(this.value)"></select>
+        </div>
+        <button id="headerInstallBtn" class="btn-header-action">
+          <span>📲</span>
+          <span>نصب اپ</span>
+        </button>
+      </div>
     </div>
 
-    <div class="header-badges">
+    <div class="header-badges" id="headerBadges">
       <div class="header-badge">🏋️ شنبه، دوشنبه، پنجشنبه: باشگاه</div>
       <div class="header-badge">🏠 یکشنبه، سه‌شنبه، جمعه: خانه</div>
       <div class="header-badge">🛌 چهارشنبه: استراحت کامل</div>
     </div>
   </header>
 
-  <!-- Search and Actions Bar -->
+  <!-- Actions Toolbar -->
   <div class="action-row">
     <div class="search-box">
       <span class="search-icon">🔍</span>
-      <input type="text" id="searchInput" class="search-input" placeholder="جستجوی حرکت یا عضله هدف (مثلاً: سینه، هک اسکوات)...">
+      <input type="text" id="searchInput" class="search-input" placeholder="جستجوی حرکت یا عضله هدف در برنامه...">
     </div>
+    
+    <button class="btn-header-action" onclick="openLibraryModal()" title="مشاهده بانک کامل تمام حرکات با ویدیو">
+      <span>📚</span>
+      <span>بانک حرکات</span>
+    </button>
+
+    <button class="btn-header-action" onclick="openNewProfileModal()" title="ایجاد کاربر یا برنامه شخصی جدید">
+      <span>➕</span>
+      <span>برنامه جدید</span>
+    </button>
+
+    <button id="editPlanBtn" class="btn-header-action btn-action-primary" onclick="openEditPlanModal()" title="ویرایش و افزودن حرکات به این برنامه">
+      <span>✏️</span>
+      <span>ویرایش برنامه</span>
+    </button>
+
     <button id="todayJumpBtn" class="btn-header-action" title="پرش به روز جاری">
       <span>🎯</span>
       <span>امروز</span>
@@ -383,22 +86,1787 @@ tr:nth-child(even) td { background: rgba(255, 255, 255, 0.015); }
 
   <!-- Day Navigation Bar -->
   <div class="nav-container">
-    <nav id="dayNav">
-      <a href="#d1" class="nav-tab" data-day="1">شنبه <span class="tab-badge">باشگاه</span></a>
-      <a href="#d2" class="nav-tab" data-day="2">یکشنبه <span class="tab-badge">خانه</span></a>
-      <a href="#d3" class="nav-tab" data-day="3">دوشنبه <span class="tab-badge">باشگاه</span></a>
-      <a href="#d4" class="nav-tab" data-day="4">سه‌شنبه <span class="tab-badge">خانه</span></a>
-      <a href="#d5" class="nav-tab" data-day="5">چهارشنبه <span class="tab-badge">استراحت</span></a>
-      <a href="#d6" class="nav-tab" data-day="6">پنجشنبه <span class="tab-badge">باشگاه</span></a>
-      <a href="#d7" class="nav-tab" data-day="0">جمعه <span class="tab-badge">خانه</span></a>
-      <a href="#weekly-summary" class="nav-tab" data-day="summary">📊 جمع‌بندی</a>
-    </nav>
+    <nav id="dayNav"></nav>
   </div>
 
   <!-- Main Workout Content -->
-  <main id="workoutContent">
-<section id="d1" class="day-section"><div class="day-header"><div class="day-title-wrap"><h2 class="day-title">شنبه</h2><span class="day-location-badge badge-gym">🏋️ باشگاه</span></div><div class="day-progress-wrap"><div class="day-progress-bar"><div class="day-progress-fill" id="prog-d1"></div></div><span id="prog-text-d1">۰٪</span></div></div><div class="session-note"><span>📌</span><span>۷۵ دقیقه تمرین با وزنه + ۱۵ دقیقه تردمیل در انتهای جلسه · حرکات اصلی حدود 2 RIR</span></div><div class="superset-block"><div class="superset-header">⚡ A1 + A2 · هک اسکوات + نشر جانب دستگاه</div><article class="exercise-card" data-ex-id="d1_a1"><div class="exercise-header"><div><div class="exercise-name-fa">هک اسکوات</div><div class="exercise-name-en">Hack Squat</div></div><div class="reps-badge">3 × 8–12</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: چهارسر، باسن</span></div><div class="card-footer"><a href="https://www.youtube.com/shorts/-hBQNtJqgjw" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article><article class="exercise-card" data-ex-id="d1_a2"><div class="exercise-header"><div><div class="exercise-name-fa">نشر جانب دستگاه</div><div class="exercise-name-en">Machine Lateral Raise</div></div><div class="reps-badge">3 × 12–20</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: سرشانه میانی</span></div><div class="card-footer"><a href="https://youtube.com/shorts/zsPNG5-Yp7s?si=vancgmAU4f6P-GWk" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article></div><div class="superset-block"><div class="superset-header">⚡ B1 + B2 · پرس بالا سینه اسمیت + پشت پا دستگاه</div><article class="exercise-card" data-ex-id="d1_b1"><div class="exercise-header"><div><div class="exercise-name-fa">پرس بالا سینه اسمیت</div><div class="exercise-name-en">Smith Incline Bench Press</div></div><div class="reps-badge">3 × 6–10</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: سینه، سرشانه جلویی، پشت بازو</span></div><div class="card-footer"><a href="https://www.youtube.com/watch?v=e_PWa7bMnk8" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article><article class="exercise-card" data-ex-id="d1_b2"><div class="exercise-header"><div><div class="exercise-name-fa">پشت پا دستگاه</div><div class="exercise-name-en">Leg Curl</div></div><div class="reps-badge">3 × 10–15</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: همسترینگ</span></div><div class="card-footer"><a href="https://youtube.com/shorts/lGNeJsdqJwg?si=temfOVvyY4ksk2nD" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article></div><div class="superset-block"><div class="superset-header">⚡ C1 + C2 · تی‌بار یوفو + پشت بازو طناب</div><article class="exercise-card" data-ex-id="d1_c1"><div class="exercise-header"><div><div class="exercise-name-fa">تی‌بار یوفو</div><div class="exercise-name-en">UFO T-Bar Row</div></div><div class="reps-badge">3 × 8–12</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: زیر بغل، پشت میانی، جلو بازو</span></div><div class="card-footer"><a href="https://www.instagram.com/reels/DVBnbABCB8j/" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article><article class="exercise-card" data-ex-id="d1_c2"><div class="exercise-header"><div><div class="exercise-name-fa">پشت بازو طناب</div><div class="exercise-name-en">Rope Triceps Pushdown</div></div><div class="reps-badge">3 × 10–15</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: پشت بازو</span></div><div class="card-footer"><a href="https://www.youtube.com/shorts/1FoWlRS2Edc" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article></div><div class="superset-block"><div class="superset-header">⚡ D1 + D2 · ساق با هک اسکوات + کرانچ ایستاده کابل</div><article class="exercise-card" data-ex-id="d1_d1"><div class="exercise-header"><div><div class="exercise-name-fa">ساق با هک اسکوات</div><div class="exercise-name-en">Hack Squat Calf Raise</div></div><div class="reps-badge">3 × 10–15</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: ساق</span></div><div class="card-footer"><a href="https://www.youtube.com/shorts/mOvF1yhTIGE" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article><article class="exercise-card" data-ex-id="d1_d2"><div class="exercise-header"><div><div class="exercise-name-fa">کرانچ ایستاده کابل</div><div class="exercise-name-en">Standing Cable Crunch</div></div><div class="reps-badge">3 × 10–15</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: شکم</span></div><div class="card-footer"><a href="https://www.youtube.com/watch?v=vFV78ASgsak" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article></div><div class="superset-block"><div class="superset-header">⚡ E1 + E2 · ابداکشن کابل + اداکشن کابل</div><article class="exercise-card" data-ex-id="d1_e1"><div class="exercise-header"><div><div class="exercise-name-fa">ابداکشن کابل</div><div class="exercise-name-en">Cable Hip Abduction</div></div><div class="reps-badge">3 × 12–20</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: خارج ران، سرینی میانی</span></div><div class="card-footer"><a href="https://www.youtube.com/watch?v=EHq78mQYLbI" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article><article class="exercise-card" data-ex-id="d1_e2"><div class="exercise-header"><div><div class="exercise-name-fa">اداکشن کابل</div><div class="exercise-name-en">Cable Hip Adduction</div></div><div class="reps-badge">3 × 12–20</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: داخل ران</span></div><div class="card-footer"><a href="https://www.youtube.com/watch?v=EHq78mQYLbI" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article></div><article class="exercise-card" data-ex-id="d1_s1"><div class="exercise-header"><div><div class="exercise-name-fa">بک اکستنشن / فیله</div><div class="exercise-name-en">Back Extension</div></div><div class="reps-badge">3 × 10–15</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: فیله کمر، باسن، همسترینگ</span></div><div class="card-footer"><a href="https://www.youtube.com/shorts/9XN23dIEqLE" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article><div class="treadmill-banner"><span>🏃 آخر جلسه: ۱۵ دقیقه تردمیل</span><button class="btn-header-action" onclick="quickTimer(900)" style="padding:4px 10px;font-size:12px">شروع ۱۵ دقیقه تایمر</button></div></section><section id="d2" class="day-section"><div class="day-header"><div class="day-title-wrap"><h2 class="day-title">یکشنبه</h2><span class="day-location-badge badge-home">🏠 خانه</span></div><div class="day-progress-wrap"><div class="day-progress-bar"><div class="day-progress-fill" id="prog-d2"></div></div><span id="prog-text-d2">۰٪</span></div></div><div class="session-note"><span>📌</span><span>تمرکز بر پایداری ستون فقرات، تقویت عضلات Core و کنترل ایزومتریک در خانه</span></div><article class="exercise-card" data-ex-id="d2_s1"><div class="exercise-header"><div><div class="exercise-name-fa">ددباگ ایزومتریک</div><div class="exercise-name-en">Dead Bug Isometric</div></div><div class="reps-badge">3 × 20–30 ثانیه</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: Core</span></div><div class="card-footer"><a href="https://www.youtube.com/shorts/mMiGFa_jWhA" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article><article class="exercise-card" data-ex-id="d2_s2"><div class="exercise-header"><div><div class="exercise-name-fa">ساید پلانک ایزومتریک</div><div class="exercise-name-en">Side Plank Isometric</div></div><div class="reps-badge">3 × 20–40 ثانیه هر طرف</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: ابلیک و Core</span></div><div class="card-footer"><a href="https://www.youtube.com/shorts/sKMD_pbNm7w" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article><article class="exercise-card" data-ex-id="d2_s3"><div class="exercise-header"><div><div class="exercise-name-fa">وال‌سیت</div><div class="exercise-name-en">Wall Sit</div></div><div class="reps-badge">3 × 30–60 ثانیه</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: چهارسر و ایزومتریک</span></div><div class="card-footer"><a href="https://www.youtube.com/shorts/mDdLC-yKudY" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article><article class="exercise-card" data-ex-id="d2_s4"><div class="exercise-header"><div><div class="exercise-name-fa">برد داگ ایزومتریک</div><div class="exercise-name-en">Iso Bird Dog</div></div><div class="reps-badge">3 × 20–30 ثانیه هر طرف</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: Core و کنترل تنه</span></div><div class="card-footer"><a href="https://www.youtube.com/shorts/3HDd3iKb_RI" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article><article class="exercise-card" data-ex-id="d2_s5"><div class="exercise-header"><div><div class="exercise-name-fa">پوش‌آپ پلاس</div><div class="exercise-name-en">Push-Up Plus</div></div><div class="reps-badge">3 × 8–15</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: سراتوس قدامی و کنترل کتف</span></div><div class="card-footer"><a href="https://www.youtube.com/shorts/opcjCCX7FLg" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article></section><section id="d3" class="day-section"><div class="day-header"><div class="day-title-wrap"><h2 class="day-title">دوشنبه</h2><span class="day-location-badge badge-gym">🏋️ باشگاه</span></div><div class="day-progress-wrap"><div class="day-progress-bar"><div class="day-progress-fill" id="prog-d3"></div></div><span id="prog-text-d3">۰٪</span></div></div><div class="session-note"><span>📌</span><span>۷۵ دقیقه تمرین با وزنه + ۱۵ دقیقه تردمیل در انتهای جلسه · حرکات اصلی حدود 2 RIR</span></div><div class="superset-block"><div class="superset-header">⚡ A1 + A2 · پرس پا + ریورس پک‌دک</div><article class="exercise-card" data-ex-id="d3_a1"><div class="exercise-header"><div><div class="exercise-name-fa">پرس پا</div><div class="exercise-name-en">Leg Press</div></div><div class="reps-badge">3 × 8–12</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: چهارسر، باسن</span></div><div class="card-footer"><a href="https://www.youtube.com/shorts/Hpu0g_B2m7A" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article><article class="exercise-card" data-ex-id="d3_a2"><div class="exercise-header"><div><div class="exercise-name-fa">ریورس پک‌دک</div><div class="exercise-name-en">Reverse Pec Deck Fly</div></div><div class="reps-badge">3 × 12–20</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: پشت سرشانه، پشت میانی</span></div><div class="card-footer"><a href="https://www.youtube.com/shorts/b2r_2yjReYg" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article></div><div class="superset-block"><div class="superset-header">⚡ B1 + B2 · پرس بالا سینه اسمیت + جلو پا دستگاه</div><article class="exercise-card" data-ex-id="d3_b1"><div class="exercise-header"><div><div class="exercise-name-fa">پرس بالا سینه اسمیت</div><div class="exercise-name-en">Smith Incline Bench Press</div></div><div class="reps-badge">3 × 6–10</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: سینه، سرشانه جلویی، پشت بازو</span></div><div class="card-footer"><a href="https://www.youtube.com/watch?v=e_PWa7bMnk8" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article><article class="exercise-card" data-ex-id="d3_b2"><div class="exercise-header"><div><div class="exercise-name-fa">جلو پا دستگاه</div><div class="exercise-name-en">Leg Extension</div></div><div class="reps-badge">3 × 10–15</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: چهارسر</span></div><div class="card-footer"><a href="https://www.youtube.com/shorts/iQ92TuvBqRo" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article></div><div class="superset-block"><div class="superset-header">⚡ C1 + C2 · لت سیم‌کش + جلو بازو لاری</div><article class="exercise-card" data-ex-id="d3_c1"><div class="exercise-header"><div><div class="exercise-name-fa">لت سیم‌کش</div><div class="exercise-name-en">Lat Pulldown</div></div><div class="reps-badge">3 × 8–12</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: زیر بغل، جلو بازو</span></div><div class="card-footer"><a href="https://www.youtube.com/shorts/bNmvKpJSWKM" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article><article class="exercise-card" data-ex-id="d3_c2"><div class="exercise-header"><div><div class="exercise-name-fa">جلو بازو لاری</div><div class="exercise-name-en">Preacher Curl</div></div><div class="reps-badge">3 × 8–12</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: جلو بازو</span></div><div class="card-footer"><a href="https://www.youtube.com/shorts/7ixqAPO6JvU" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article></div><div class="superset-block"><div class="superset-header">⚡ D1 + D2 · پرس سرشانه دستگاه + پشت پا دستگاه</div><article class="exercise-card" data-ex-id="d3_d1"><div class="exercise-header"><div><div class="exercise-name-fa">پرس سرشانه دستگاه</div><div class="exercise-name-en">Shoulder Press Machine</div></div><div class="reps-badge">3 × 8–12</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: سرشانه، پشت بازو</span></div><div class="card-footer"><a href="https://www.youtube.com/shorts/OePoi839_so" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article><article class="exercise-card" data-ex-id="d3_d2"><div class="exercise-header"><div><div class="exercise-name-fa">پشت پا دستگاه</div><div class="exercise-name-en">Leg Curl</div></div><div class="reps-badge">3 × 10–15</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: همسترینگ</span></div><div class="card-footer"><a href="https://youtube.com/shorts/lGNeJsdqJwg?si=temfOVvyY4ksk2nD" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article></div><div class="superset-block"><div class="superset-header">⚡ E1 + E2 · پک‌دک فلای + ساق با هک اسکوات</div><article class="exercise-card" data-ex-id="d3_e1"><div class="exercise-header"><div><div class="exercise-name-fa">پک‌دک فلای</div><div class="exercise-name-en">Pec Deck Fly</div></div><div class="reps-badge">3 × 10–15</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: سینه</span></div><div class="card-footer"><a href="https://www.youtube.com/shorts/b2r_2yjReYg" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article><article class="exercise-card" data-ex-id="d3_e2"><div class="exercise-header"><div><div class="exercise-name-fa">ساق با هک اسکوات</div><div class="exercise-name-en">Hack Squat Calf Raise</div></div><div class="reps-badge">3 × 10–15</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: ساق</span></div><div class="card-footer"><a href="https://www.youtube.com/shorts/mOvF1yhTIGE" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article></div><div class="superset-block"><div class="superset-header">⚡ F1 + F2 · نشر جانب دستگاه + کرانچ نیمکت</div><article class="exercise-card" data-ex-id="d3_f1"><div class="exercise-header"><div><div class="exercise-name-fa">نشر جانب دستگاه</div><div class="exercise-name-en">Machine Lateral Raise</div></div><div class="reps-badge">3 × 12–20</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: سرشانه میانی</span></div><div class="card-footer"><a href="https://youtube.com/shorts/zsPNG5-Yp7s?si=vancgmAU4f6P-GWk" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article><article class="exercise-card" data-ex-id="d3_f2"><div class="exercise-header"><div><div class="exercise-name-fa">کرانچ نیمکت</div><div class="exercise-name-en">Bench Crunch</div></div><div class="reps-badge">3 × 12–20</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: شکم</span></div><div class="card-footer"><span class="video-missing">آموزش متنی / بزودی</span><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article></div><article class="exercise-card" data-ex-id="d3_s1"><div class="exercise-header"><div><div class="exercise-name-fa">بک اکستنشن / فیله</div><div class="exercise-name-en">Back Extension</div></div><div class="reps-badge">3 × 12–15</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: فیله کمر، باسن، همسترینگ</span></div><div class="card-footer"><a href="https://www.youtube.com/shorts/9XN23dIEqLE" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article><div class="treadmill-banner"><span>🏃 آخر جلسه: ۱۵ دقیقه تردمیل</span><button class="btn-header-action" onclick="quickTimer(900)" style="padding:4px 10px;font-size:12px">شروع ۱۵ دقیقه تایمر</button></div></section><section id="d4" class="day-section"><div class="day-header"><div class="day-title-wrap"><h2 class="day-title">سه‌شنبه</h2><span class="day-location-badge badge-home">🏠 خانه</span></div><div class="day-progress-wrap"><div class="day-progress-bar"><div class="day-progress-fill" id="prog-d4"></div></div><span id="prog-text-d4">۰٪</span></div></div><div class="session-note"><span>📌</span><span>تمرکز بر کنترل کتف، سلامت کمربند شانه‌ای و ثبات زنجیره خلفی در خانه</span></div><article class="exercise-card" data-ex-id="d4_s1"><div class="exercise-header"><div><div class="exercise-name-fa">وال اسلاید</div><div class="exercise-name-en">Wall Slide</div></div><div class="reps-badge">3 × 8–12</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: کنترل کتف و شانه</span></div><div class="card-footer"><span class="video-missing">آموزش متنی / بزودی</span><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article><article class="exercise-card" data-ex-id="d4_s2"><div class="exercise-header"><div><div class="exercise-name-fa">پرون ITWY</div><div class="exercise-name-en">Prone ITWY</div></div><div class="reps-badge">3 × 8–12</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: پشت سرشانه، تراپز و کنترل کتف</span></div><div class="card-footer"><a href="https://www.youtube.com/watch?v=Yv6sUKOwOY8&pp=ygUZUHJvbmUgVyBSYWlzZSBwcm9wZXIgZm9ybQ%3D%3D" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article><article class="exercise-card" data-ex-id="d4_s3"><div class="exercise-header"><div><div class="exercise-name-fa">پوش‌آپ پلاس</div><div class="exercise-name-en">Push-Up Plus</div></div><div class="reps-badge">3 × 8–15</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: سراتوس قدامی و کنترل کتف</span></div><div class="card-footer"><a href="https://www.youtube.com/shorts/opcjCCX7FLg" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article><article class="exercise-card" data-ex-id="d4_s4"><div class="exercise-header"><div><div class="exercise-name-fa">ساید پلانک ایزومتریک</div><div class="exercise-name-en">Side Plank Isometric</div></div><div class="reps-badge">3 × 20–40 ثانیه هر طرف</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: ابلیک و Core</span></div><div class="card-footer"><a href="https://www.youtube.com/shorts/sKMD_pbNm7w" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article><article class="exercise-card" data-ex-id="d4_s5"><div class="exercise-header"><div><div class="exercise-name-fa">ددباگ</div><div class="exercise-name-en">Dead Bug</div></div><div class="reps-badge">3 × 6–10 هر طرف</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: Core و کنترل تنه</span></div><div class="card-footer"><a href="https://www.youtube.com/shorts/mMiGFa_jWhA" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article><article class="exercise-card" data-ex-id="d4_s6"><div class="exercise-header"><div><div class="exercise-name-fa">گلوت بریج ایزومتریک</div><div class="exercise-name-en">Glute Bridge Isometric</div></div><div class="reps-badge">3 × 20–40 ثانیه</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: باسن و زنجیره خلفی</span></div><div class="card-footer"><a href="https://www.youtube.com/shorts/1bOEz-3SgHI" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article></section><section id="d5" class="day-section"><div class="day-header"><div class="day-title-wrap"><h2 class="day-title">چهارشنبه</h2><span class="day-location-badge badge-rest">🛌 استراحت کامل</span></div><div class="day-progress-wrap"><div class="day-progress-bar"><div class="day-progress-fill" id="prog-d5"></div></div><span id="prog-text-d5">۰٪</span></div></div><div class="session-note"><span>📌</span><span>استراحت کامل، تغذیه با کیفیت و ریکاوری بافت‌های عضلانی</span></div><div class="rest-day-card"><div class="rest-icon">🛌💤</div><h3>روز استراحت و ریکاوری کامل</h3><p>امروز بدن شما نیاز به تغذیه با کیفیت، آب‌رسانی کافی و خواب با کیفیت دارد تا عضلات بازسازی شوند و برای جلسه سنگین بعدی آماده باشید.</p></div></section><section id="d6" class="day-section"><div class="day-header"><div class="day-title-wrap"><h2 class="day-title">پنجشنبه</h2><span class="day-location-badge badge-gym">🏋️ باشگاه</span></div><div class="day-progress-wrap"><div class="day-progress-bar"><div class="day-progress-fill" id="prog-d6"></div></div><span id="prog-text-d6">۰٪</span></div></div><div class="session-note"><span>📌</span><span>۷۵ دقیقه تمرین با وزنه + ۱۵ دقیقه تردمیل در انتهای جلسه · حرکات اصلی حدود 2 RIR</span></div><div class="superset-block"><div class="superset-header">⚡ A1 + A2 · هک اسکوات + ریورس پک‌دک</div><article class="exercise-card" data-ex-id="d6_a1"><div class="exercise-header"><div><div class="exercise-name-fa">هک اسکوات</div><div class="exercise-name-en">Hack Squat</div></div><div class="reps-badge">3 × 8–12</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: چهارسر، باسن</span></div><div class="card-footer"><a href="https://www.youtube.com/shorts/-hBQNtJqgjw" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article><article class="exercise-card" data-ex-id="d6_a2"><div class="exercise-header"><div><div class="exercise-name-fa">ریورس پک‌دک</div><div class="exercise-name-en">Reverse Pec Deck Fly</div></div><div class="reps-badge">3 × 12–20</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: پشت سرشانه، پشت میانی</span></div><div class="card-footer"><a href="https://www.youtube.com/shorts/b2r_2yjReYg" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article></div><div class="superset-block"><div class="superset-header">⚡ B1 + B2 · پرس سینه دستگاه + پشت پا دستگاه</div><article class="exercise-card" data-ex-id="d6_b1"><div class="exercise-header"><div><div class="exercise-name-fa">پرس سینه دستگاه</div><div class="exercise-name-en">Machine Chest Press</div></div><div class="reps-badge">3 × 8–12</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: سینه، پشت بازو، سرشانه جلویی</span></div><div class="card-footer"><a href="https://www.youtube.com/shorts/_g6bPSKIamY" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article><article class="exercise-card" data-ex-id="d6_b2"><div class="exercise-header"><div><div class="exercise-name-fa">پشت پا دستگاه</div><div class="exercise-name-en">Leg Curl</div></div><div class="reps-badge">3 × 10–15</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: همسترینگ</span></div><div class="card-footer"><a href="https://youtube.com/shorts/lGNeJsdqJwg?si=temfOVvyY4ksk2nD" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article></div><div class="superset-block"><div class="superset-header">⚡ C1 + C2 · قایقی + پشت بازو بالای سر طناب</div><article class="exercise-card" data-ex-id="d6_c1"><div class="exercise-header"><div><div class="exercise-name-fa">قایقی</div><div class="exercise-name-en">Seated Cable Row</div></div><div class="reps-badge">3 × 8–12</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: پشت میانی، زیر بغل، جلو بازو</span></div><div class="card-footer"><a href="https://www.youtube.com/shorts/UT2DVnU9VzM" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article><article class="exercise-card" data-ex-id="d6_c2"><div class="exercise-header"><div><div class="exercise-name-fa">پشت بازو بالای سر طناب</div><div class="exercise-name-en">Overhead Rope Triceps Extension</div></div><div class="reps-badge">3 × 10–15</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: پشت بازو</span></div><div class="card-footer"><a href="https://www.youtube.com/shorts/iKX6vEhrGxw" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article></div><div class="superset-block"><div class="superset-header">⚡ D1 + D2 · ددلیفت رومانیایی + ابداکشن کابل</div><article class="exercise-card" data-ex-id="d6_d1"><div class="exercise-header"><div><div class="exercise-name-fa">ددلیفت رومانیایی</div><div class="exercise-name-en">Romanian Deadlift</div></div><div class="reps-badge">2 × 8–12</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: همسترینگ، باسن، فیله</span></div><div class="card-footer"><a href="https://www.youtube.com/shorts/5rIqP63yWFg" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button></div></div></article><article class="exercise-card" data-ex-id="d6_d2"><div class="exercise-header"><div><div class="exercise-name-fa">ابداکشن کابل</div><div class="exercise-name-en">Cable Hip Abduction</div></div><div class="reps-badge">3 × 12–20</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: خارج ران، سرینی میانی</span></div><div class="card-footer"><a href="https://www.youtube.com/watch?v=EHq78mQYLbI" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article></div><div class="superset-block"><div class="superset-header">⚡ E1 + E2 · فلای بالا سینه دستگاه + اداکشن کابل</div><article class="exercise-card" data-ex-id="d6_e1"><div class="exercise-header"><div><div class="exercise-name-fa">فلای بالا سینه دستگاه</div><div class="exercise-name-en">Incline Fly Machine</div></div><div class="reps-badge">3 × 10–15</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: سینه</span></div><div class="card-footer"><a href="https://www.youtube.com/shorts/wlkKJWxKOCM" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article><article class="exercise-card" data-ex-id="d6_e2"><div class="exercise-header"><div><div class="exercise-name-fa">اداکشن کابل</div><div class="exercise-name-en">Cable Hip Adduction</div></div><div class="reps-badge">3 × 12–20</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: داخل ران</span></div><div class="card-footer"><a href="https://www.youtube.com/watch?v=EHq78mQYLbI" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article></div><div class="superset-block"><div class="superset-header">⚡ F1 + F2 · همر کرل روی لاری + شراگ دمبل</div><article class="exercise-card" data-ex-id="d6_f1"><div class="exercise-header"><div><div class="exercise-name-fa">همر کرل روی لاری</div><div class="exercise-name-en">Preacher Hammer Curl</div></div><div class="reps-badge">3 × 8–12</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: براکیالیس، براکیورادیالیس، جلو بازو</span></div><div class="card-footer"><a href="https://www.youtube.com/shorts/7ixqAPO6JvU" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article><article class="exercise-card" data-ex-id="d6_f2"><div class="exercise-header"><div><div class="exercise-name-fa">شراگ دمبل</div><div class="exercise-name-en">Dumbbell Shrug</div></div><div class="reps-badge">3 × 10–15</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: کول فوقانی</span></div><div class="card-footer"><a href="https://www.youtube.com/shorts/rFsSeClGnNA" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article></div><article class="exercise-card" data-ex-id="d6_s1"><div class="exercise-header"><div><div class="exercise-name-fa">ساق با هک اسکوات</div><div class="exercise-name-en">Hack Squat Calf Raise</div></div><div class="reps-badge">3 × 10–15</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: ساق</span></div><div class="card-footer"><a href="https://www.youtube.com/shorts/mOvF1yhTIGE" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article><article class="exercise-card" data-ex-id="d6_s2"><div class="exercise-header"><div><div class="exercise-name-fa">بک اکستنشن / فیله</div><div class="exercise-name-en">Back Extension</div></div><div class="reps-badge">3 × 10–15</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: فیله کمر، باسن، همسترینگ</span></div><div class="card-footer"><a href="https://www.youtube.com/shorts/9XN23dIEqLE" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article><div class="treadmill-banner"><span>🏃 آخر جلسه: ۱۵ دقیقه تردمیل</span><button class="btn-header-action" onclick="quickTimer(900)" style="padding:4px 10px;font-size:12px">شروع ۱۵ دقیقه تایمر</button></div></section><section id="d7" class="day-section"><div class="day-header"><div class="day-title-wrap"><h2 class="day-title">جمعه</h2><span class="day-location-badge badge-home">🏠 خانه</span></div><div class="day-progress-wrap"><div class="day-progress-bar"><div class="day-progress-fill" id="prog-d7"></div></div><span id="prog-text-d7">۰٪</span></div></div><div class="session-note"><span>📌</span><span>پایان هفته با تمرینات ثبات عضلات مرکزی، کنترل کمربند شانه‌ای و تمرکز ایزومتریک در خانه</span></div><article class="exercise-card" data-ex-id="d7_s1"><div class="exercise-header"><div><div class="exercise-name-fa">وال‌سیت</div><div class="exercise-name-en">Wall Sit</div></div><div class="reps-badge">3 × 30–60 ثانیه</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: چهارسر و ایزومتریک</span></div><div class="card-footer"><a href="https://www.youtube.com/shorts/mDdLC-yKudY" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article><article class="exercise-card" data-ex-id="d7_s2"><div class="exercise-header"><div><div class="exercise-name-fa">ساید پلانک ایزومتریک</div><div class="exercise-name-en">Side Plank Isometric</div></div><div class="reps-badge">3 × 20–40 ثانیه هر طرف</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: ابلیک و Core</span></div><div class="card-footer"><a href="https://www.youtube.com/shorts/sKMD_pbNm7w" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article><article class="exercise-card" data-ex-id="d7_s3"><div class="exercise-header"><div><div class="exercise-name-fa">ددباگ ایزومتریک</div><div class="exercise-name-en">Dead Bug Isometric</div></div><div class="reps-badge">3 × 20–30 ثانیه</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: Core</span></div><div class="card-footer"><a href="https://www.youtube.com/shorts/mMiGFa_jWhA" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article><article class="exercise-card" data-ex-id="d7_s4"><div class="exercise-header"><div><div class="exercise-name-fa">برد داگ ایزومتریک</div><div class="exercise-name-en">Iso Bird Dog</div></div><div class="reps-badge">3 × 20–30 ثانیه هر طرف</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: Core و کنترل تنه</span></div><div class="card-footer"><a href="https://www.youtube.com/shorts/3HDd3iKb_RI" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article><article class="exercise-card" data-ex-id="d7_s5"><div class="exercise-header"><div><div class="exercise-name-fa">وال اسلاید</div><div class="exercise-name-en">Wall Slide</div></div><div class="reps-badge">2 × 10–12</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: کنترل کتف و شانه</span></div><div class="card-footer"><span class="video-missing">آموزش متنی / بزودی</span><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button></div></div></article><article class="exercise-card" data-ex-id="d7_s6"><div class="exercise-header"><div><div class="exercise-name-fa">پوش‌آپ پلاس</div><div class="exercise-name-en">Push-Up Plus</div></div><div class="reps-badge">3 × 8–15</div></div><div class="muscles-row"><span class="muscle-tag">عضلات هدف: سراتوس قدامی و کنترل کتف</span></div><div class="card-footer"><a href="https://www.youtube.com/shorts/opcjCCX7FLg" target="_blank" rel="noopener" class="video-btn"><span>▶</span> <span>ویدیو آموزش</span></a><div class="sets-tracker"><button class="set-btn" onclick="toggleSet(this)">1</button><button class="set-btn" onclick="toggleSet(this)">2</button><button class="set-btn" onclick="toggleSet(this)">3</button></div></div></article></section>
-    <!-- جمع‌بندی حجم هفتگی عضلات -->
+  <main id="workoutContent"></main>
+</div>
+
+<!-- Floating Rest Timer Button -->
+<button id="openTimerBtn" class="timer-fab">
+  <span>⏱️</span>
+  <span id="fabTimerLabel">تایمر استراحت</span>
+</button>
+
+﻿<!-- Rest Timer Modal -->
+<div id="timerModal" class="modal-overlay">
+  <div class="modal-dialog" style="max-width: 360px; text-align: center;">
+    <button class="modal-close-btn" onclick="closeTimerModal()">✕</button>
+    <h3 style="font-size: 16px; font-weight: 800; color: #fff; margin-bottom: 4px; justify-content: center;">⏱️ تایمر استراحت بین ست‌ها</h3>
+    <p style="font-size: 12px; color: var(--text-muted);">برای حفظ ریتم تمرین زمان استراحت را مدیریت کن</p>
+
+    <div class="timer-display" id="timerDisplay">01:30</div>
+
+    <div class="timer-presets">
+      <button class="preset-btn" onclick="setTimerDuration(45)">۴۵ ثانیه</button>
+      <button class="preset-btn" onclick="setTimerDuration(60)">۶۰ ثانیه</button>
+      <button class="preset-btn active" onclick="setTimerDuration(90)">۹۰ ثانیه</button>
+      <button class="preset-btn" onclick="setTimerDuration(120)">۲ دقیقه</button>
+    </div>
+
+    <div class="timer-controls">
+      <button id="startTimerBtn" class="timer-ctl-btn btn-start" onclick="toggleTimer()">شروع ⚡</button>
+      <button class="timer-ctl-btn btn-reset" onclick="resetTimer()">ریست ↺</button>
+    </div>
+  </div>
+</div>
+
+<!-- Master Exercise Library Explorer Modal -->
+<div id="libraryModal" class="modal-overlay">
+  <div class="modal-dialog">
+    <button class="modal-close-btn" onclick="closeLibraryModal()">✕</button>
+    <h3>📚 بانک جامع حرکات ورزشی (با تمام ویدیوها)</h3>
+    <p style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 12px;">
+      مرجع کامل تمام ۵۰+ حرکت تمرینی به همراه ویدیوهای آموزشی یوتیوب
+    </p>
+
+    <div style="display:flex; gap:8px; margin-bottom:12px;">
+      <input type="text" id="librarySearchInput" class="form-input" placeholder="جستجو در بانک حرکات (مثلاً: لت، پرس، سینه)..." oninput="filterLibrary(this.value)">
+      <button class="btn-header-action btn-action-primary" onclick="openCustomExerciseModal()">+ حرکت دلخواه</button>
+    </div>
+
+    <div id="libraryCategoryFilter" style="display:flex; gap:5px; flex-wrap:wrap; margin-bottom:12px;">
+      <button class="btn-header-action" onclick="filterLibraryCat('all')" style="padding:4px 9px; font-size:11.5px">همه</button>
+      <button class="btn-header-action" onclick="filterLibraryCat('gym')" style="padding:4px 9px; font-size:11.5px">🏋️ باشگاه</button>
+      <button class="btn-header-action" onclick="filterLibraryCat('home')" style="padding:4px 9px; font-size:11.5px">🏠 خانه / Core</button>
+      <button class="btn-header-action" onclick="filterLibraryCat('سینه')" style="padding:4px 9px; font-size:11.5px">سینه</button>
+      <button class="btn-header-action" onclick="filterLibraryCat('پا')" style="padding:4px 9px; font-size:11.5px">پا</button>
+      <button class="btn-header-action" onclick="filterLibraryCat('پشت')" style="padding:4px 9px; font-size:11.5px">پشت / زیر بغل</button>
+      <button class="btn-header-action" onclick="filterLibraryCat('سرشانه')" style="padding:4px 9px; font-size:11.5px">سرشانه</button>
+    </div>
+
+    <div id="libraryListContainer" class="library-grid"></div>
+  </div>
+</div>
+
+<!-- Custom Exercise Creator Modal -->
+<div id="customExerciseModal" class="modal-overlay">
+  <div class="modal-dialog" style="max-width: 460px;">
+    <button class="modal-close-btn" onclick="closeCustomExerciseModal()">✕</button>
+    <h3>➕ ثبت حرکت تمرینی دلخواه جدید</h3>
+    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
+      حرکت جدید خود را به بانک حرکات اضافه کنید تا در برنامه‌ها قابل انتخاب باشد.
+    </p>
+
+    <div class="form-group">
+      <label class="form-label">نام فارسی حرکت *</label>
+      <input type="text" id="custFaName" class="form-input" placeholder="مثلاً: پرس بالا سینه دمبل موازی">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">نام انگلیسی حرکت (اختیاری)</label>
+      <input type="text" id="custEnName" class="form-input" placeholder="e.g. Incline Neutral Dumbbell Press" style="direction:ltr">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">محیط تمرین</label>
+      <select id="custCategory" class="form-select">
+        <option value="gym">🏋️ باشگاه</option>
+        <option value="home">🏠 خانه / بدون وسیله</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">عضلات هدف</label>
+      <input type="text" id="custMuscles" class="form-input" placeholder="مثلاً: بالا سینه، پشت بازو">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">ست و تکرار پیشنهادی</label>
+      <input type="text" id="custReps" class="form-input" placeholder="مثلاً: 3 × 10–12" style="direction:ltr">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">لینک‌های ویدیو آموزشی (یوتیوب / اینستاگرام) - هر لینک در یک خط</label>
+      <textarea id="custVideos" class="form-input" rows="3" placeholder="https://youtube.com/shorts/...&#10;https://youtube.com/watch?v=..." style="direction:ltr"></textarea>
+    </div>
+
+    <button class="btn-header-action btn-action-primary" style="width:100%; justify-content:center; padding:11px;" onclick="saveCustomExercise()">
+      💾 ذخیره حرکت در بانک حرکات
+    </button>
+  </div>
+</div>
+
+<!-- New Profile / Plan Modal -->
+<div id="newProfileModal" class="modal-overlay">
+  <div class="modal-dialog" style="max-width: 440px;">
+    <button class="modal-close-btn" onclick="closeNewProfileModal()">✕</button>
+    <h3>👤 ایجاد کاربر یا برنامه تمرینی جدید</h3>
+    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
+      یک پروفایل مجزا بسازید تا برنامه، ست‌ها و روزهای شخصی خود را داشته باشید.
+    </p>
+
+    <div class="form-group">
+      <label class="form-label">نام کاربر یا عنوان برنامه *</label>
+      <input type="text" id="newProfileName" class="form-input" placeholder="مثلاً: برنامه اختصاصی آرش، برنامه حجم ۴ روزه">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">قالب اولیه برنامه</label>
+      <select id="newProfileTemplate" class="form-select">
+        <option value="clone">کپی از برنامه Hossein Chieftain (شروع سریع با امکان ویرایش)</option>
+        <option value="empty">شروع از برنامه خالی (صفحه سفید)</option>
+      </select>
+    </div>
+
+    <button class="btn-header-action btn-action-primary" style="width:100%; justify-content:center; padding:11px;" onclick="saveNewProfile()">
+      ✨ ساخت برنامه شخصی جدید
+    </button>
+  </div>
+</div>
+
+<!-- Edit Plan / Routine Builder Modal -->
+<div id="editPlanModal" class="modal-overlay">
+  <div class="modal-dialog">
+    <button class="modal-close-btn" onclick="closeEditPlanModal()">✕</button>
+    <h3>✏️ ویرایش و شخصی‌سازی برنامه</h3>
+    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
+      حرکات، سوپرست‌ها یا روزهای برنامه فعال را کم یا زیاد کنید.
+    </p>
+
+    <div id="editPlanDaysList"></div>
+
+    <div style="display:flex; gap:8px; margin-top:16px;">
+      <button class="btn-header-action btn-action-primary" onclick="addNewDayToActiveProfile()" style="flex:1; justify-content:center;">
+        + افزودن روز تمرینی جدید
+      </button>
+      <button class="btn-header-action" onclick="exportActiveProfile()" style="padding:10px 14px;" title="خروجی گرفتن فایل JSON برنامه">
+        📥 خروجی (JSON)
+      </button>
+      <button id="deleteProfileBtn" class="btn-header-action" onclick="deleteActiveProfile()" style="color:#f87171; border-color:#f8717155;" title="حذف این پروفایل">
+        🗑️ حذف
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Exercise to Day Modal -->
+<div id="addExToDayModal" class="modal-overlay">
+  <div class="modal-dialog" style="max-width: 480px;">
+    <button class="modal-close-btn" onclick="closeAddExToDayModal()">✕</button>
+    <h3 id="addExModalTitle">➕ افزودن حرکت به روز تمرین</h3>
+
+    <div class="form-group">
+      <label class="form-label">نوع افزودن</label>
+      <select id="addExType" class="form-select" onchange="onAddExTypeChange(this.value)">
+        <option value="single">حرکت تکی</option>
+        <option value="superset">سوپرست (۲ حرکت متوالی)</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">انتخاب حرکت اول *</label>
+      <select id="addExSelect1" class="form-select"></select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">ست و تکرار حرکت اول</label>
+      <input type="text" id="addExReps1" class="form-input" value="3 × 8–12" style="direction:ltr">
+    </div>
+
+    <div id="supersetSecondExGroup" style="display:none; border-top:1px dashed var(--border-color); padding-top:12px; margin-top:12px;">
+      <div class="form-group">
+        <label class="form-label">عنوان سوپرست</label>
+        <input type="text" id="addSupersetTitle" class="form-input" placeholder="مثلاً: A1 + A2 · پرس پا + ریورس پک‌دک">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">انتخاب حرکت دوم *</label>
+        <select id="addExSelect2" class="form-select"></select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">ست و تکرار حرکت دوم</label>
+        <input type="text" id="addExReps2" class="form-input" value="3 × 12–20" style="direction:ltr">
+      </div>
+    </div>
+
+    <button class="btn-header-action btn-action-primary" style="width:100%; justify-content:center; padding:11px; margin-top:10px;" onclick="confirmAddExerciseToDay()">
+      ➕ اضافه کردن به برنامه
+    </button>
+  </div>
+</div>
+
+<!-- PWA Install Guide Modal (for iOS & Android Guide) -->
+<div id="installGuideModal" class="modal-overlay">
+  <div class="modal-dialog" style="max-width: 440px;">
+    <button class="modal-close-btn" onclick="closeInstallGuide()">✕</button>
+    <h3>📲 نحوه نصب برنامه روی گوشی</h3>
+
+    <div id="iosGuideContent">
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">
+        برای نصب این صفحه به شکل اپلیکیشن اختصاصی روی آیفون (iOS Safari):
+      </p>
+      
+      <div style="display:flex; align-items:flex-start; gap:12px; margin-bottom:14px; background:rgba(30,41,59,0.5); border:1px solid var(--border-color); border-radius:10px; padding:12px;">
+        <div style="width:28px; height:28px; border-radius:50%; background:#38bdf8; color:#090d16; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:13px;">۱</div>
+        <div style="font-size:13px; color:#e2e8f0; line-height:1.6;">در نوار ابزار پایین یا بالای مرورگر Safari، دکمه <strong>اشتراک‌گذاری (Share ⎋)</strong> را تپ کنید.</div>
+      </div>
+
+      <div style="display:flex; align-items:flex-start; gap:12px; margin-bottom:14px; background:rgba(30,41,59,0.5); border:1px solid var(--border-color); border-radius:10px; padding:12px;">
+        <div style="width:28px; height:28px; border-radius:50%; background:#38bdf8; color:#090d16; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:13px;">۲</div>
+        <div style="font-size:13px; color:#e2e8f0; line-height:1.6;">در منوی باز شده به پایین اسکرول کرده و گزینه <strong>Add to Home Screen (افزودن به صفحه اصلی ➕)</strong> را انتخاب نمایید.</div>
+      </div>
+
+      <div style="display:flex; align-items:flex-start; gap:12px; margin-bottom:14px; background:rgba(30,41,59,0.5); border:1px solid var(--border-color); border-radius:10px; padding:12px;">
+        <div style="width:28px; height:28px; border-radius:50%; background:#38bdf8; color:#090d16; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:13px;">۳</div>
+        <div style="font-size:13px; color:#e2e8f0; line-height:1.6;">در گوشه بالای صفحه روی دکمه <strong>Add (افزودن)</strong> بزنید. آیکون برنامه در صفحه اصلی گوشی ذخیره می‌شود!</div>
+      </div>
+    </div>
+
+    <div id="androidGuideContent" style="display:none;">
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">
+        روی دکمه زیر تپ کنید تا برنامه مستقیماً روی دستگاه اندرویدی شما نصب شود:
+      </p>
+      <button id="triggerNativeInstall" class="btn-header-action btn-action-primary" style="width:100%; justify-content:center; font-weight:800; padding:12px;">
+        📲 نصب سریع برنامه روی گوشی
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Install Banner -->
+<div id="installBanner" class="install-banner">
+  <div class="install-banner-inner">
+    <div class="install-banner-text">
+      <b>📲 نصب نسخه اپلیکیشن Chieftain Workout</b>
+      <span>دسترسی سریع و آفلاین بدون نیاز به باز کردن مرورگر</span>
+    </div>
+    <div class="install-banner-actions">
+      <button id="bannerInstallBtn" class="btn-install-now">نصب اپ</button>
+      <button class="btn-banner-close" onclick="dismissBanner()">✕</button>
+    </div>
+  </div>
+</div>
+
+
+<script>
+const MASTER_EXERCISES = [
+  {
+    "id": "leg_curl",
+    "fa": "پشت پا دستگاه",
+    "en": "Leg curl",
+    "muscles": "همسترینگ",
+    "category": "gym",
+    "defaultReps": "3 × 10–15",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://youtube.com/shorts/lGNeJsdqJwg?si=temfOVvyY4ksk2nD"
+      }
+    ]
+  },
+  {
+    "id": "leg_extension",
+    "fa": "جلو پا دستگاه",
+    "en": "Leg extension",
+    "muscles": "چهارسر",
+    "category": "gym",
+    "defaultReps": "3 × 10–15",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/iQ92TuvBqRo"
+      }
+    ]
+  },
+  {
+    "id": "hack_squat",
+    "fa": "هک اسکوات",
+    "en": "Hack squat",
+    "muscles": "چهارسر، باسن",
+    "category": "gym",
+    "defaultReps": "3 × 8–12",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/-hBQNtJqgjw"
+      }
+    ]
+  },
+  {
+    "id": "leg_press",
+    "fa": "پرس پا",
+    "en": "Leg press",
+    "muscles": "چهارسر، باسن",
+    "category": "gym",
+    "defaultReps": "3 × 8–12",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/Hpu0g_B2m7A"
+      }
+    ]
+  },
+  {
+    "id": "seated_chest_press_machine",
+    "fa": "پرس سینه دستگاه",
+    "en": "Seated chest press machine",
+    "muscles": "سینه، پشت بازو، سرشانه جلویی",
+    "category": "gym",
+    "defaultReps": "3 × 8–12",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/_g6bPSKIamY"
+      }
+    ]
+  },
+  {
+    "id": "standing_calf_raise_hack",
+    "fa": "ساق با هک اسکوات",
+    "en": "Standing calf raise on hack squat machine",
+    "muscles": "ساق پا",
+    "category": "gym",
+    "defaultReps": "3 × 10–15",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱ (شورت)",
+        "url": "https://www.youtube.com/shorts/mOvF1yhTIGE"
+      },
+      {
+        "title": "آموزش ۲ (کامل)",
+        "url": "https://www.youtube.com/watch?v=vUtsuJ-sIF0"
+      }
+    ]
+  },
+  {
+    "id": "smith_machine_squat",
+    "fa": "اسکوات با اسمیت",
+    "en": "Smith machine squat",
+    "muscles": "چهارسر، باسن، همسترینگ",
+    "category": "gym",
+    "defaultReps": "3 × 8–12",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/LqZxqfzP2ms"
+      }
+    ]
+  },
+  {
+    "id": "hip_thrust",
+    "fa": "هیپ تراست",
+    "en": "Hip Thrust",
+    "muscles": "باسن (سرینی)، همسترینگ",
+    "category": "gym",
+    "defaultReps": "3 × 8–12",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/42lU8xsumBo"
+      },
+      {
+        "title": "آموزش ۲",
+        "url": "https://www.youtube.com/shorts/_i6qpcI1Nw4"
+      }
+    ]
+  },
+  {
+    "id": "standing_lateral_raise_machine",
+    "fa": "نشر جانب دستگاه",
+    "en": "Standing lateral raise machine",
+    "muscles": "سرشانه میانی",
+    "category": "gym",
+    "defaultReps": "3 × 12–20",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱ (شورت)",
+        "url": "https://youtube.com/shorts/zsPNG5-Yp7s?si=vancgmAU4f6P-GWk"
+      },
+      {
+        "title": "آموزش ۲ (کامل)",
+        "url": "https://www.youtube.com/watch?v=YGN4cOYkjFQ"
+      }
+    ]
+  },
+  {
+    "id": "cable_row",
+    "fa": "قایقی سیم‌کش",
+    "en": "Cable row",
+    "muscles": "پشت میانی، زیر بغل، جلو بازو",
+    "category": "gym",
+    "defaultReps": "3 × 8–12",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/UT2DVnU9VzM"
+      }
+    ]
+  },
+  {
+    "id": "lat_pulldown",
+    "fa": "لت سیم‌کش",
+    "en": "Lat pulldown",
+    "muscles": "زیر بغل، جلو بازو",
+    "category": "gym",
+    "defaultReps": "3 × 8–12",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/bNmvKpJSWKM"
+      },
+      {
+        "title": "آموزش ۲",
+        "url": "https://www.youtube.com/shorts/5s6KGLTMgoI"
+      },
+      {
+        "title": "آموزش ۳",
+        "url": "https://www.youtube.com/shorts/8UOC7kb5lyE"
+      }
+    ]
+  },
+  {
+    "id": "iso_lateral_row",
+    "fa": "روئینگ ایزولترال دستگاه",
+    "en": "Iso lateral row",
+    "muscles": "زیر بغل، پشت میانی",
+    "category": "gym",
+    "defaultReps": "3 × 8–12",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/OJAxVKVMjmg"
+      },
+      {
+        "title": "آموزش ۲ (کامل)",
+        "url": "https://www.youtube.com/watch?v=Ss7Tv4NiQRk"
+      },
+      {
+        "title": "آموزش ۳",
+        "url": "https://www.youtube.com/shorts/VHXOmrs56GU"
+      }
+    ]
+  },
+  {
+    "id": "reverse_peck_deck_fly",
+    "fa": "ریورس پک‌دک (فلای معکوس)",
+    "en": "Reverse peck deck fly",
+    "muscles": "پشت سرشانه، پشت میانی",
+    "category": "gym",
+    "defaultReps": "3 × 12–20",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/b2r_2yjReYg"
+      }
+    ]
+  },
+  {
+    "id": "ufo_linear_row_machine",
+    "fa": "یوفو زیر بغل",
+    "en": "U-FO Linear row machine",
+    "muscles": "زیر بغل، پشت میانی، جلو بازو",
+    "category": "gym",
+    "defaultReps": "3 × 8–12",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱ (شورت)",
+        "url": "https://www.youtube.com/shorts/HOOue-jWSwo"
+      },
+      {
+        "title": "آموزش ۲ (شورت)",
+        "url": "https://www.youtube.com/shorts/eDMnjrqqebg"
+      }
+    ]
+  },
+  {
+    "id": "smith_incline_bench_press",
+    "fa": "پرس بالا سینه اسمیت",
+    "en": "Smith incline bench press",
+    "muscles": "سینه، سرشانه جلویی، پشت بازو",
+    "category": "gym",
+    "defaultReps": "3 × 6–10",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش کامل",
+        "url": "https://www.youtube.com/watch?v=e_PWa7bMnk8"
+      }
+    ]
+  },
+  {
+    "id": "peck_deck_fly",
+    "fa": "پک‌دک فلای (فلای دستگاه)",
+    "en": "Peck deck fly",
+    "muscles": "سینه",
+    "category": "gym",
+    "defaultReps": "3 × 10–15",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱ (اصلاح شده)",
+        "url": "https://www.youtube.com/shorts/b3EzlAHSM3E"
+      }
+    ]
+  },
+  {
+    "id": "iso_lateral_incline_pec_fly_machine",
+    "fa": "فلای بالا سینه دستگاه ایزولترال",
+    "en": "Iso lateral incline pec fly machine",
+    "muscles": "سینه (بالا سینه)",
+    "category": "gym",
+    "defaultReps": "3 × 10–15",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/wlkKJWxKOCM"
+      },
+      {
+        "title": "آموزش ۲ (کامل)",
+        "url": "https://www.youtube.com/watch?v=DtiDEA-UqwA"
+      }
+    ]
+  },
+  {
+    "id": "iso_lateral_incline_bench_press",
+    "fa": "پرس بالا سینه ایزولترال دستگاه",
+    "en": "Iso-Lateral incline Bench Press",
+    "muscles": "سینه (بالا سینه)، پشت بازو",
+    "category": "gym",
+    "defaultReps": "3 × 8–12",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/i3e4CG5tnfs"
+      }
+    ]
+  },
+  {
+    "id": "incline_chest_fly",
+    "fa": "فلای بالا سینه دستگاه",
+    "en": "Incline chest fly",
+    "muscles": "سینه (بالا سینه)",
+    "category": "gym",
+    "defaultReps": "3 × 10–15",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/wlkKJWxKOCM"
+      }
+    ]
+  },
+  {
+    "id": "seated_cable_pec_fly",
+    "fa": "فلای سینه نشسته با سیم‌کش",
+    "en": "Seated Cable Pec Fly",
+    "muscles": "سینه",
+    "category": "gym",
+    "defaultReps": "3 × 10–15",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/sgerBKynRWA"
+      },
+      {
+        "title": "آموزش ۲",
+        "url": "https://www.youtube.com/shorts/KoGL5rwXy1U"
+      }
+    ]
+  },
+  {
+    "id": "preacher_curls",
+    "fa": "جلو بازو لاری",
+    "en": "Preacher curls",
+    "muscles": "جلو بازو",
+    "category": "gym",
+    "defaultReps": "3 × 8–12",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/7ixqAPO6JvU"
+      }
+    ]
+  },
+  {
+    "id": "preacher_hammer_curl",
+    "fa": "همر کرل روی لاری",
+    "en": "Preacher Hammer Curl",
+    "muscles": "براکیالیس، براکیورادیالیس، جلو بازو",
+    "category": "gym",
+    "defaultReps": "3 × 8–12",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/7ixqAPO6JvU"
+      }
+    ]
+  },
+  {
+    "id": "rope_triceps_pushdown",
+    "fa": "پشت بازو طناب",
+    "en": "Rope triceps pushdown",
+    "muscles": "پشت بازو",
+    "category": "gym",
+    "defaultReps": "3 × 10–15",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱ (شورت)",
+        "url": "https://www.youtube.com/shorts/1FoWlRS2Edc"
+      },
+      {
+        "title": "آموزش ۲ (کامل)",
+        "url": "https://www.youtube.com/watch?v=npKMP9UwJ0s&t=205s"
+      }
+    ]
+  },
+  {
+    "id": "cable_triceps_pushdown",
+    "fa": "پشت بازو سیم‌کش میله",
+    "en": "cable triceps pushdown",
+    "muscles": "پشت بازو",
+    "category": "gym",
+    "defaultReps": "3 × 10–15",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/rGI88vZdArg"
+      }
+    ]
+  },
+  {
+    "id": "overhead_triceps_extension",
+    "fa": "پشت بازو بالای سر طناب",
+    "en": "Overhead Triceps Extension",
+    "muscles": "پشت بازو",
+    "category": "gym",
+    "defaultReps": "3 × 10–15",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/iKX6vEhrGxw"
+      }
+    ]
+  },
+  {
+    "id": "dumbbell_shrugs",
+    "fa": "شراگ دمبل",
+    "en": "Dumbbell Shrugs",
+    "muscles": "کول فوقانی (تراپز)",
+    "category": "gym",
+    "defaultReps": "3 × 10–15",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/rFsSeClGnNA"
+      }
+    ]
+  },
+  {
+    "id": "chest_supported_dumbbell_shrug",
+    "fa": "شراگ دمبل سینه تکیه‌گاه (کلسو)",
+    "en": "Chest supported dumbbell shrug (Kelso shrug)",
+    "muscles": "پشت میانی، کول میانی و فوقانی",
+    "category": "gym",
+    "defaultReps": "3 × 10–15",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/rFsSeClGnNA"
+      }
+    ]
+  },
+  {
+    "id": "cable_lateral_raise",
+    "fa": "نشر جانب سیم‌کش",
+    "en": "Cable lateral raise",
+    "muscles": "سرشانه میانی",
+    "category": "gym",
+    "defaultReps": "3 × 12–20",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/lMJUXEvcMkQ"
+      }
+    ]
+  },
+  {
+    "id": "face_pull",
+    "fa": "فیس پول با سیم‌کش",
+    "en": "face pull",
+    "muscles": "پشت سرشانه، روتاتور کاف، پشت بالایی",
+    "category": "gym",
+    "defaultReps": "3 × 12–20",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/IeOqdw9WI90"
+      }
+    ]
+  },
+  {
+    "id": "dumbbell_shoulder_press",
+    "fa": "پرس سرشانه با دمبل",
+    "en": "dumbbell shoulder press",
+    "muscles": "سرشانه، پشت بازو",
+    "category": "gym",
+    "defaultReps": "3 × 8–12",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/k6tzKisR3NY"
+      },
+      {
+        "title": "آموزش ۲",
+        "url": "https://www.youtube.com/shorts/t0rDU50nZpA"
+      }
+    ]
+  },
+  {
+    "id": "plate_loaded_shoulder_press",
+    "fa": "پرس سرشانه دستگاه",
+    "en": "Plate-loaded shoulder press machine",
+    "muscles": "سرشانه، پشت بازو",
+    "category": "gym",
+    "defaultReps": "3 × 8–12",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/OePoi839_so"
+      }
+    ]
+  },
+  {
+    "id": "standing_cable_crunch",
+    "fa": "کرانچ ایستاده کابل",
+    "en": "Standing cable crunch",
+    "muscles": "شکم",
+    "category": "gym",
+    "defaultReps": "3 × 10–15",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱ (کامل)",
+        "url": "https://www.youtube.com/watch?v=vFV78ASgsak"
+      },
+      {
+        "title": "آموزش ۲ (شورت)",
+        "url": "https://www.youtube.com/shorts/EtZoHYaPeCw"
+      }
+    ]
+  },
+  {
+    "id": "cable_oblique_crunch",
+    "fa": "کرانچ مورب سیم‌کش",
+    "en": "Cable Oblique crunch",
+    "muscles": "مورب شکمی (ابلیک)",
+    "category": "gym",
+    "defaultReps": "3 × 12–20",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/GDUt_JPammw"
+      },
+      {
+        "title": "آموزش ۲",
+        "url": "https://www.youtube.com/shorts/qcMftnfpht0"
+      },
+      {
+        "title": "آموزش ۳ (کامل)",
+        "url": "https://www.youtube.com/watch?v=g8YWFMSJFIc"
+      }
+    ]
+  },
+  {
+    "id": "cable_hip_abduction",
+    "fa": "ابداکشن کابل",
+    "en": "Cable Hip Abduction",
+    "muscles": "خارج ران، سرینی میانی",
+    "category": "gym",
+    "defaultReps": "3 × 12–20",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش کامل",
+        "url": "https://www.youtube.com/watch?v=EHq78mQYLbI"
+      }
+    ]
+  },
+  {
+    "id": "cable_hip_adduction",
+    "fa": "اداکشن کابل",
+    "en": "Cable Hip Adduction",
+    "muscles": "داخل ران",
+    "category": "gym",
+    "defaultReps": "3 × 12–20",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش کامل",
+        "url": "https://www.youtube.com/watch?v=EHq78mQYLbI"
+      }
+    ]
+  },
+  {
+    "id": "bent_knee_cable_hip_abduction",
+    "fa": "ابداکشن ران زانو خم سیم‌کش",
+    "en": "Bent Knee Cable Hip Abduction",
+    "muscles": "سرینی میانی و خارج ران",
+    "category": "gym",
+    "defaultReps": "3 × 12–20",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش کامل",
+        "url": "https://www.youtube.com/watch?v=h0S0m95tTxY"
+      }
+    ]
+  },
+  {
+    "id": "rdl",
+    "fa": "ددلیفت رومانیایی",
+    "en": "RDL",
+    "muscles": "همسترینگ، باسن، فیله",
+    "category": "gym",
+    "defaultReps": "2 × 8–12",
+    "defaultSets": 2,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/5rIqP63yWFg"
+      }
+    ]
+  },
+  {
+    "id": "back_extension",
+    "fa": "بک اکستنشن / فیله",
+    "en": "Back Extension",
+    "muscles": "فیله کمر، باسن، همسترینگ",
+    "category": "gym",
+    "defaultReps": "3 × 10–15",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/9XN23dIEqLE"
+      }
+    ]
+  },
+  {
+    "id": "bench_crunch",
+    "fa": "کرانچ نیمکت",
+    "en": "Bench Crunch",
+    "muscles": "شکم",
+    "category": "gym",
+    "defaultReps": "3 × 12–20",
+    "defaultSets": 3,
+    "videos": []
+  },
+  {
+    "id": "wall_sit",
+    "fa": "وال‌سیت",
+    "en": "Wall sit",
+    "muscles": "چهارسر و ایزومتریک",
+    "category": "home",
+    "defaultReps": "3 × 30–60 ثانیه",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش استاندارد",
+        "url": "https://www.youtube.com/shorts/mDdLC-yKudY"
+      },
+      {
+        "title": "مدل اصلاحی برای زانوی حساس",
+        "url": "https://www.youtube.com/shorts/dkyWIHEjgBE"
+      }
+    ]
+  },
+  {
+    "id": "side_plank_iso",
+    "fa": "ساید پلانک ایزومتریک",
+    "en": "Side plank Isometric",
+    "muscles": "ابلیک و Core",
+    "category": "home",
+    "defaultReps": "3 × 20–40 ثانیه هر طرف",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/sKMD_pbNm7w"
+      }
+    ]
+  },
+  {
+    "id": "side_plank_dips",
+    "fa": "ساید پلانک با حرکت لگن",
+    "en": "Side plank dips",
+    "muscles": "ابلیک و Core",
+    "category": "home",
+    "defaultReps": "3 × 10–15 هر طرف",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/F63KKkm18xw"
+      },
+      {
+        "title": "آموزش ۲",
+        "url": "https://www.youtube.com/shorts/d-pNRtspSK0"
+      }
+    ]
+  },
+  {
+    "id": "dead_bug_iso",
+    "fa": "ددباگ ایزومتریک",
+    "en": "Dead bug iso",
+    "muscles": "Core",
+    "category": "home",
+    "defaultReps": "3 × 20–30 ثانیه",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/mMiGFa_jWhA"
+      }
+    ]
+  },
+  {
+    "id": "dead_bug",
+    "fa": "ددباگ",
+    "en": "dead bug",
+    "muscles": "Core",
+    "category": "home",
+    "defaultReps": "3 × 6–10 هر طرف",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/apYmFYLsCNs"
+      }
+    ]
+  },
+  {
+    "id": "prone_itwy",
+    "fa": "پرون ITWY",
+    "en": "Prone ITWY",
+    "muscles": "پشت سرشانه، تراپز و کنترل کتف",
+    "category": "home",
+    "defaultReps": "3 × 8–12",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش کامل",
+        "url": "https://www.youtube.com/watch?v=Yv6sUKOwOY8&pp=ygUZUHJvbmUgVyBSYWlzZSBwcm9wZXIgZm9ybQ%3D%3D"
+      }
+    ]
+  },
+  {
+    "id": "glute_bridge_iso",
+    "fa": "گلوت بریج ایزومتریک",
+    "en": "glute bridge iso",
+    "muscles": "باسن و زنجیره خلفی",
+    "category": "home",
+    "defaultReps": "3 × 20–40 ثانیه",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/1bOEz-3SgHI"
+      }
+    ]
+  },
+  {
+    "id": "glute_bridge",
+    "fa": "پل باسن پویا",
+    "en": "Glute bridge",
+    "muscles": "باسن و زنجیره خلفی",
+    "category": "home",
+    "defaultReps": "3 × 12–15",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/LORVjN2bg5o"
+      }
+    ]
+  },
+  {
+    "id": "iso_bird_dog",
+    "fa": "برد داگ ایزومتریک",
+    "en": "Iso bird dog",
+    "muscles": "Core و کنترل تنه",
+    "category": "home",
+    "defaultReps": "3 × 20–30 ثانیه هر طرف",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/3HDd3iKb_RI"
+      }
+    ]
+  },
+  {
+    "id": "bird_dog",
+    "fa": "برد داگ",
+    "en": "bird dog",
+    "muscles": "Core و کنترل تنه",
+    "category": "home",
+    "defaultReps": "3 × 8–12 هر طرف",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/Xj1z9NqwuM8"
+      }
+    ]
+  },
+  {
+    "id": "push_up_plus",
+    "fa": "پوش‌آپ پلاس",
+    "en": "Push up plus (scap push up)",
+    "muscles": "سراتوس قدامی و کنترل کتف",
+    "category": "home",
+    "defaultReps": "3 × 8–15",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/opcjCCX7FLg"
+      }
+    ]
+  },
+  {
+    "id": "wall_slide",
+    "fa": "وال اسلاید",
+    "en": "Wall slide",
+    "muscles": "کنترل کتف و شانه",
+    "category": "home",
+    "defaultReps": "3 × 8–12",
+    "defaultSets": 3,
+    "videos": []
+  }
+];
+const HOSSEIN_PROFILE = {
+  "id": "hossein_chieftain",
+  "name": "Hossein Chieftain",
+  "isDefault": true,
+  "days": [
+    {
+      "id": "d1",
+      "title": "شنبه",
+      "type": "gym",
+      "badge": "🏋️ باشگاه",
+      "note": "۷۵ دقیقه تمرین با وزنه + ۱۵ دقیقه تردمیل در انتهای جلسه · حرکات اصلی حدود 2 RIR",
+      "treadmill": true,
+      "supersets": [
+        {
+          "title": "A1 + A2 · هک اسکوات + نشر جانب دستگاه",
+          "exercises": [
+            {
+              "exId": "hack_squat",
+              "reps": "3 × 8–12",
+              "sets": 3
+            },
+            {
+              "exId": "standing_lateral_raise_machine",
+              "reps": "3 × 12–20",
+              "sets": 3
+            }
+          ]
+        },
+        {
+          "title": "B1 + B2 · پرس بالا سینه اسمیت + پشت پا دستگاه",
+          "exercises": [
+            {
+              "exId": "smith_incline_bench_press",
+              "reps": "3 × 6–10",
+              "sets": 3
+            },
+            {
+              "exId": "leg_curl",
+              "reps": "3 × 10–15",
+              "sets": 3
+            }
+          ]
+        },
+        {
+          "title": "C1 + C2 · یوفو زیر بغل + پشت بازو طناب",
+          "exercises": [
+            {
+              "exId": "ufo_linear_row_machine",
+              "reps": "3 × 8–12",
+              "sets": 3
+            },
+            {
+              "exId": "rope_triceps_pushdown",
+              "reps": "3 × 10–15",
+              "sets": 3
+            }
+          ]
+        },
+        {
+          "title": "D1 + D2 · ساق با هک اسکوات + کرانچ ایستاده کابل",
+          "exercises": [
+            {
+              "exId": "standing_calf_raise_hack",
+              "reps": "3 × 10–15",
+              "sets": 3
+            },
+            {
+              "exId": "standing_cable_crunch",
+              "reps": "3 × 10–15",
+              "sets": 3
+            }
+          ]
+        },
+        {
+          "title": "E1 + E2 · ابداکشن کابل + اداکشن کابل",
+          "exercises": [
+            {
+              "exId": "cable_hip_abduction",
+              "reps": "3 × 12–20",
+              "sets": 3
+            },
+            {
+              "exId": "cable_hip_adduction",
+              "reps": "3 × 12–20",
+              "sets": 3
+            }
+          ]
+        }
+      ],
+      "singles": [
+        {
+          "exId": "back_extension",
+          "reps": "3 × 10–15",
+          "sets": 3
+        }
+      ]
+    },
+    {
+      "id": "d2",
+      "title": "یکشنبه",
+      "type": "home",
+      "badge": "🏠 خانه",
+      "note": "تمرکز بر پایداری ستون فقرات، تقویت عضلات Core و کنترل ایزومتریک در خانه",
+      "treadmill": false,
+      "supersets": [],
+      "singles": [
+        {
+          "exId": "dead_bug_iso",
+          "reps": "3 × 20–30 ثانیه",
+          "sets": 3
+        },
+        {
+          "exId": "side_plank_iso",
+          "reps": "3 × 20–40 ثانیه هر طرف",
+          "sets": 3
+        },
+        {
+          "exId": "wall_sit",
+          "reps": "3 × 30–60 ثانیه",
+          "sets": 3
+        },
+        {
+          "exId": "iso_bird_dog",
+          "reps": "3 × 20–30 ثانیه هر طرف",
+          "sets": 3
+        },
+        {
+          "exId": "push_up_plus",
+          "reps": "3 × 8–15",
+          "sets": 3
+        }
+      ]
+    },
+    {
+      "id": "d3",
+      "title": "دوشنبه",
+      "type": "gym",
+      "badge": "🏋️ باشگاه",
+      "note": "۷۵ دقیقه تمرین با وزنه + ۱۵ دقیقه تردمیل در انتهای جلسه · حرکات اصلی حدود 2 RIR",
+      "treadmill": true,
+      "supersets": [
+        {
+          "title": "A1 + A2 · پرس پا + ریورس پک‌دک",
+          "exercises": [
+            {
+              "exId": "leg_press",
+              "reps": "3 × 8–12",
+              "sets": 3
+            },
+            {
+              "exId": "reverse_peck_deck_fly",
+              "reps": "3 × 12–20",
+              "sets": 3
+            }
+          ]
+        },
+        {
+          "title": "B1 + B2 · پرس بالا سینه اسمیت + جلو پا دستگاه",
+          "exercises": [
+            {
+              "exId": "smith_incline_bench_press",
+              "reps": "3 × 6–10",
+              "sets": 3
+            },
+            {
+              "exId": "leg_extension",
+              "reps": "3 × 10–15",
+              "sets": 3
+            }
+          ]
+        },
+        {
+          "title": "C1 + C2 · لت سیم‌کش + جلو بازو لاری",
+          "exercises": [
+            {
+              "exId": "lat_pulldown",
+              "reps": "3 × 8–12",
+              "sets": 3
+            },
+            {
+              "exId": "preacher_curls",
+              "reps": "3 × 8–12",
+              "sets": 3
+            }
+          ]
+        },
+        {
+          "title": "D1 + D2 · پرس سرشانه دستگاه + پشت پا دستگاه",
+          "exercises": [
+            {
+              "exId": "plate_loaded_shoulder_press",
+              "reps": "3 × 8–12",
+              "sets": 3
+            },
+            {
+              "exId": "leg_curl",
+              "reps": "3 × 10–15",
+              "sets": 3
+            }
+          ]
+        },
+        {
+          "title": "E1 + E2 · پک‌دک فلای + ساق با هک اسکوات",
+          "exercises": [
+            {
+              "exId": "peck_deck_fly",
+              "reps": "3 × 10–15",
+              "sets": 3
+            },
+            {
+              "exId": "standing_calf_raise_hack",
+              "reps": "3 × 10–15",
+              "sets": 3
+            }
+          ]
+        },
+        {
+          "title": "F1 + F2 · نشر جانب دستگاه + کرانچ نیمکت",
+          "exercises": [
+            {
+              "exId": "standing_lateral_raise_machine",
+              "reps": "3 × 12–20",
+              "sets": 3
+            },
+            {
+              "exId": "bench_crunch",
+              "reps": "3 × 12–20",
+              "sets": 3
+            }
+          ]
+        }
+      ],
+      "singles": [
+        {
+          "exId": "back_extension",
+          "reps": "3 × 12–15",
+          "sets": 3
+        }
+      ]
+    },
+    {
+      "id": "d4",
+      "title": "سه‌شنبه",
+      "type": "home",
+      "badge": "🏠 خانه",
+      "note": "تمرکز بر کنترل کتف، سلامت کمربند شانه‌ای و ثبات زنجیره خلفی در خانه",
+      "treadmill": false,
+      "supersets": [],
+      "singles": [
+        {
+          "exId": "wall_slide",
+          "reps": "3 × 8–12",
+          "sets": 3
+        },
+        {
+          "exId": "prone_itwy",
+          "reps": "3 × 8–12",
+          "sets": 3
+        },
+        {
+          "exId": "push_up_plus",
+          "reps": "3 × 8–15",
+          "sets": 3
+        },
+        {
+          "exId": "side_plank_iso",
+          "reps": "3 × 20–40 ثانیه هر طرف",
+          "sets": 3
+        },
+        {
+          "exId": "dead_bug",
+          "reps": "3 × 6–10 هر طرف",
+          "sets": 3
+        },
+        {
+          "exId": "glute_bridge_iso",
+          "reps": "3 × 20–40 ثانیه",
+          "sets": 3
+        }
+      ]
+    },
+    {
+      "id": "d5",
+      "title": "چهارشنبه",
+      "type": "rest",
+      "badge": "🛌 استراحت کامل",
+      "note": "استراحت کامل، تغذیه با کیفیت و ریکاوری بافت‌های عضلانی",
+      "treadmill": false,
+      "supersets": [],
+      "singles": []
+    },
+    {
+      "id": "d6",
+      "title": "پنجشنبه",
+      "type": "gym",
+      "badge": "🏋️ باشگاه",
+      "note": "۷۵ دقیقه تمرین با وزنه + ۱۵ دقیقه تردمیل در انتهای جلسه · حرکات اصلی حدود 2 RIR",
+      "treadmill": true,
+      "supersets": [
+        {
+          "title": "A1 + A2 · هک اسکوات + ریورس پک‌دک",
+          "exercises": [
+            {
+              "exId": "hack_squat",
+              "reps": "3 × 8–12",
+              "sets": 3
+            },
+            {
+              "exId": "reverse_peck_deck_fly",
+              "reps": "3 × 12–20",
+              "sets": 3
+            }
+          ]
+        },
+        {
+          "title": "B1 + B2 · پرس سینه دستگاه + پشت پا دستگاه",
+          "exercises": [
+            {
+              "exId": "seated_chest_press_machine",
+              "reps": "3 × 8–12",
+              "sets": 3
+            },
+            {
+              "exId": "leg_curl",
+              "reps": "3 × 10–15",
+              "sets": 3
+            }
+          ]
+        },
+        {
+          "title": "C1 + C2 · قایقی + پشت بازو بالای سر طناب",
+          "exercises": [
+            {
+              "exId": "cable_row",
+              "reps": "3 × 8–12",
+              "sets": 3
+            },
+            {
+              "exId": "overhead_triceps_extension",
+              "reps": "3 × 10–15",
+              "sets": 3
+            }
+          ]
+        },
+        {
+          "title": "D1 + D2 · ددلیفت رومانیایی + ابداکشن کابل",
+          "exercises": [
+            {
+              "exId": "rdl",
+              "reps": "2 × 8–12",
+              "sets": 2
+            },
+            {
+              "exId": "cable_hip_abduction",
+              "reps": "3 × 12–20",
+              "sets": 3
+            }
+          ]
+        },
+        {
+          "title": "E1 + E2 · فلای بالا سینه دستگاه + اداکشن کابل",
+          "exercises": [
+            {
+              "exId": "incline_chest_fly",
+              "reps": "3 × 10–15",
+              "sets": 3
+            },
+            {
+              "exId": "cable_hip_adduction",
+              "reps": "3 × 12–20",
+              "sets": 3
+            }
+          ]
+        },
+        {
+          "title": "F1 + F2 · همر کرل روی لاری + شراگ دمبل",
+          "exercises": [
+            {
+              "exId": "preacher_hammer_curl",
+              "reps": "3 × 8–12",
+              "sets": 3
+            },
+            {
+              "exId": "dumbbell_shrugs",
+              "reps": "3 × 10–15",
+              "sets": 3
+            }
+          ]
+        }
+      ],
+      "singles": [
+        {
+          "exId": "standing_calf_raise_hack",
+          "reps": "3 × 10–15",
+          "sets": 3
+        },
+        {
+          "exId": "back_extension",
+          "reps": "3 × 10–15",
+          "sets": 3
+        }
+      ]
+    },
+    {
+      "id": "d7",
+      "title": "جمعه",
+      "type": "home",
+      "badge": "🏠 خانه",
+      "note": "پایان هفته با تمرینات ثبات عضلات مرکزی، کنترل کمربند شانه‌ای و تمرکز ایزومتریک در خانه",
+      "treadmill": false,
+      "supersets": [],
+      "singles": [
+        {
+          "exId": "wall_sit",
+          "reps": "3 × 30–60 ثانیه",
+          "sets": 3
+        },
+        {
+          "exId": "side_plank_iso",
+          "reps": "3 × 20–40 ثانیه هر طرف",
+          "sets": 3
+        },
+        {
+          "exId": "dead_bug_iso",
+          "reps": "3 × 20–30 ثانیه",
+          "sets": 3
+        },
+        {
+          "exId": "iso_bird_dog",
+          "reps": "3 × 20–30 ثانیه هر طرف",
+          "sets": 3
+        },
+        {
+          "exId": "wall_slide",
+          "reps": "2 × 10–12",
+          "sets": 2
+        },
+        {
+          "exId": "push_up_plus",
+          "reps": "3 × 8–15",
+          "sets": 3
+        }
+      ]
+    }
+  ]
+};
+
+// --- Application State Management ---
+let customExercises = [];
+let allProfiles = [];
+let activeProfileId = 'hossein_chieftain';
+let activeDayForAdding = null;
+
+function loadAppData() {
+  try {
+    const rawCustEx = localStorage.getItem('chieftain_custom_exercises');
+    if (rawCustEx) customExercises = JSON.parse(rawCustEx);
+  } catch(e) { customExercises = []; }
+
+  try {
+    const rawProfiles = localStorage.getItem('chieftain_profiles_v2');
+    if (rawProfiles) {
+      allProfiles = JSON.parse(rawProfiles);
+    } else {
+      allProfiles = [HOSSEIN_PROFILE];
+      localStorage.setItem('chieftain_profiles_v2', JSON.stringify(allProfiles));
+    }
+  } catch(e) {
+    allProfiles = [HOSSEIN_PROFILE];
+  }
+
+  const savedActiveId = localStorage.getItem('chieftain_active_profile_id');
+  if (savedActiveId && allProfiles.some(p => p.id === savedActiveId)) {
+    activeProfileId = savedActiveId;
+  } else {
+    activeProfileId = 'hossein_chieftain';
+  }
+}
+
+function saveProfiles() {
+  localStorage.setItem('chieftain_profiles_v2', JSON.stringify(allProfiles));
+}
+
+function saveCustomExercises() {
+  localStorage.setItem('chieftain_custom_exercises', JSON.stringify(customExercises));
+}
+
+function getAllExercises() {
+  return [...MASTER_EXERCISES, ...customExercises];
+}
+
+function findExerciseById(id) {
+  return getAllExercises().find(e => e.id === id) || {
+    id: id,
+    fa: id,
+    en: '',
+    muscles: 'نامشخص',
+    videos: [],
+    defaultReps: '3 × 8–12',
+    defaultSets: 3
+  };
+}
+
+function getActiveProfile() {
+  return allProfiles.find(p => p.id === activeProfileId) || HOSSEIN_PROFILE;
+}
+
+// --- UI Rendering Engine ---
+function renderApp() {
+  renderProfileSelect();
+  renderHeader();
+  renderDayNav();
+  renderWorkoutDays();
+  loadSavedSets();
+  updateAllProgressBars();
+}
+
+function renderProfileSelect() {
+  const select = document.getElementById('profileSelect');
+  select.innerHTML = allProfiles.map(p => 
+    `<option value="${p.id}" ${p.id === activeProfileId ? 'selected' : ''}>${p.name} ${p.isDefault ? '(پیش‌فرض)' : ''}</option>`
+  ).join('');
+}
+
+function renderHeader() {
+  const prof = getActiveProfile();
+  const titleEl = document.getElementById('appTitle');
+  if (prof.id === 'hossein_chieftain') {
+    titleEl.innerText = 'برنامه تمرینی Hossein Chieftain';
+  } else {
+    titleEl.innerText = 'برنامه تمرینی ' + prof.name;
+  }
+
+  const deleteBtn = document.getElementById('deleteProfileBtn');
+  if (deleteBtn) {
+    deleteBtn.style.display = prof.isDefault ? 'none' : 'inline-flex';
+  }
+
+  const hour = new Date().getHours();
+  const greetingEl = document.getElementById('greetingText');
+  if (greetingEl) {
+    if (hour >= 5 && hour < 12) {
+      greetingEl.innerText = `صبح بخیر ${prof.name}! وقت انرژی و ساختن عضلاته ⚡`;
+    } else if (hour >= 12 && hour < 18) {
+      greetingEl.innerText = `عصر بخیر ${prof.name}! آماده یک جلسه تمرینی پرقدرت هستی؟ 💪`;
+    } else {
+      greetingEl.innerText = `شب بخیر ${prof.name}! ریکاوری و ثبات کلید موفقیته 🔥`;
+    }
+  }
+}
+
+function renderDayNav() {
+  const prof = getActiveProfile();
+  const nav = document.getElementById('dayNav');
+  
+  const tabsHtml = prof.days.map((d, idx) => {
+    const typeLabel = d.type === 'gym' ? 'باشگاه' : (d.type === 'home' ? 'خانه' : 'استراحت');
+    return `<a href="#${d.id}" class="nav-tab" data-day="${idx}">${d.title} <span class="tab-badge">${typeLabel}</span></a>`;
+  }).join('');
+
+  nav.innerHTML = tabsHtml + `<a href="#weekly-summary" class="nav-tab" data-day="summary">📊 جمع‌بندی</a>`;
+}
+
+function renderVideoButtons(videos) {
+  if (!videos || videos.length === 0) {
+    return `<span class="video-missing">آموزش متنی / بزودی</span>`;
+  }
+
+  if (videos.length === 1) {
+    return `<a href="${videos[0].url}" target="_blank" rel="noopener" class="video-btn">
+      <span>▶</span> <span>ویدیو آموزش</span>
+    </a>`;
+  }
+
+  return videos.map((v, i) => `
+    <a href="${v.url}" target="_blank" rel="noopener" class="video-btn">
+      <span>▶</span> <span>${v.title || ('ویدیو ' + (i+1))}</span>
+    </a>
+  `).join('');
+}
+
+function renderExerciseCard(item, dayId, isSuperset = false) {
+  const ex = findExerciseById(item.exId);
+  const reps = item.reps || ex.defaultReps || '3 × 8–12';
+  const setsCount = item.sets || ex.defaultSets || 3;
+
+  const setBtns = Array.from({length: setsCount}, (_, i) => 
+    `<button class="set-btn" onclick="toggleSet(this)">${i+1}</button>`
+  ).join('');
+
+  return `
+    <article class="exercise-card" data-ex-id="${dayId}_${ex.id}">
+      <div class="exercise-header">
+        <div>
+          <div class="exercise-name-fa">${ex.fa}</div>
+          ${ex.en ? `<div class="exercise-name-en">${ex.en}</div>` : ''}
+        </div>
+        <div class="reps-badge">${reps}</div>
+      </div>
+      <div class="muscles-row">
+        <span class="muscle-tag">عضلات هدف: ${ex.muscles || 'عمومی'}</span>
+      </div>
+      <div class="card-footer">
+        <div class="video-links-group">
+          ${renderVideoButtons(ex.videos)}
+        </div>
+        <div class="sets-tracker">
+          ${setBtns}
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+function renderWorkoutDays() {
+  const prof = getActiveProfile();
+  const container = document.getElementById('workoutContent');
+
+  const daysHtml = prof.days.map(day => {
+    const typeBadge = {
+      'gym': '<span class="day-location-badge badge-gym">🏋️ باشگاه</span>',
+      'home': '<span class="day-location-badge badge-home">🏠 خانه</span>',
+      'rest': '<span class="day-location-badge badge-rest">🛌 استراحت کامل</span>'
+    }[day.type] || '';
+
+    let supersetsHtml = '';
+    if (day.supersets && day.supersets.length > 0) {
+      supersetsHtml = day.supersets.map(ss => `
+        <div class="superset-block">
+          <div class="superset-header">⚡ ${ss.title}</div>
+          ${ss.exercises.map(item => renderExerciseCard(item, day.id, true)).join('')}
+        </div>
+      `).join('');
+    }
+
+    let singlesHtml = '';
+    if (day.singles && day.singles.length > 0) {
+      singlesHtml = day.singles.map(item => renderExerciseCard(item, day.id, false)).join('');
+    }
+
+    let restHtml = '';
+    if (day.type === 'rest') {
+      restHtml = `
+        <div class="rest-day-card">
+          <div class="rest-icon">🛌💤</div>
+          <h3>روز استراحت و ریکاوری کامل</h3>
+          <p>امروز بدن شما نیاز به تغذیه با کیفیت، آب‌رسانی کافی و خواب با کیفیت دارد تا عضلات بازسازی شوند.</p>
+        </div>
+      `;
+    }
+
+    let treadmillHtml = '';
+    if (day.treadmill) {
+      treadmillHtml = `
+        <div class="treadmill-banner">
+          <span>🏃 آخر جلسه: ۱۵ دقیقه تردمیل</span>
+          <button class="btn-header-action" onclick="quickTimer(900)" style="padding:4px 10px;font-size:12px">شروع ۱۵ دقیقه تایمر</button>
+        </div>
+      `;
+    }
+
+    return `
+      <section id="${day.id}" class="day-section">
+        <div class="day-header">
+          <div class="day-title-wrap">
+            <h2 class="day-title">${day.title}</h2>
+            ${typeBadge}
+          </div>
+          <div class="day-progress-wrap">
+            <div class="day-progress-bar"><div class="day-progress-fill" id="prog-${day.id}"></div></div>
+            <span id="prog-text-${day.id}">۰٪</span>
+          </div>
+        </div>
+
+        ${day.note ? `
+          <div class="session-note">
+            <span>📌</span>
+            <span>${day.note}</span>
+          </div>
+        ` : ''}
+
+        ${supersetsHtml}
+        ${singlesHtml}
+        ${restHtml}
+        ${treadmillHtml}
+      </section>
+    `;
+  }).join('');
+
+  const summaryCardHtml = `
     <section id="weekly-summary" class="summary-card">
       <div class="day-header">
         <div class="day-title-wrap">
@@ -422,251 +1890,429 @@ tr:nth-child(even) td { background: rgba(255, 255, 255, 0.015); }
             </tr>
           </thead>
           <tbody>
-<tr><td><b>سینه</b></td><td><span class="set-highlight">12 ست</span></td><td>۳ بار</td><td>حجم هدف اصلی (اسمیت بالا سینه، پرس سینه دستگاه، فلای بالا سینه)</td></tr><tr><td><b>چهارسر</b></td><td><span class="set-highlight">9 ست</span></td><td>۲–۳ بار</td><td>هک اسکوات، پرس پا، جلوپا دستگاه</td></tr><tr><td><b>همسترینگ</b></td><td><span class="set-highlight">12 ست</span></td><td>۳ بار</td><td>پشت‌پا دستگاه + ددلیفت رومانیایی (RDL)</td></tr><tr><td><b>ساق پا</b></td><td><span class="set-highlight">9 ست</span></td><td>۳ بار</td><td>ساق روی هک اسکوات</td></tr><tr><td><b>داخل ران</b></td><td><span class="set-highlight">6 ست</span></td><td>۲ بار</td><td>اداکشن کابل (Cable Adduction)</td></tr><tr><td><b>خارج ران</b></td><td><span class="set-highlight">6 ست</span></td><td>۲ بار</td><td>ابداکشن کابل (Cable Abduction)</td></tr><tr><td><b>فیله / اکستنسور کمر</b></td><td><span class="set-highlight">9 ست</span></td><td>۳ بار</td><td>بک اکستنشن (Back Extension)</td></tr><tr><td><b>شکم</b></td><td><span class="set-highlight">6 ست</span></td><td>۲ بار</td><td>کرانچ ایستاده کابل + کرانچ نیمکت</td></tr><tr><td><b>ابلیک (مورب شکمی)</b></td><td><span class="set-highlight">تمرین خانه</span></td><td>۳ بار</td><td>ساید پلانک ایزومتریک</td></tr><tr><td><b>زیر بغل / لت</b></td><td><span class="set-highlight">6 ست</span></td><td>۲ بار</td><td>لت سیم‌کش + تی‌بار یوفو</td></tr><tr><td><b>پشت میانی</b></td><td><span class="set-highlight">6 ست</span></td><td>۲ بار</td><td>تی‌بار یوفو + قایقی سیم‌کش</td></tr><tr><td><b>پشت سرشانه</b></td><td><span class="set-highlight">9 ست</span></td><td>۳ بار</td><td>ریورس پک‌دک (Reverse Pec Deck)</td></tr><tr><td><b>سرشانه میانی</b></td><td><span class="set-highlight">6 ست</span></td><td>۲ بار</td><td>نشر جانب دستگاه (Machine Lateral Raise)</td></tr><tr><td><b>جلو بازو</b></td><td><span class="set-highlight">6 ست</span></td><td>۲ بار</td><td>لاری دستگاه + همر کرل لاری</td></tr><tr><td><b>پشت بازو</b></td><td><span class="set-highlight">6 ست</span></td><td>۲ بار</td><td>پشت بازو طناب + پشت بازو بالای سر طناب</td></tr><tr><td><b>کول فوقانی</b></td><td><span class="set-highlight">3 ست</span></td><td>۱ بار</td><td>شراگ دمبل + تحریک روئینگ</td></tr><tr><td><b>ساعد</b></td><td><span class="set-highlight">غیرمستقیم</span></td><td>—</td><td>درگیری در Grip و حرکات روئینگ / کرل</td></tr>
+            <tr><td><b>سینه</b></td><td><span class="set-highlight">12 ست</span></td><td>۳ بار</td><td>حجم هدف اصلی (اسمیت بالا سینه، پرس سینه دستگاه، فلای)</td></tr>
+            <tr><td><b>چهارسر</b></td><td><span class="set-highlight">9 ست</span></td><td>۲–۳ بار</td><td>هک اسکوات، پرس پا، جلوپا دستگاه</td></tr>
+            <tr><td><b>همسترینگ</b></td><td><span class="set-highlight">12 ست</span></td><td>۳ بار</td><td>پشت‌پا دستگاه + ددلیفت رومانیایی (RDL)</td></tr>
+            <tr><td><b>ساق پا</b></td><td><span class="set-highlight">9 ست</span></td><td>۳ بار</td><td>ساق روی هک اسکوات</td></tr>
+            <tr><td><b>داخل ران</b></td><td><span class="set-highlight">6 ست</span></td><td>۲ بار</td><td>اداکشن کابل (Cable Adduction)</td></tr>
+            <tr><td><b>خارج ران</b></td><td><span class="set-highlight">6 ست</span></td><td>۲ بار</td><td>ابداکشن کابل (Cable Abduction)</td></tr>
+            <tr><td><b>فیله / کمر</b></td><td><span class="set-highlight">9 ست</span></td><td>۳ بار</td><td>بک اکستنشن (Back Extension)</td></tr>
+            <tr><td><b>شکم</b></td><td><span class="set-highlight">6 ست</span></td><td>۲ بار</td><td>کرانچ ایستاده کابل + کرانچ نیمکت</td></tr>
+            <tr><td><b>مورب شکمی</b></td><td><span class="set-highlight">تمرین خانه</span></td><td>۳ بار</td><td>ساید پلانک ایزومتریک</td></tr>
+            <tr><td><b>زیر بغل / لت</b></td><td><span class="set-highlight">6 ست</span></td><td>۲ بار</td><td>لت سیم‌کش + یوفو زیر بغل</td></tr>
+            <tr><td><b>پشت میانی</b></td><td><span class="set-highlight">6 ست</span></td><td>۲ بار</td><td>یوفو زیر بغل + قایقی سیم‌کش</td></tr>
+            <tr><td><b>پشت سرشانه</b></td><td><span class="set-highlight">9 ست</span></td><td>۳ بار</td><td>ریورس پک‌دک (Reverse Pec Deck)</td></tr>
+            <tr><td><b>سرشانه میانی</b></td><td><span class="set-highlight">6 ست</span></td><td>۲ بار</td><td>نشر جانب دستگاه (Lateral Raise)</td></tr>
+            <tr><td><b>جلو بازو</b></td><td><span class="set-highlight">6 ست</span></td><td>۲ بار</td><td>لاری دستگاه + همر کرل لاری</td></tr>
+            <tr><td><b>پشت بازو</b></td><td><span class="set-highlight">6 ست</span></td><td>۲ بار</td><td>پشت بازو طناب + پشت بازو بالای سر</td></tr>
+            <tr><td><b>کول فوقانی</b></td><td><span class="set-highlight">3 ست</span></td><td>۱ بار</td><td>شراگ دمبل + تحریک روئینگ</td></tr>
+            <tr><td><b>ساعد</b></td><td><span>غیرمستقیم</span></td><td>—</td><td>درگیری در Grip و حرکات روئینگ / کرل</td></tr>
           </tbody>
         </table>
       </div>
     </section>
-  </main>
-</div>
+  `;
 
-<!-- Floating Rest Timer Button -->
-<button id="openTimerBtn" class="timer-fab">
-  <span>⏱️</span>
-  <span id="fabTimerLabel">تایمر استراحت</span>
-</button>
+  container.innerHTML = daysHtml + summaryCardHtml;
+}
 
-<!-- Rest Timer Modal -->
-<div id="timerModal" class="timer-modal">
-  <div class="timer-dialog">
-    <button class="timer-close-btn" onclick="closeTimerModal()">✕</button>
-    <h3 style="font-size: 16px; font-weight: 800; color: #fff; margin-bottom: 4px;">⏱️ تایمر استراحت بین ست‌ها</h3>
-    <p style="font-size: 12px; color: var(--text-muted);">برای حفظ ریتم تمرین زمان استراحت را مدیریت کن</p>
+// --- Profile Switching & Creation ---
+function onProfileChange(newId) {
+  activeProfileId = newId;
+  localStorage.setItem('chieftain_active_profile_id', newId);
+  renderApp();
+}
 
-    <div class="timer-display" id="timerDisplay">01:30</div>
+function openNewProfileModal() {
+  document.getElementById('newProfileName').value = '';
+  document.getElementById('newProfileModal').classList.add('open');
+}
 
-    <div class="timer-presets">
-      <button class="preset-btn" onclick="setTimerDuration(45)">۴۵ ثانیه</button>
-      <button class="preset-btn" onclick="setTimerDuration(60)">۶۰ ثانیه</button>
-      <button class="preset-btn active" onclick="setTimerDuration(90)">۹۰ ثانیه</button>
-      <button class="preset-btn" onclick="setTimerDuration(120)">۲ دقیقه</button>
-    </div>
+function closeNewProfileModal() {
+  document.getElementById('newProfileModal').classList.remove('open');
+}
 
-    <div class="timer-controls">
-      <button id="startTimerBtn" class="timer-ctl-btn btn-start" onclick="toggleTimer()">شروع ⚡</button>
-      <button class="timer-ctl-btn btn-reset" onclick="resetTimer()">ریست ↺</button>
-    </div>
-  </div>
-</div>
+function saveNewProfile() {
+  const name = document.getElementById('newProfileName').value.trim();
+  if (!name) {
+    alert('لطفاً نام کاربر یا عنوان برنامه را وارد کنید.');
+    return;
+  }
 
-<!-- PWA Install Guide Modal (for iOS & Android Guide) -->
-<div id="installGuideModal" class="install-modal">
-  <div class="install-dialog">
-    <button class="timer-close-btn" onclick="closeInstallGuide()">✕</button>
-    <h3>📲 نحوه نصب برنامه روی گوشی</h3>
+  const template = document.getElementById('newProfileTemplate').value;
+  const newId = 'prof_' + Date.now();
 
-    <div id="iosGuideContent">
-      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">
-        برای نصب این صفحه به شکل اپلیکیشن اختصاصی روی آیفون (iOS Safari):
-      </p>
+  let newDays = [];
+  if (template === 'clone') {
+    newDays = JSON.parse(JSON.stringify(HOSSEIN_PROFILE.days));
+  } else {
+    newDays = [
+      { id: 'd1', title: 'روز اول', type: 'gym', badge: '🏋️ باشگاه', note: '', treadmill: false, supersets: [], singles: [] }
+    ];
+  }
+
+  const newProf = {
+    id: newId,
+    name: name,
+    isDefault: false,
+    days: newDays
+  };
+
+  allProfiles.push(newProf);
+  saveProfiles();
+  activeProfileId = newId;
+  localStorage.setItem('chieftain_active_profile_id', newId);
+  closeNewProfileModal();
+  renderApp();
+}
+
+function deleteActiveProfile() {
+  const prof = getActiveProfile();
+  if (prof.isDefault) {
+    alert('برنامه اصلی Hossein Chieftain قابل حذف نیست.');
+    return;
+  }
+
+  if (confirm(`آیا از حذف برنامه "${prof.name}" اطمینان دارید؟`)) {
+    allProfiles = allProfiles.filter(p => p.id !== prof.id);
+    saveProfiles();
+    activeProfileId = 'hossein_chieftain';
+    localStorage.setItem('chieftain_active_profile_id', 'hossein_chieftain');
+    closeEditPlanModal();
+    renderApp();
+  }
+}
+
+function exportActiveProfile() {
+  const prof = getActiveProfile();
+  const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(prof, null, 2));
+  const downloadAnchor = document.createElement('a');
+  downloadAnchor.setAttribute('href', dataStr);
+  downloadAnchor.setAttribute('download', `${prof.name.replace(/\s+/g, '_')}_workout.json`);
+  document.body.appendChild(downloadAnchor);
+  downloadAnchor.click();
+  downloadAnchor.remove();
+}
+
+// --- Routine Builder & Day Editor ---
+function openEditPlanModal() {
+  renderEditPlanDaysList();
+  document.getElementById('editPlanModal').classList.add('open');
+}
+
+function closeEditPlanModal() {
+  document.getElementById('editPlanModal').classList.remove('open');
+}
+
+function renderEditPlanDaysList() {
+  const prof = getActiveProfile();
+  const container = document.getElementById('editPlanDaysList');
+
+  container.innerHTML = prof.days.map((day, dIdx) => `
+    <div style="background:#152033; border:1px solid var(--border-color); border-radius:12px; padding:12px; margin-bottom:10px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
+        <div style="display:flex; gap:6px; align-items:center;">
+          <input type="text" value="${day.title}" class="form-input" style="font-weight:700; width:120px; display:inline-block;" onchange="updateDayTitle(${dIdx}, this.value)">
+          <select class="form-select" style="width:110px; display:inline-block;" onchange="updateDayType(${dIdx}, this.value)">
+            <option value="gym" ${day.type==='gym'?'selected':''}>🏋️ باشگاه</option>
+            <option value="home" ${day.type==='home'?'selected':''}>🏠 خانه</option>
+            <option value="rest" ${day.type==='rest'?'selected':''}>🛌 استراحت</option>
+          </select>
+        </div>
+        <div style="display:flex; gap:6px;">
+          <button class="btn-header-action btn-action-primary" style="padding:4px 9px; font-size:11.5px" onclick="openAddExToDayModal('${day.id}')">+ حرکت</button>
+          <button class="btn-header-action" style="padding:4px 7px; color:#f87171;" onclick="removeDay(${dIdx})">✕</button>
+        </div>
+      </div>
       
-      <div class="install-step">
-        <div class="install-step-num">۱</div>
-        <div class="install-step-text">
-          در نوار ابزار پایین یا بالای مرورگر Safari، دکمه <strong>اشتراک‌گذاری (Share ⎋)</strong> را تپ کنید.
-        </div>
-      </div>
-
-      <div class="install-step">
-        <div class="install-step-num">۲</div>
-        <div class="install-step-text">
-          در منوی باز شده به پایین اسکرول کرده و گزینه <strong>Add to Home Screen (افزودن به صفحه اصلی ➕)</strong> را انتخاب نمایید.
-        </div>
-      </div>
-
-      <div class="install-step">
-        <div class="install-step-num">۳</div>
-        <div class="install-step-text">
-          در گوشه بالای صفحه روی دکمه <strong>Add (افزودن)</strong> بزنید. آیکون برنامه در صفحه اصلی گوشی شما ذخیره می‌شود!
-        </div>
+      <div style="font-size:12px; color:var(--text-muted);">
+        ${(day.supersets?.length || 0) + (day.singles?.length || 0)} بخش تمرینی ثبت شده
       </div>
     </div>
-
-    <div id="androidGuideContent" style="display:none;">
-      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">
-        روی دکمه زیر تپ کنید تا برنامه مستقیماً روی دستگاه اندرویدی شما نصب شود:
-      </p>
-      <button id="triggerNativeInstall" class="btn-header-action" style="width:100%; justify-content:center; background:linear-gradient(135deg, #00f2fe, #00e599); color:#090d16; font-weight:800; padding:12px;">
-        📲 نصب سریع برنامه روی گوشی
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- Bottom Install Banner -->
-<div id="installBanner" class="install-banner">
-  <div class="install-banner-inner">
-    <div class="install-banner-text">
-      <b>📲 نصب نسخه اپلیکیشن حاجی</b>
-      <span>دسترسی سریع و آفلاین بدون نیاز به باز کردن مرورگر</span>
-    </div>
-    <div class="install-banner-actions">
-      <button id="bannerInstallBtn" class="btn-install-now">نصب اپ</button>
-      <button class="btn-banner-close" onclick="dismissBanner()">✕</button>
-    </div>
-  </div>
-</div>
-
-<script>
-// --- Service Worker Registration ---
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').then((reg) => {
-      console.log('PWA ServiceWorker registered:', reg.scope);
-    }).catch((err) => {
-      console.log('PWA ServiceWorker error:', err);
-    });
-  });
+  `).join('');
 }
 
-// --- Date & Today Routine Detection ---
-const jsDayToIranian = {
-  6: 'd1', // شنبه (Saturday)
-  0: 'd2', // یکشنبه (Sunday)
-  1: 'd3', // دوشنبه (Monday)
-  2: 'd4', // سه‌شنبه (Tuesday)
-  3: 'd5', // چهارشنبه (Wednesday)
-  4: 'd6', // پنجشنبه (Thursday)
-  5: 'd7'  // جمعه (Friday)
-};
+function updateDayTitle(dIdx, newTitle) {
+  const prof = getActiveProfile();
+  prof.days[dIdx].title = newTitle;
+  saveProfiles();
+  renderApp();
+}
 
-const todayIndex = new Date().getDay();
-const todaySectionId = jsDayToIranian[todayIndex] || 'd1';
+function updateDayType(dIdx, newType) {
+  const prof = getActiveProfile();
+  prof.days[dIdx].type = newType;
+  saveProfiles();
+  renderApp();
+}
 
-document.addEventListener('DOMContentLoaded', () => {
-  // Dynamic greeting
-  const hour = new Date().getHours();
-  const greetingEl = document.getElementById('greetingText');
-  if (greetingEl) {
-    if (hour >= 5 && hour < 12) {
-      greetingEl.innerText = 'صبح بخیر حاجی! وقت انرژی و ساختن عضلاته ⚡';
-    } else if (hour >= 12 && hour < 18) {
-      greetingEl.innerText = 'عصر بخیر! آماده یک جلسه تمرینی پرقدرت هستی؟ 💪';
-    } else {
-      greetingEl.innerText = 'شب بخیر! ریکاوری و ثبات کلید موفقیته 🔥';
-    }
+function removeDay(dIdx) {
+  const prof = getActiveProfile();
+  if (prof.days.length <= 1) {
+    alert('حداقل یک روز باید در برنامه باقی بماند.');
+    return;
+  }
+  prof.days.splice(dIdx, 1);
+  saveProfiles();
+  renderEditPlanDaysList();
+  renderApp();
+}
+
+function addNewDayToActiveProfile() {
+  const prof = getActiveProfile();
+  const newDayId = 'd' + (prof.days.length + 1) + '_' + Date.now();
+  prof.days.push({
+    id: newDayId,
+    title: `روز ${prof.days.length + 1}`,
+    type: 'gym',
+    badge: '🏋️ باشگاه',
+    note: '',
+    treadmill: false,
+    supersets: [],
+    singles: []
+  });
+  saveProfiles();
+  renderEditPlanDaysList();
+  renderApp();
+}
+
+// --- Add Exercise to Day Modal ---
+function openAddExToDayModal(dayId) {
+  activeDayForAdding = dayId;
+  const exercises = getAllExercises();
+  
+  const optionsHtml = exercises.map(e => 
+    `<option value="${e.id}">${e.fa} ${e.en ? `(${e.en})` : ''} - ${e.muscles || ''}</option>`
+  ).join('');
+
+  document.getElementById('addExSelect1').innerHTML = optionsHtml;
+  document.getElementById('addExSelect2').innerHTML = optionsHtml;
+  document.getElementById('addExType').value = 'single';
+  document.getElementById('supersetSecondExGroup').style.display = 'none';
+
+  document.getElementById('addExToDayModal').classList.add('open');
+}
+
+function closeAddExToDayModal() {
+  document.getElementById('addExToDayModal').classList.remove('open');
+}
+
+function onAddExTypeChange(val) {
+  document.getElementById('supersetSecondExGroup').style.display = val === 'superset' ? 'block' : 'none';
+}
+
+function confirmAddExerciseToDay() {
+  const prof = getActiveProfile();
+  const day = prof.days.find(d => d.id === activeDayForAdding);
+  if (!day) return;
+
+  const type = document.getElementById('addExType').value;
+  const exId1 = document.getElementById('addExSelect1').value;
+  const reps1 = document.getElementById('addExReps1').value.trim() || '3 × 8–12';
+
+  if (type === 'single') {
+    if (!day.singles) day.singles = [];
+    day.singles.push({
+      exId: exId1,
+      reps: reps1,
+      sets: 3
+    });
+  } else {
+    const exId2 = document.getElementById('addExSelect2').value;
+    const reps2 = document.getElementById('addExReps2').value.trim() || '3 × 12–20';
+    const ex1Obj = findExerciseById(exId1);
+    const ex2Obj = findExerciseById(exId2);
+    const ssTitle = document.getElementById('addSupersetTitle').value.trim() || `سوپرست · ${ex1Obj.fa} + ${ex2Obj.fa}`;
+
+    if (!day.supersets) day.supersets = [];
+    day.supersets.push({
+      title: ssTitle,
+      exercises: [
+        { exId: exId1, reps: reps1, sets: 3 },
+        { exId: exId2, reps: reps2, sets: 3 }
+      ]
+    });
   }
 
-  // Highlight Today's section
-  const todaySec = document.getElementById(todaySectionId);
-  if (todaySec) {
-    todaySec.classList.add('today-highlight');
+  saveProfiles();
+  closeAddExToDayModal();
+  renderEditPlanDaysList();
+  renderApp();
+}
+
+// --- Exercise Library Explorer ---
+function openLibraryModal() {
+  renderLibraryList(getAllExercises());
+  document.getElementById('libraryModal').classList.add('open');
+}
+
+function closeLibraryModal() {
+  document.getElementById('libraryModal').classList.remove('open');
+}
+
+function renderLibraryList(list) {
+  const container = document.getElementById('libraryListContainer');
+  if (!list || list.length === 0) {
+    container.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding:20px;">حرکتی با این مشخصات یافت نشد.</div>';
+    return;
   }
 
-  // Mark today's tab
-  const allTabs = document.querySelectorAll('.nav-tab');
-  allTabs.forEach(tab => {
-    if (tab.getAttribute('href') === '#' + todaySectionId) {
-      tab.classList.add('is-today', 'active');
-    }
-  });
+  container.innerHTML = list.map(ex => `
+    <div class="library-item-card">
+      <div class="library-item-top">
+        <div>
+          <div style="font-size:14.5px; font-weight:800; color:#fff;">${ex.fa}</div>
+          ${ex.en ? `<div style="font-size:12px; color:var(--accent-cyan); direction:ltr; text-align:right;">${ex.en}</div>` : ''}
+        </div>
+        <span class="muscle-tag">${ex.category === 'home' ? '🏠 خانه' : '🏋️ باشگاه'}</span>
+      </div>
 
-  // Load saved sets
-  loadSavedSets();
-  updateAllProgressBars();
-});
+      <div class="muscles-row" style="margin:6px 0;">
+        <span class="muscle-tag">عضلات: ${ex.muscles || 'عمومی'}</span>
+        <span class="muscle-tag" style="direction:ltr">${ex.defaultReps || '3 × 8–12'}</span>
+      </div>
 
-// Jump to today button
-const todayJumpBtn = document.getElementById('todayJumpBtn');
-if (todayJumpBtn) {
-  todayJumpBtn.addEventListener('click', () => {
-    const el = document.getElementById(todaySectionId);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  });
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; flex-wrap:wrap; gap:6px;">
+        <div class="video-links-group">
+          ${renderVideoButtons(ex.videos)}
+        </div>
+        <button class="btn-header-action btn-action-primary" style="padding:4px 9px; font-size:11.5px" onclick="quickAddExFromLibrary('${ex.id}')">
+          + افزودن به برنامه
+        </button>
+      </div>
+    </div>
+  `).join('');
 }
 
-// Active Tab on Scroll
-const navTabs = document.querySelectorAll('.nav-tab');
-const sections = document.querySelectorAll('.day-section, .summary-card');
+function filterLibrary(term) {
+  term = term.toLowerCase().trim();
+  const all = getAllExercises();
+  if (!term) {
+    renderLibraryList(all);
+    return;
+  }
+  const filtered = all.filter(e => 
+    e.fa.toLowerCase().includes(term) || 
+    (e.en && e.en.toLowerCase().includes(term)) ||
+    (e.muscles && e.muscles.toLowerCase().includes(term))
+  );
+  renderLibraryList(filtered);
+}
 
-window.addEventListener('scroll', () => {
-  let current = '';
-  sections.forEach(section => {
-    const sectionTop = section.offsetTop - 130;
-    if (window.pageYOffset >= sectionTop) {
-      current = section.getAttribute('id');
-    }
+function filterLibraryCat(cat) {
+  const all = getAllExercises();
+  if (cat === 'all') {
+    renderLibraryList(all);
+  } else if (cat === 'gym' || cat === 'home') {
+    renderLibraryList(all.filter(e => e.category === cat));
+  } else {
+    renderLibraryList(all.filter(e => e.muscles && e.muscles.includes(cat)));
+  }
+}
+
+function quickAddExFromLibrary(exId) {
+  const prof = getActiveProfile();
+  if (prof.days.length === 0) return;
+  const firstDay = prof.days[0];
+  if (!firstDay.singles) firstDay.singles = [];
+  
+  const ex = findExerciseById(exId);
+  firstDay.singles.push({
+    exId: exId,
+    reps: ex.defaultReps || '3 × 8–12',
+    sets: 3
   });
 
-  navTabs.forEach(tab => {
-    tab.classList.remove('active');
-    if (tab.getAttribute('href') === '#' + current) {
-      tab.classList.add('active');
-    }
-  });
-});
+  saveProfiles();
+  renderApp();
+  alert(`حرکت "${ex.fa}" به روز "${firstDay.title}" برنامه اضافه شد!`);
+}
 
-// --- Live Search Filter ---
-const searchInput = document.getElementById('searchInput');
-if (searchInput) {
-  searchInput.addEventListener('input', (e) => {
-    const term = e.target.value.toLowerCase().trim();
-    const cards = document.querySelectorAll('.exercise-card, .superset-block');
-    
-    if (!term) {
-      cards.forEach(c => c.style.display = '');
-      return;
-    }
+// --- Custom Exercise Modal ---
+function openCustomExerciseModal() {
+  document.getElementById('custFaName').value = '';
+  document.getElementById('custEnName').value = '';
+  document.getElementById('custMuscles').value = '';
+  document.getElementById('custReps').value = '3 × 10–12';
+  document.getElementById('custVideos').value = '';
+  document.getElementById('customExerciseModal').classList.add('open');
+}
 
-    cards.forEach(card => {
-      const text = card.innerText.toLowerCase();
-      if (text.includes(term)) {
-        card.style.display = '';
-      } else {
-        card.style.display = 'none';
-      }
+function closeCustomExerciseModal() {
+  document.getElementById('customExerciseModal').classList.remove('open');
+}
+
+function saveCustomExercise() {
+  const fa = document.getElementById('custFaName').value.trim();
+  if (!fa) {
+    alert('لطفاً نام فارسی حرکت را وارد نمایید.');
+    return;
+  }
+
+  const en = document.getElementById('custEnName').value.trim();
+  const category = document.getElementById('custCategory').value;
+  const muscles = document.getElementById('custMuscles').value.trim() || 'سایر';
+  const reps = document.getElementById('custReps').value.trim() || '3 × 10–12';
+  const rawVideos = document.getElementById('custVideos').value.trim();
+
+  const videos = [];
+  if (rawVideos) {
+    const lines = rawVideos.split('\n').map(l => l.trim()).filter(Boolean);
+    lines.forEach((url, i) => {
+      videos.push({
+        title: lines.length === 1 ? 'آموزش ۱' : `آموزش ${i+1}`,
+        url: url
+      });
     });
-  });
+  }
+
+  const newEx = {
+    id: 'cust_' + Date.now(),
+    fa: fa,
+    en: en,
+    category: category,
+    muscles: muscles,
+    defaultReps: reps,
+    defaultSets: 3,
+    videos: videos
+  };
+
+  customExercises.push(newEx);
+  saveCustomExercises();
+  closeCustomExerciseModal();
+  renderLibraryList(getAllExercises());
+  alert(`حرکت "${fa}" با موفقیت در بانک حرکات ثبت شد.`);
 }
 
-// --- Interactive Sets Tracker & LocalStorage Persistence ---
+// --- Sets Tracker & Persistence ---
 function toggleSet(btn) {
   btn.classList.toggle('done');
-  
-  if ('vibrate' in navigator) {
-    navigator.vibrate(40);
-  }
+  if ('vibrate' in navigator) navigator.vibrate(40);
 
   const card = btn.closest('.exercise-card');
   const allBtns = card.querySelectorAll('.set-btn');
-  const allDone = Array.from(allBtns).every(b => b.classList.contains('done'));
-  
-  if (allDone && allBtns.length > 0) {
-    card.classList.add('completed');
-  } else {
-    card.classList.remove('completed');
-  }
+  card.classList.toggle('completed', Array.from(allBtns).every(b => b.classList.contains('done')));
 
   saveSetsState();
   updateDayProgress(card.closest('.day-section'));
 }
 
 function saveSetsState() {
+  const stateKey = 'chieftain_sets_' + activeProfileId;
   const state = {};
   document.querySelectorAll('.exercise-card').forEach(card => {
     const exId = card.getAttribute('data-ex-id');
-    if (!exId) return;
-    const setStates = Array.from(card.querySelectorAll('.set-btn')).map(b => b.classList.contains('done'));
-    state[exId] = setStates;
+    if (exId) {
+      state[exId] = Array.from(card.querySelectorAll('.set-btn')).map(b => b.classList.contains('done'));
+    }
   });
-  localStorage.setItem('haji_workout_sets_v1', JSON.stringify(state));
+  localStorage.setItem(stateKey, JSON.stringify(state));
 }
 
 function loadSavedSets() {
   try {
-    const raw = localStorage.getItem('haji_workout_sets_v1');
+    const stateKey = 'chieftain_sets_' + activeProfileId;
+    const raw = localStorage.getItem(stateKey);
     if (!raw) return;
     const state = JSON.parse(raw);
     document.querySelectorAll('.exercise-card').forEach(card => {
@@ -674,12 +2320,11 @@ function loadSavedSets() {
       if (state[exId]) {
         const btns = card.querySelectorAll('.set-btn');
         btns.forEach((btn, idx) => {
-          if (state[exId][idx]) {
-            btn.classList.add('done');
-          }
+          if (state[exId][idx]) btn.classList.add('done');
         });
-        const allDone = Array.from(btns).every(b => b.classList.contains('done'));
-        if (allDone && btns.length > 0) card.classList.add('completed');
+        if (btns.length && Array.from(btns).every(b => b.classList.contains('done'))) {
+          card.classList.add('completed');
+        }
       }
     });
   } catch(e) {}
@@ -689,10 +2334,10 @@ function updateDayProgress(daySec) {
   if (!daySec) return;
   const dayId = daySec.getAttribute('id');
   const btns = daySec.querySelectorAll('.set-btn');
-  if (btns.length === 0) return;
+  if (!btns.length) return;
   const doneBtns = daySec.querySelectorAll('.set-btn.done');
   const pct = Math.round((doneBtns.length / btns.length) * 100);
-  
+
   const fillEl = document.getElementById('prog-' + dayId);
   const textEl = document.getElementById('prog-text-' + dayId);
   if (fillEl) fillEl.style.width = pct + '%';
@@ -703,7 +2348,7 @@ function updateAllProgressBars() {
   document.querySelectorAll('.day-section').forEach(sec => updateDayProgress(sec));
 }
 
-// --- Rest Timer Engine with Web Audio & Vibration ---
+// --- Rest Timer Engine ---
 let timerInterval = null;
 let timerRemaining = 90;
 let timerInitial = 90;
@@ -744,7 +2389,7 @@ function setTimerDuration(seconds) {
   isTimerRunning = false;
   timerInitial = seconds;
   timerRemaining = seconds;
-  
+
   document.querySelectorAll('.preset-btn').forEach(btn => {
     btn.classList.remove('active');
     if (btn.innerText.includes(String(seconds)) || (seconds === 120 && btn.innerText.includes('۲'))) {
@@ -819,18 +2464,65 @@ function triggerTimerEndAlarm() {
 }
 
 function openTimerModal() {
-  const m = document.getElementById('timerModal');
-  if (m) m.classList.add('open');
+  document.getElementById('timerModal').classList.add('open');
 }
 
 function closeTimerModal() {
-  const m = document.getElementById('timerModal');
-  if (m) m.classList.remove('open');
+  document.getElementById('timerModal').classList.remove('open');
 }
 
-if (timerFab) timerFab.addEventListener('click', openTimerModal);
+timerFab.addEventListener('click', openTimerModal);
 
-// --- PWA Install Logic (iOS & Android) ---
+// --- PWA Installation & Date Logic ---
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+
+const jsDayToIranian = { 6: 'd1', 0: 'd2', 1: 'd3', 2: 'd4', 3: 'd5', 4: 'd6', 5: 'd7' };
+const todayIndex = new Date().getDay();
+const todaySectionId = jsDayToIranian[todayIndex] || 'd1';
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadAppData();
+  renderApp();
+
+  const todaySec = document.getElementById(todaySectionId);
+  if (todaySec) todaySec.classList.add('today-highlight');
+
+  document.querySelectorAll('.nav-tab').forEach(tab => {
+    if (tab.getAttribute('href') === '#' + todaySectionId) {
+      tab.classList.add('is-today', 'active');
+    }
+  });
+});
+
+document.getElementById('todayJumpBtn')?.addEventListener('click', () => {
+  document.getElementById(todaySectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+
+window.addEventListener('scroll', () => {
+  let current = '';
+  document.querySelectorAll('.day-section, .summary-card').forEach(section => {
+    if (window.pageYOffset >= section.offsetTop - 130) {
+      current = section.getAttribute('id');
+    }
+  });
+
+  document.querySelectorAll('.nav-tab').forEach(tab => {
+    tab.classList.toggle('active', tab.getAttribute('href') === '#' + current);
+  });
+});
+
+document.getElementById('searchInput')?.addEventListener('input', (e) => {
+  const term = e.target.value.toLowerCase().trim();
+  document.querySelectorAll('.exercise-card, .superset-block').forEach(card => {
+    card.style.display = (!term || card.innerText.toLowerCase().includes(term)) ? '' : 'none';
+  });
+});
+
+// PWA Banner & Modals
 let deferredPrompt = null;
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
@@ -865,9 +2557,7 @@ function showInstallFlow() {
   if (deferredPrompt) {
     deferredPrompt.prompt();
     deferredPrompt.userChoice.then((choice) => {
-      if (choice.outcome === 'accepted') {
-        if (banner) banner.style.display = 'none';
-      }
+      if (choice.outcome === 'accepted' && banner) banner.style.display = 'none';
       deferredPrompt = null;
     });
   } else {
@@ -882,19 +2572,17 @@ function showInstallFlow() {
   }
 }
 
-if (headerInstallBtn) headerInstallBtn.addEventListener('click', showInstallFlow);
-if (bannerInstallBtn) bannerInstallBtn.addEventListener('click', showInstallFlow);
+headerInstallBtn?.addEventListener('click', showInstallFlow);
+bannerInstallBtn?.addEventListener('click', showInstallFlow);
 
-if (nativeTriggerBtn) {
-  nativeTriggerBtn.addEventListener('click', () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      if (installModal) installModal.classList.remove('open');
-    } else {
-      alert('برای نصب در مرورگر کروم، روی ۳ نقطه بالای صفحه بزنید و گزینه "Add to Home Screen" یا "Install app" را انتخاب کنید.');
-    }
-  });
-}
+nativeTriggerBtn?.addEventListener('click', () => {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    closeInstallGuide();
+  } else {
+    alert('در کروم گوشی، روی ۳ نقطه بالای صفحه بزنید و Install app یا Add to Home Screen را انتخاب کنید.');
+  }
+});
 
 function closeInstallGuide() {
   if (installModal) installModal.classList.remove('open');
@@ -909,6 +2597,7 @@ window.addEventListener('appinstalled', () => {
   if (banner) banner.style.display = 'none';
   if (headerInstallBtn) headerInstallBtn.innerHTML = '<span>✓</span> <span>نصب شده</span>';
 });
+
 </script>
 </body>
 </html>

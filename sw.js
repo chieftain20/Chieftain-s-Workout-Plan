@@ -1,7 +1,8 @@
-﻿const CACHE_NAME = 'haji-workout-v1.0';
+const CACHE_NAME = 'chieftain-workout-v2.0';
 const STATIC_ASSETS = [
   './',
   './index.html',
+  './styles.css',
   './manifest.webmanifest',
   './icons/icon.svg',
   './icons/icon-192.png',
