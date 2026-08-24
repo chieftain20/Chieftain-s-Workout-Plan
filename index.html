@@ -1768,6 +1768,8 @@ let allProfiles = [];
 let activeProfileId = 'hossein_chieftain';
 let activeDayForAdding = null;
 
+const WEEK_DAYS = ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'روز تمرینی ۱', 'روز تمرینی ۲', 'روز تمرینی ۳', 'روز تمرینی ۴'];
+
 function loadAppData() {
   try {
     const rawCustEx = localStorage.getItem('chieftain_custom_exercises');
@@ -1775,18 +1777,31 @@ function loadAppData() {
   } catch(e) { customExercises = []; }
 
   try {
-    const rawProfiles = localStorage.getItem('chieftain_profiles_v2');
+    const rawProfiles = localStorage.getItem('chieftain_profiles_v3');
     if (rawProfiles) {
       allProfiles = JSON.parse(rawProfiles);
-      // Ensure Hossein profile has default pin 'gym' if missing
-      const hProf = allProfiles.find(p => p.id === 'hossein_chieftain');
-      if (hProf && !hProf.pin) hProf.pin = 'gym';
     } else {
+      // First time loading v3 or upgrading from old version:
+      // Ensure Hossein profile has full 7 days (including Saturday) and pin: 'gym'
       const defaultProf = JSON.parse(JSON.stringify(HOSSEIN_PROFILE));
       defaultProf.pin = 'gym';
       allProfiles = [defaultProf];
-      localStorage.setItem('chieftain_profiles_v2', JSON.stringify(allProfiles));
+      localStorage.setItem('chieftain_profiles_v3', JSON.stringify(allProfiles));
     }
+
+    // Auto-heal check: if Hossein profile has lost Saturday (d1) or has fewer than 7 days, automatically restore it!
+    const hProf = allProfiles.find(p => p.id === 'hossein_chieftain');
+    if (hProf) {
+      if (!hProf.pin) hProf.pin = 'gym';
+      if (!hProf.days || hProf.days.length < 7 || !hProf.days.some(d => d.id === 'd1' || d.title === 'شنبه')) {
+        hProf.days = JSON.parse(JSON.stringify(HOSSEIN_PROFILE.days));
+      }
+    } else {
+      const defaultProf = JSON.parse(JSON.stringify(HOSSEIN_PROFILE));
+      defaultProf.pin = 'gym';
+      allProfiles.unshift(defaultProf);
+    }
+    saveProfiles();
   } catch(e) {
     const defaultProf = JSON.parse(JSON.stringify(HOSSEIN_PROFILE));
     defaultProf.pin = 'gym';
@@ -1802,7 +1817,7 @@ function loadAppData() {
 }
 
 function saveProfiles() {
-  localStorage.setItem('chieftain_profiles_v2', JSON.stringify(allProfiles));
+  localStorage.setItem('chieftain_profiles_v3', JSON.stringify(allProfiles));
 }
 
 function saveCustomExercises() {
@@ -2143,7 +2158,7 @@ function saveNewProfile() {
     newDays = JSON.parse(JSON.stringify(HOSSEIN_PROFILE.days));
   } else {
     newDays = [
-      { id: 'd1', title: 'روز اول', type: 'gym', badge: '🏋️ باشگاه', note: '', treadmill: false, supersets: [], singles: [] }
+      { id: 'd1', title: 'شنبه', type: 'gym', badge: '🏋️ باشگاه', note: '', treadmill: false, supersets: [], singles: [] }
     ];
   }
 
@@ -2182,23 +2197,19 @@ function deleteActiveProfile() {
 
 function factoryResetActiveProfile() {
   const prof = getActiveProfile();
-  if (confirm(`آیا می‌خواهید برنامه "${prof.name}" به تنظیمات اولیه کارخانه بازنشانی شود؟`)) {
-    if (prof.isDefault) {
-      prof.days = JSON.parse(JSON.stringify(HOSSEIN_PROFILE.days));
-      prof.pin = 'gym';
-    } else {
-      prof.days = JSON.parse(JSON.stringify(HOSSEIN_PROFILE.days));
-    }
+  if (confirm(`آیا می‌خواهید تمام روزهای اصلی (شنبه تا جمعه با تمام ۵۱ حرکت) برای "${prof.name}" بازیابی و ریست شوند؟`)) {
+    prof.days = JSON.parse(JSON.stringify(HOSSEIN_PROFILE.days));
+    if (prof.isDefault) prof.pin = 'gym';
     saveProfiles();
     renderEditPlanDaysList();
     renderApp();
-    alert('برنامه به تنظیمات اولیه بازنشانی شد.');
+    alert('برنامه ۷ روزه اصلی (شنبه تا جمعه) با موفقیت بازیابی شد! ⚡');
   }
 }
 
 function resetCurrentSets() {
   const prof = getActiveProfile();
-  if (confirm(`آیا می‌خواهید تمام تیک‌های ثبت‌شده برای "${prof.name}" ریست شوند تا جلسه تمرینی جدید را شروع کنید؟`)) {
+  if (confirm(`آیا می‌خواهید تمام تیک‌های ست‌های ثبت‌شده برای "${prof.name}" ریست شوند تا جلسه تمرینی جدید را شروع کنید؟`)) {
     localStorage.removeItem('chieftain_sets_' + activeProfileId);
     document.querySelectorAll('.set-btn').forEach(btn => btn.classList.remove('done'));
     document.querySelectorAll('.exercise-card').forEach(card => card.classList.remove('completed'));
@@ -2270,12 +2281,19 @@ function renderEditPlanDaysList() {
       }).join('');
     }
 
+    // Week day dropdown options
+    const dayOptionsHtml = WEEK_DAYS.map(w => 
+      `<option value="${w}" ${day.title === w ? 'selected' : ''}>${w}</option>`
+    ).join('');
+
     return `
       <div style="background:#152033; border:1px solid var(--border-color); border-radius:14px; padding:14px; margin-bottom:14px;">
-        <!-- Day Header -->
+        <!-- Day Header with Dropdown Day Selector -->
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px; border-bottom:1px solid var(--border-color); padding-bottom:8px;">
           <div style="display:flex; gap:6px; align-items:center;">
-            <input type="text" value="${day.title}" class="form-input" style="font-weight:800; width:110px; display:inline-block;" onchange="updateDayTitle(${dIdx}, this.value)">
+            <select class="form-select" style="font-weight:800; width:125px; display:inline-block; color:#38bdf8;" onchange="updateDayTitle(${dIdx}, this.value)">
+              ${dayOptionsHtml}
+            </select>
             <select class="form-select" style="width:110px; display:inline-block;" onchange="updateDayType(${dIdx}, this.value)">
               <option value="gym" ${day.type==='gym'?'selected':''}>🏋️ باشگاه</option>
               <option value="home" ${day.type==='home'?'selected':''}>🏠 خانه</option>
@@ -2284,7 +2302,7 @@ function renderEditPlanDaysList() {
           </div>
           <div style="display:flex; gap:6px;">
             <button class="btn-header-action btn-action-primary" style="padding:5px 10px; font-size:12px;" onclick="openAddExToDayModal('${day.id}')">+ افزودن حرکت</button>
-            <button class="btn-header-action" style="padding:5px 8px; color:#f87171;" title="حذف روز" onclick="removeDay(${dIdx})">🗑️</button>
+            <button class="btn-header-action" style="padding:5px 8px; color:#f87171;" title="حذف این روز" onclick="removeDay(${dIdx})">🗑️</button>
           </div>
         </div>
 
@@ -2402,9 +2420,10 @@ function removeDay(dIdx) {
 function addNewDayToActiveProfile() {
   const prof = getActiveProfile();
   const newDayId = 'd' + (prof.days.length + 1) + '_' + Date.now();
+  const defaultTitle = WEEK_DAYS[prof.days.length % WEEK_DAYS.length] || `روز ${prof.days.length + 1}`;
   prof.days.push({
     id: newDayId,
-    title: `روز ${prof.days.length + 1}`,
+    title: defaultTitle,
     type: 'gym',
     badge: '🏋️ باشگاه',
     note: '',
