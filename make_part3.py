@@ -1,0 +1,21 @@
+﻿import json
+
+part3 = [
+    {"id": "wall_sit", "fa": "وال‌سیت", "en": "Wall sit", "muscles": "چهارسر و ایزومتریک", "category": "home", "defaultReps": "3 × 30–60 ثانیه", "defaultSets": 3, "videos": [{"title": "آموزش استاندارد", "url": "https://www.youtube.com/shorts/mDdLC-yKudY"}, {"title": "مدل اصلاحی برای زانوی حساس", "url": "https://www.youtube.com/shorts/dkyWIHEjgBE"}]},
+    {"id": "side_plank_iso", "fa": "ساید پلانک ایزومتریک", "en": "Side plank Isometric", "muscles": "ابلیک و Core", "category": "home", "defaultReps": "3 × 20–40 ثانیه هر طرف", "defaultSets": 3, "videos": [{"title": "آموزش ۱", "url": "https://www.youtube.com/shorts/sKMD_pbNm7w"}]},
+    {"id": "side_plank_dips", "fa": "ساید پلانک با حرکت لگن", "en": "Side plank dips", "muscles": "ابلیک و Core", "category": "home", "defaultReps": "3 × 10–15 هر طرف", "defaultSets": 3, "videos": [{"title": "آموزش ۱", "url": "https://www.youtube.com/shorts/F63KKkm18xw"}, {"title": "آموزش ۲", "url": "https://www.youtube.com/shorts/d-pNRtspSK0"}]},
+    {"id": "dead_bug_iso", "fa": "ددباگ ایزومتریک", "en": "Dead bug iso", "muscles": "Core", "category": "home", "defaultReps": "3 × 20–30 ثانیه", "defaultSets": 3, "videos": [{"title": "آموزش ۱", "url": "https://www.youtube.com/shorts/mMiGFa_jWhA"}]},
+    {"id": "dead_bug", "fa": "ددباگ", "en": "dead bug", "muscles": "Core", "category": "home", "defaultReps": "3 × 6–10 هر طرف", "defaultSets": 3, "videos": [{"title": "آموزش ۱", "url": "https://www.youtube.com/shorts/apYmFYLsCNs"}]},
+    {"id": "prone_itwy", "fa": "پرون ITWY", "en": "Prone ITWY", "muscles": "پشت سرشانه، تراپز و کنترل کتف", "category": "home", "defaultReps": "3 × 8–12", "defaultSets": 3, "videos": [{"title": "آموزش کامل", "url": "https://www.youtube.com/watch?v=Yv6sUKOwOY8&pp=ygUZUHJvbmUgVyBSYWlzZSBwcm9wZXIgZm9ybQ%3D%3D"}]},
+    {"id": "glute_bridge_iso", "fa": "گلوت بریج ایزومتریک", "en": "glute bridge iso", "muscles": "باسن و زنجیره خلفی", "category": "home", "defaultReps": "3 × 20–40 ثانیه", "defaultSets": 3, "videos": [{"title": "آموزش ۱", "url": "https://www.youtube.com/shorts/1bOEz-3SgHI"}]},
+    {"id": "glute_bridge", "fa": "پل باسن پویا", "en": "Glute bridge", "muscles": "باسن و زنجیره خلفی", "category": "home", "defaultReps": "3 × 12–15", "defaultSets": 3, "videos": [{"title": "آموزش ۱", "url": "https://www.youtube.com/shorts/LORVjN2bg5o"}]},
+    {"id": "iso_bird_dog", "fa": "برد داگ ایزومتریک", "en": "Iso bird dog", "muscles": "Core و کنترل تنه", "category": "home", "defaultReps": "3 × 20–30 ثانیه هر طرف", "defaultSets": 3, "videos": [{"title": "آموزش ۱", "url": "https://www.youtube.com/shorts/3HDd3iKb_RI"}]},
+    {"id": "bird_dog", "fa": "برد داگ", "en": "bird dog", "muscles": "Core و کنترل تنه", "category": "home", "defaultReps": "3 × 8–12 هر طرف", "defaultSets": 3, "videos": [{"title": "آموزش ۱", "url": "https://www.youtube.com/shorts/Xj1z9NqwuM8"}]},
+    {"id": "push_up_plus", "fa": "پوش‌آپ پلاس", "en": "Push up plus (scap push up)", "muscles": "سراتوس قدامی و کنترل کتف", "category": "home", "defaultReps": "3 × 8–15", "defaultSets": 3, "videos": [{"title": "آموزش ۱", "url": "https://www.youtube.com/shorts/opcjCCX7FLg"}]},
+    {"id": "wall_slide", "fa": "وال اسلاید", "en": "Wall slide", "muscles": "کنترل کتف و شانه", "category": "home", "defaultReps": "3 × 8–12", "defaultSets": 3, "videos": []}
+]
+
+with open('part3.json', 'w', encoding='utf-8') as f:
+    json.dump(part3, f, ensure_ascii=False, indent=2)
+
+print('Part 3 saved')

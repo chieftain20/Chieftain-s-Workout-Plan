@@ -1,9 +1,11 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>برنامه تمرینی Hossein Chieftain | Chieftain Workout Pro</title>
+  
+  <!-- PWA & Mobile Meta Tags -->
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#090d16">
   <meta name="background-color" content="#090d16">
@@ -11,12 +13,21 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="تمرین Chieftain">
+
+  <!-- Icons (Multi-path & High-Res) -->
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <link rel="shortcut icon" href="icons/icon-192.png">
+
+  <!-- Google Fonts - Vazirmatn -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -26,9 +37,22 @@
   <header>
     <div class="header-top">
       <div class="brand-title">
-        <div class="brand-logo">
-          <svg viewBox="0 0 24 24">
-            <path d="M20.57 14.86L22 13.43L20.57 12L17 15.57L8.43 7L12 3.43L10.57 2L9.14 3.43L7.71 2L5.57 4.14L4.14 2.71L2.71 4.14L4.14 5.57L2 7.71L3.43 9.14L2 10.57L5.57 14.14L14.14 22.71L17.71 19.14L19.14 20.57L20.57 19.14L19.14 17.71L21.29 15.57L19.86 14.14L21.29 12.71L20.57 14.86Z"/>
+        <div class="brand-logo" title="لوگوی برنامه تمرینی Chieftain">
+          <!-- Dumbbell with Heart Vector Logo -->
+          <svg viewBox="0 0 512 512" style="width:34px; height:34px;">
+            <g fill="#090d16">
+              <rect x="140" y="244" width="70" height="24" rx="12"/>
+              <rect x="302" y="244" width="70" height="24" rx="12"/>
+              <rect x="74" y="200" width="22" height="112" rx="11"/>
+              <rect x="104" y="170" width="24" height="172" rx="12"/>
+              <rect x="136" y="146" width="26" height="220" rx="13"/>
+              <rect x="168" y="226" width="16" height="60" rx="8"/>
+              <rect x="328" y="226" width="16" height="60" rx="8"/>
+              <rect x="350" y="146" width="26" height="220" rx="13"/>
+              <rect x="384" y="170" width="24" height="172" rx="12"/>
+              <rect x="416" y="200" width="22" height="112" rx="11"/>
+              <path d="M 256, 328 C 256, 328 184, 276 184, 218 C 184, 186 208, 164 238, 164 C 256, 164 256, 178 256, 178 C 256, 178 256, 164 274, 164 C 304, 164 328, 186 328, 218 C 328, 276 256, 328 256, 328 Z" fill="none" stroke="#090d16" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+            </g>
           </svg>
         </div>
         <div>
@@ -155,7 +179,7 @@
 
     <div style="margin-top:16px; padding:12px; background:#141f33; border:1px dashed var(--border-light); border-radius:12px; text-align:center;">
       <div style="font-size:13px; font-weight:700; color:#38bdf8; margin-bottom:4px;">حرکت مورد نظرت رو پیدا نکردی؟</div>
-      <p style="font-size:11.5px; color:var(--text-muted); margin-bottom:8px;">می‌تونی در مرجع جهانی MuscleWiki تمام حرکات و ویدیوهای دنیا رو پیدا کنی:</p>
+      <p style="font-size:11.5px; color:var(--text-muted); margin-bottom:8px;">می‌تونی در مرجع جهانی MuscleWiki نقشه آناتومی بدن و ویدیوهای تمام حرکات دنیا رو ببینی:</p>
       <button class="btn-header-action btn-action-primary" style="margin:0 auto; justify-content:center;" onclick="openMuscleWikiModal()">
         🌐 باز کردن بانک جهانی MuscleWiki
       </button>
@@ -165,71 +189,48 @@
 
 <!-- MuscleWiki Integration Modal -->
 <div id="muscleWikiModal" class="modal-overlay">
-  <div class="modal-dialog" style="max-width: 540px;">
+  <div class="modal-dialog" style="max-width: 520px;">
     <button class="modal-close-btn" onclick="closeMuscleWikiModal()">✕</button>
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
       <span style="font-size:24px;">🌐</span>
-      <h3 style="margin:0;">بانک جهانی حرکات MuscleWiki</h3>
+      <h3 style="margin:0;">بانک جهانی حرکات MuscleWiki & ویدیوها</h3>
     </div>
     <p style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 14px;">
-      دسترسی مستقیم به کامل‌ترین پایگاه داده حرکات بدنسازی با آناتومی و ویدیوهای آموزشی 4K:
+      دسترسی به نقشه آناتومی تعاملی بدن و ویدیوی آموزشی تمام حرکات بدنسازی دنیا:
     </p>
 
-    <!-- Direct Search on MuscleWiki -->
+    <!-- Interactive MuscleWiki Portal Button -->
+    <a href="https://musclewiki.com/" target="_blank" rel="noopener" class="btn-header-action btn-action-primary" style="justify-content:center; padding:12px; font-size:13.5px; text-decoration:none; margin-bottom:14px; box-shadow:0 4px 15px rgba(14,165,233,0.35);">
+      <span>🔥</span>
+      <span>ورود به نقشه تعاملی بدن در MuscleWiki.com ↗</span>
+    </a>
+
+    <!-- Smart Exercise Search -->
     <div style="background:#152033; border:1px solid var(--border-color); border-radius:12px; padding:12px; margin-bottom:14px;">
-      <label class="form-label">🔍 جستجوی مستقیم نام انگلیسی هر حرکت در MuscleWiki:</label>
+      <label class="form-label">🔍 جستجوی نام حرکت برای دریافت فوری ویدیو و آموزش:</label>
+      <div style="margin-bottom:8px;">
+        <input type="text" id="mwSearchQuery" class="form-input" placeholder="نام فارسی یا انگلیسی حرکت (مثلاً: پرس بالا سینه، Bulgarian Split Squat)..." style="direction:rtl">
+      </div>
       <div style="display:flex; gap:6px;">
-        <input type="text" id="mwSearchQuery" class="form-input" placeholder="مثلاً: Bulgarian Split Squat, Arnold Press..." style="direction:ltr">
-        <button class="btn-header-action btn-action-primary" onclick="searchMuscleWikiDirect()" style="white-space:nowrap;">
-          جستجو ↗
+        <button class="btn-header-action btn-action-primary" onclick="searchYouTubeDirect()" style="flex:1; justify-content:center;">
+          <span>▶</span> <span>ویدیو در یوتیوب</span>
+        </button>
+        <button class="btn-header-action" onclick="searchMuscleWikiDirect()" style="flex:1; justify-content:center;">
+          <span>🌐</span> <span>سرچ MuscleWiki</span>
         </button>
       </div>
     </div>
 
-    <!-- Muscle Anatomy Quick Categories -->
-    <div style="font-size:12.5px; font-weight:700; color:#cbd5e1; margin-bottom:8px;">🎯 انتخاب بر اساس عضله هدف در MuscleWiki:</div>
-    <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:8px; margin-bottom:14px;">
-      <a href="https://musclewiki.com/exercises/male/chest" target="_blank" rel="noopener" class="btn-header-action" style="justify-content:flex-start; text-decoration:none;">
-        <span>🏋️‍♂️</span> <span>عضلات سینه (Chest)</span>
-      </a>
-      <a href="https://musclewiki.com/exercises/male/lats" target="_blank" rel="noopener" class="btn-header-action" style="justify-content:flex-start; text-decoration:none;">
-        <span>🦅</span> <span>زیر بغل و پشت (Lats/Back)</span>
-      </a>
-      <a href="https://musclewiki.com/exercises/male/quads" target="_blank" rel="noopener" class="btn-header-action" style="justify-content:flex-start; text-decoration:none;">
-        <span>🦵</span> <span>چهارسر ران (Quads)</span>
-      </a>
-      <a href="https://musclewiki.com/exercises/male/hamstrings" target="_blank" rel="noopener" class="btn-header-action" style="justify-content:flex-start; text-decoration:none;">
-        <span>🦵</span> <span>همسترینگ و باسن (Hamstrings)</span>
-      </a>
-      <a href="https://musclewiki.com/exercises/male/shoulders" target="_blank" rel="noopener" class="btn-header-action" style="justify-content:flex-start; text-decoration:none;">
-        <span>🎯</span> <span>سرشانه (Shoulders)</span>
-      </a>
-      <a href="https://musclewiki.com/exercises/male/biceps" target="_blank" rel="noopener" class="btn-header-action" style="justify-content:flex-start; text-decoration:none;">
-        <span>💪</span> <span>جلو بازو (Biceps)</span>
-      </a>
-      <a href="https://musclewiki.com/exercises/male/triceps" target="_blank" rel="noopener" class="btn-header-action" style="justify-content:flex-start; text-decoration:none;">
-        <span>⚡</span> <span>پشت بازو (Triceps)</span>
-      </a>
-      <a href="https://musclewiki.com/exercises/male/abdominals" target="_blank" rel="noopener" class="btn-header-action" style="justify-content:flex-start; text-decoration:none;">
-        <span>🧱</span> <span>شکم و Core (Abs)</span>
-      </a>
-      <a href="https://musclewiki.com/exercises/male/calves" target="_blank" rel="noopener" class="btn-header-action" style="justify-content:flex-start; text-decoration:none;">
-        <span>🦿</span> <span>ساق پا (Calves)</span>
-      </a>
-      <a href="https://musclewiki.com/exercises/male/traps" target="_blank" rel="noopener" class="btn-header-action" style="justify-content:flex-start; text-decoration:none;">
-        <span>🛡️</span> <span>کول و تراپز (Traps)</span>
-      </a>
-      <a href="https://musclewiki.com/bodyweight/male/chest" target="_blank" rel="noopener" class="btn-header-action" style="grid-column: span 2; justify-content:center; text-decoration:none; color:#34d399; border-color:#34d39955;">
-        <span>🏠</span> <span>تمرینات با وزن بدن و خانگی (Bodyweight)</span>
-      </a>
+    <!-- Muscle Anatomy Shortcuts -->
+    <div style="font-size:12.5px; font-weight:700; color:#cbd5e1; margin-bottom:8px;">💡 راهنمای انتخاب عضله در MuscleWiki:</div>
+    <div style="font-size:12px; color:var(--text-muted); line-height:1.7; background:rgba(30,41,59,0.4); padding:10px 12px; border-radius:10px; border:1px solid var(--border-color); margin-bottom:14px;">
+      در سایت <bdi>MuscleWiki</bdi>، کافیست روی هر عضله از بدن (سینه، جلو بازو، چهارسر ران، زیر بغل، شکم) کلیک کنید تا تمام حرکات با دمبل، هالتر، دستگاه یا وزن بدن به همراه ویدیوهای متحرک نمایش داده شوند.
     </div>
 
     <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-color); padding-top:12px;">
-      <a href="https://musclewiki.com/" target="_blank" rel="noopener" class="btn-header-action" style="text-decoration:none;">
-        صفحه اصلی MuscleWiki ↗
-      </a>
+      <button class="btn-header-action" onclick="closeMuscleWikiModal()">بستن</button>
       <button class="btn-header-action btn-action-primary" onclick="closeMuscleWikiModal(); openCustomExerciseModal();">
-        + ثبت حرکت جدید در برنامه‌ام
+        + ثبت حرکت جدید در برنامه
       </button>
     </div>
   </div>
@@ -252,7 +253,7 @@
     <div class="form-group">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
         <label class="form-label" style="margin:0;">نام انگلیسی حرکت (اختیاری)</label>
-        <a href="javascript:void(0)" onclick="searchMuscleWikiFromCustom()" style="font-size:11.5px; color:#38bdf8; text-decoration:none;">🔍 جستجو در MuscleWiki</a>
+        <a href="javascript:void(0)" onclick="searchVideosForCustom()" style="font-size:11.5px; color:#38bdf8; text-decoration:none;">🔍 یافتن ویدیو آموزشی</a>
       </div>
       <input type="text" id="custEnName" class="form-input" placeholder="e.g. Incline Neutral Dumbbell Press" style="direction:ltr">
     </div>
@@ -2325,24 +2326,33 @@ function closeMuscleWikiModal() {
   document.getElementById('muscleWikiModal').classList.remove('open');
 }
 
+function searchYouTubeDirect() {
+  const query = document.getElementById('mwSearchQuery').value.trim();
+  if (!query) {
+    window.open('https://www.youtube.com/results?search_query=gym+workout+exercise+tutorial', '_blank');
+    return;
+  }
+  const targetUrl = 'https://www.youtube.com/results?search_query=' + encodeURIComponent(query + ' exercise form tutorial');
+  window.open(targetUrl, '_blank');
+}
+
 function searchMuscleWikiDirect() {
   const query = document.getElementById('mwSearchQuery').value.trim();
   if (!query) {
     window.open('https://musclewiki.com/', '_blank');
     return;
   }
-  // Open MuscleWiki search or search query
   const targetUrl = 'https://www.google.com/search?q=' + encodeURIComponent('site:musclewiki.com ' + query);
   window.open(targetUrl, '_blank');
 }
 
-function searchMuscleWikiFromCustom() {
+function searchVideosForCustom() {
   const en = document.getElementById('custEnName').value.trim() || document.getElementById('custFaName').value.trim();
   if (!en) {
     window.open('https://musclewiki.com/', '_blank');
     return;
   }
-  const targetUrl = 'https://www.google.com/search?q=' + encodeURIComponent('site:musclewiki.com ' + en);
+  const targetUrl = 'https://www.youtube.com/results?search_query=' + encodeURIComponent(en + ' workout form tutorial');
   window.open(targetUrl, '_blank');
 }
 

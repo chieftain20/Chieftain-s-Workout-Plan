@@ -1,0 +1,25 @@
+﻿import json
+
+part1 = [
+    {"id": "leg_curl", "fa": "پشت پا دستگاه", "en": "Leg curl", "muscles": "همسترینگ", "category": "gym", "defaultReps": "3 × 10–15", "defaultSets": 3, "videos": [{"title": "آموزش ۱", "url": "https://youtube.com/shorts/lGNeJsdqJwg?si=temfOVvyY4ksk2nD"}]},
+    {"id": "leg_extension", "fa": "جلو پا دستگاه", "en": "Leg extension", "muscles": "چهارسر", "category": "gym", "defaultReps": "3 × 10–15", "defaultSets": 3, "videos": [{"title": "آموزش ۱", "url": "https://www.youtube.com/shorts/iQ92TuvBqRo"}]},
+    {"id": "hack_squat", "fa": "هک اسکوات", "en": "Hack squat", "muscles": "چهارسر، باسن", "category": "gym", "defaultReps": "3 × 8–12", "defaultSets": 3, "videos": [{"title": "آموزش ۱", "url": "https://www.youtube.com/shorts/-hBQNtJqgjw"}]},
+    {"id": "leg_press", "fa": "پرس پا", "en": "Leg press", "muscles": "چهارسر، باسن", "category": "gym", "defaultReps": "3 × 8–12", "defaultSets": 3, "videos": [{"title": "آموزش ۱", "url": "https://www.youtube.com/shorts/Hpu0g_B2m7A"}]},
+    {"id": "seated_chest_press_machine", "fa": "پرس سینه دستگاه", "en": "Seated chest press machine", "muscles": "سینه، پشت بازو، سرشانه جلویی", "category": "gym", "defaultReps": "3 × 8–12", "defaultSets": 3, "videos": [{"title": "آموزش ۱", "url": "https://www.youtube.com/shorts/_g6bPSKIamY"}]},
+    {"id": "standing_calf_raise_hack", "fa": "ساق با هک اسکوات", "en": "Standing calf raise on hack squat machine", "muscles": "ساق پا", "category": "gym", "defaultReps": "3 × 10–15", "defaultSets": 3, "videos": [{"title": "آموزش ۱ (شورت)", "url": "https://www.youtube.com/shorts/mOvF1yhTIGE"}, {"title": "آموزش ۲ (کامل)", "url": "https://www.youtube.com/watch?v=vUtsuJ-sIF0"}]},
+    {"id": "smith_machine_squat", "fa": "اسکوات با اسمیت", "en": "Smith machine squat", "muscles": "چهارسر، باسن، همسترینگ", "category": "gym", "defaultReps": "3 × 8–12", "defaultSets": 3, "videos": [{"title": "آموزش ۱", "url": "https://www.youtube.com/shorts/LqZxqfzP2ms"}]},
+    {"id": "hip_thrust", "fa": "هیپ تراست", "en": "Hip Thrust", "muscles": "باسن (سرینی)، همسترینگ", "category": "gym", "defaultReps": "3 × 8–12", "defaultSets": 3, "videos": [{"title": "آموزش ۱", "url": "https://www.youtube.com/shorts/42lU8xsumBo"}, {"title": "آموزش ۲", "url": "https://www.youtube.com/shorts/_i6qpcI1Nw4"}]},
+    {"id": "standing_lateral_raise_machine", "fa": "نشر جانب دستگاه", "en": "Standing lateral raise machine", "muscles": "سرشانه میانی", "category": "gym", "defaultReps": "3 × 12–20", "defaultSets": 3, "videos": [{"title": "آموزش ۱ (شورت)", "url": "https://youtube.com/shorts/zsPNG5-Yp7s?si=vancgmAU4f6P-GWk"}, {"title": "آموزش ۲ (کامل)", "url": "https://www.youtube.com/watch?v=YGN4cOYkjFQ"}]},
+    {"id": "cable_row", "fa": "قایقی سیم‌کش", "en": "Cable row", "muscles": "پشت میانی، زیر بغل، جلو بازو", "category": "gym", "defaultReps": "3 × 8–12", "defaultSets": 3, "videos": [{"title": "آموزش ۱", "url": "https://www.youtube.com/shorts/UT2DVnU9VzM"}]},
+    {"id": "lat_pulldown", "fa": "لت سیم‌کش", "en": "Lat pulldown", "muscles": "زیر بغل، جلو بازو", "category": "gym", "defaultReps": "3 × 8–12", "defaultSets": 3, "videos": [{"title": "آموزش ۱", "url": "https://www.youtube.com/shorts/bNmvKpJSWKM"}, {"title": "آموزش ۲", "url": "https://www.youtube.com/shorts/5s6KGLTMgoI"}, {"title": "آموزش ۳", "url": "https://www.youtube.com/shorts/8UOC7kb5lyE"}]},
+    {"id": "iso_lateral_row", "fa": "روئینگ ایزولترال دستگاه", "en": "Iso lateral row", "muscles": "زیر بغل، پشت میانی", "category": "gym", "defaultReps": "3 × 8–12", "defaultSets": 3, "videos": [{"title": "آموزش ۱", "url": "https://www.youtube.com/shorts/OJAxVKVMjmg"}, {"title": "آموزش ۲ (کامل)", "url": "https://www.youtube.com/watch?v=Ss7Tv4NiQRk"}, {"title": "آموزش ۳", "url": "https://www.youtube.com/shorts/VHXOmrs56GU"}]},
+    {"id": "reverse_peck_deck_fly", "fa": "ریورس پک‌دک (فلای معکوس)", "en": "Reverse peck deck fly", "muscles": "پشت سرشانه، پشت میانی", "category": "gym", "defaultReps": "3 × 12–20", "defaultSets": 3, "videos": [{"title": "آموزش ۱", "url": "https://www.youtube.com/shorts/b2r_2yjReYg"}]},
+    {"id": "ufo_linear_row_machine", "fa": "یوفو زیر بغل", "en": "U-FO Linear row machine", "muscles": "زیر بغل، پشت میانی، جلو بازو", "category": "gym", "defaultReps": "3 × 8–12", "defaultSets": 3, "videos": [{"title": "آموزش ۱ (شورت)", "url": "https://www.youtube.com/shorts/HOOue-jWSwo"}, {"title": "آموزش ۲ (شورت)", "url": "https://www.youtube.com/shorts/eDMnjrqqebg"}]},
+    {"id": "smith_incline_bench_press", "fa": "پرس بالا سینه اسمیت", "en": "Smith incline bench press", "muscles": "سینه، سرشانه جلویی، پشت بازو", "category": "gym", "defaultReps": "3 × 6–10", "defaultSets": 3, "videos": [{"title": "آموزش کامل", "url": "https://www.youtube.com/watch?v=e_PWa7bMnk8"}]},
+    {"id": "peck_deck_fly", "fa": "پک‌دک فلای (فلای دستگاه)", "en": "Peck deck fly", "muscles": "سینه", "category": "gym", "defaultReps": "3 × 10–15", "defaultSets": 3, "videos": [{"title": "آموزش ۱ (اصلاح شده)", "url": "https://www.youtube.com/shorts/b3EzlAHSM3E"}]}
+]
+
+with open('part1.json', 'w', encoding='utf-8') as f:
+    json.dump(part1, f, ensure_ascii=False, indent=2)
+
+print('Part 1 saved')

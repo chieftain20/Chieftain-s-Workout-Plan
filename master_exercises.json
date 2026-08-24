@@ -1,0 +1,825 @@
+[
+  {
+    "id": "leg_curl",
+    "fa": "پشت پا دستگاه",
+    "en": "Leg curl",
+    "muscles": "همسترینگ",
+    "category": "gym",
+    "defaultReps": "3 × 10–15",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://youtube.com/shorts/lGNeJsdqJwg?si=temfOVvyY4ksk2nD"
+      }
+    ]
+  },
+  {
+    "id": "leg_extension",
+    "fa": "جلو پا دستگاه",
+    "en": "Leg extension",
+    "muscles": "چهارسر",
+    "category": "gym",
+    "defaultReps": "3 × 10–15",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/iQ92TuvBqRo"
+      }
+    ]
+  },
+  {
+    "id": "hack_squat",
+    "fa": "هک اسکوات",
+    "en": "Hack squat",
+    "muscles": "چهارسر، باسن",
+    "category": "gym",
+    "defaultReps": "3 × 8–12",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/-hBQNtJqgjw"
+      }
+    ]
+  },
+  {
+    "id": "leg_press",
+    "fa": "پرس پا",
+    "en": "Leg press",
+    "muscles": "چهارسر، باسن",
+    "category": "gym",
+    "defaultReps": "3 × 8–12",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/Hpu0g_B2m7A"
+      }
+    ]
+  },
+  {
+    "id": "seated_chest_press_machine",
+    "fa": "پرس سینه دستگاه",
+    "en": "Seated chest press machine",
+    "muscles": "سینه، پشت بازو، سرشانه جلویی",
+    "category": "gym",
+    "defaultReps": "3 × 8–12",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/_g6bPSKIamY"
+      }
+    ]
+  },
+  {
+    "id": "standing_calf_raise_hack",
+    "fa": "ساق با هک اسکوات",
+    "en": "Standing calf raise on hack squat machine",
+    "muscles": "ساق پا",
+    "category": "gym",
+    "defaultReps": "3 × 10–15",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱ (شورت)",
+        "url": "https://www.youtube.com/shorts/mOvF1yhTIGE"
+      },
+      {
+        "title": "آموزش ۲ (کامل)",
+        "url": "https://www.youtube.com/watch?v=vUtsuJ-sIF0"
+      }
+    ]
+  },
+  {
+    "id": "smith_machine_squat",
+    "fa": "اسکوات با اسمیت",
+    "en": "Smith machine squat",
+    "muscles": "چهارسر، باسن، همسترینگ",
+    "category": "gym",
+    "defaultReps": "3 × 8–12",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/LqZxqfzP2ms"
+      }
+    ]
+  },
+  {
+    "id": "hip_thrust",
+    "fa": "هیپ تراست",
+    "en": "Hip Thrust",
+    "muscles": "باسن (سرینی)، همسترینگ",
+    "category": "gym",
+    "defaultReps": "3 × 8–12",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/42lU8xsumBo"
+      },
+      {
+        "title": "آموزش ۲",
+        "url": "https://www.youtube.com/shorts/_i6qpcI1Nw4"
+      }
+    ]
+  },
+  {
+    "id": "standing_lateral_raise_machine",
+    "fa": "نشر جانب دستگاه",
+    "en": "Standing lateral raise machine",
+    "muscles": "سرشانه میانی",
+    "category": "gym",
+    "defaultReps": "3 × 12–20",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱ (شورت)",
+        "url": "https://youtube.com/shorts/zsPNG5-Yp7s?si=vancgmAU4f6P-GWk"
+      },
+      {
+        "title": "آموزش ۲ (کامل)",
+        "url": "https://www.youtube.com/watch?v=YGN4cOYkjFQ"
+      }
+    ]
+  },
+  {
+    "id": "cable_row",
+    "fa": "قایقی سیم‌کش",
+    "en": "Cable row",
+    "muscles": "پشت میانی، زیر بغل، جلو بازو",
+    "category": "gym",
+    "defaultReps": "3 × 8–12",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/UT2DVnU9VzM"
+      }
+    ]
+  },
+  {
+    "id": "lat_pulldown",
+    "fa": "لت سیم‌کش",
+    "en": "Lat pulldown",
+    "muscles": "زیر بغل، جلو بازو",
+    "category": "gym",
+    "defaultReps": "3 × 8–12",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/bNmvKpJSWKM"
+      },
+      {
+        "title": "آموزش ۲",
+        "url": "https://www.youtube.com/shorts/5s6KGLTMgoI"
+      },
+      {
+        "title": "آموزش ۳",
+        "url": "https://www.youtube.com/shorts/8UOC7kb5lyE"
+      }
+    ]
+  },
+  {
+    "id": "iso_lateral_row",
+    "fa": "روئینگ ایزولترال دستگاه",
+    "en": "Iso lateral row",
+    "muscles": "زیر بغل، پشت میانی",
+    "category": "gym",
+    "defaultReps": "3 × 8–12",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/OJAxVKVMjmg"
+      },
+      {
+        "title": "آموزش ۲ (کامل)",
+        "url": "https://www.youtube.com/watch?v=Ss7Tv4NiQRk"
+      },
+      {
+        "title": "آموزش ۳",
+        "url": "https://www.youtube.com/shorts/VHXOmrs56GU"
+      }
+    ]
+  },
+  {
+    "id": "reverse_peck_deck_fly",
+    "fa": "ریورس پک‌دک (فلای معکوس)",
+    "en": "Reverse peck deck fly",
+    "muscles": "پشت سرشانه، پشت میانی",
+    "category": "gym",
+    "defaultReps": "3 × 12–20",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/b2r_2yjReYg"
+      }
+    ]
+  },
+  {
+    "id": "ufo_linear_row_machine",
+    "fa": "یوفو زیر بغل",
+    "en": "U-FO Linear row machine",
+    "muscles": "زیر بغل، پشت میانی، جلو بازو",
+    "category": "gym",
+    "defaultReps": "3 × 8–12",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱ (شورت)",
+        "url": "https://www.youtube.com/shorts/HOOue-jWSwo"
+      },
+      {
+        "title": "آموزش ۲ (شورت)",
+        "url": "https://www.youtube.com/shorts/eDMnjrqqebg"
+      }
+    ]
+  },
+  {
+    "id": "smith_incline_bench_press",
+    "fa": "پرس بالا سینه اسمیت",
+    "en": "Smith incline bench press",
+    "muscles": "سینه، سرشانه جلویی، پشت بازو",
+    "category": "gym",
+    "defaultReps": "3 × 6–10",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش کامل",
+        "url": "https://www.youtube.com/watch?v=e_PWa7bMnk8"
+      }
+    ]
+  },
+  {
+    "id": "peck_deck_fly",
+    "fa": "پک‌دک فلای (فلای دستگاه)",
+    "en": "Peck deck fly",
+    "muscles": "سینه",
+    "category": "gym",
+    "defaultReps": "3 × 10–15",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱ (اصلاح شده)",
+        "url": "https://www.youtube.com/shorts/b3EzlAHSM3E"
+      }
+    ]
+  },
+  {
+    "id": "iso_lateral_incline_pec_fly_machine",
+    "fa": "فلای بالا سینه دستگاه ایزولترال",
+    "en": "Iso lateral incline pec fly machine",
+    "muscles": "سینه (بالا سینه)",
+    "category": "gym",
+    "defaultReps": "3 × 10–15",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/wlkKJWxKOCM"
+      },
+      {
+        "title": "آموزش ۲ (کامل)",
+        "url": "https://www.youtube.com/watch?v=DtiDEA-UqwA"
+      }
+    ]
+  },
+  {
+    "id": "iso_lateral_incline_bench_press",
+    "fa": "پرس بالا سینه ایزولترال دستگاه",
+    "en": "Iso-Lateral incline Bench Press",
+    "muscles": "سینه (بالا سینه)، پشت بازو",
+    "category": "gym",
+    "defaultReps": "3 × 8–12",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/i3e4CG5tnfs"
+      }
+    ]
+  },
+  {
+    "id": "incline_chest_fly",
+    "fa": "فلای بالا سینه دستگاه",
+    "en": "Incline chest fly",
+    "muscles": "سینه (بالا سینه)",
+    "category": "gym",
+    "defaultReps": "3 × 10–15",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/wlkKJWxKOCM"
+      }
+    ]
+  },
+  {
+    "id": "seated_cable_pec_fly",
+    "fa": "فلای سینه نشسته با سیم‌کش",
+    "en": "Seated Cable Pec Fly",
+    "muscles": "سینه",
+    "category": "gym",
+    "defaultReps": "3 × 10–15",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/sgerBKynRWA"
+      },
+      {
+        "title": "آموزش ۲",
+        "url": "https://www.youtube.com/shorts/KoGL5rwXy1U"
+      }
+    ]
+  },
+  {
+    "id": "preacher_curls",
+    "fa": "جلو بازو لاری",
+    "en": "Preacher curls",
+    "muscles": "جلو بازو",
+    "category": "gym",
+    "defaultReps": "3 × 8–12",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/7ixqAPO6JvU"
+      }
+    ]
+  },
+  {
+    "id": "preacher_hammer_curl",
+    "fa": "همر کرل روی لاری",
+    "en": "Preacher Hammer Curl",
+    "muscles": "براکیالیس، براکیورادیالیس، جلو بازو",
+    "category": "gym",
+    "defaultReps": "3 × 8–12",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/7ixqAPO6JvU"
+      }
+    ]
+  },
+  {
+    "id": "rope_triceps_pushdown",
+    "fa": "پشت بازو طناب",
+    "en": "Rope triceps pushdown",
+    "muscles": "پشت بازو",
+    "category": "gym",
+    "defaultReps": "3 × 10–15",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱ (شورت)",
+        "url": "https://www.youtube.com/shorts/1FoWlRS2Edc"
+      },
+      {
+        "title": "آموزش ۲ (کامل)",
+        "url": "https://www.youtube.com/watch?v=npKMP9UwJ0s&t=205s"
+      }
+    ]
+  },
+  {
+    "id": "cable_triceps_pushdown",
+    "fa": "پشت بازو سیم‌کش میله",
+    "en": "cable triceps pushdown",
+    "muscles": "پشت بازو",
+    "category": "gym",
+    "defaultReps": "3 × 10–15",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/rGI88vZdArg"
+      }
+    ]
+  },
+  {
+    "id": "overhead_triceps_extension",
+    "fa": "پشت بازو بالای سر طناب",
+    "en": "Overhead Triceps Extension",
+    "muscles": "پشت بازو",
+    "category": "gym",
+    "defaultReps": "3 × 10–15",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/iKX6vEhrGxw"
+      }
+    ]
+  },
+  {
+    "id": "dumbbell_shrugs",
+    "fa": "شراگ دمبل",
+    "en": "Dumbbell Shrugs",
+    "muscles": "کول فوقانی (تراپز)",
+    "category": "gym",
+    "defaultReps": "3 × 10–15",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/rFsSeClGnNA"
+      }
+    ]
+  },
+  {
+    "id": "chest_supported_dumbbell_shrug",
+    "fa": "شراگ دمبل سینه تکیه‌گاه (کلسو)",
+    "en": "Chest supported dumbbell shrug (Kelso shrug)",
+    "muscles": "پشت میانی، کول میانی و فوقانی",
+    "category": "gym",
+    "defaultReps": "3 × 10–15",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/rFsSeClGnNA"
+      }
+    ]
+  },
+  {
+    "id": "cable_lateral_raise",
+    "fa": "نشر جانب سیم‌کش",
+    "en": "Cable lateral raise",
+    "muscles": "سرشانه میانی",
+    "category": "gym",
+    "defaultReps": "3 × 12–20",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/lMJUXEvcMkQ"
+      }
+    ]
+  },
+  {
+    "id": "face_pull",
+    "fa": "فیس پول با سیم‌کش",
+    "en": "face pull",
+    "muscles": "پشت سرشانه، روتاتور کاف، پشت بالایی",
+    "category": "gym",
+    "defaultReps": "3 × 12–20",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/IeOqdw9WI90"
+      }
+    ]
+  },
+  {
+    "id": "dumbbell_shoulder_press",
+    "fa": "پرس سرشانه با دمبل",
+    "en": "dumbbell shoulder press",
+    "muscles": "سرشانه، پشت بازو",
+    "category": "gym",
+    "defaultReps": "3 × 8–12",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/k6tzKisR3NY"
+      },
+      {
+        "title": "آموزش ۲",
+        "url": "https://www.youtube.com/shorts/t0rDU50nZpA"
+      }
+    ]
+  },
+  {
+    "id": "plate_loaded_shoulder_press",
+    "fa": "پرس سرشانه دستگاه",
+    "en": "Plate-loaded shoulder press machine",
+    "muscles": "سرشانه، پشت بازو",
+    "category": "gym",
+    "defaultReps": "3 × 8–12",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/OePoi839_so"
+      }
+    ]
+  },
+  {
+    "id": "standing_cable_crunch",
+    "fa": "کرانچ ایستاده کابل",
+    "en": "Standing cable crunch",
+    "muscles": "شکم",
+    "category": "gym",
+    "defaultReps": "3 × 10–15",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱ (کامل)",
+        "url": "https://www.youtube.com/watch?v=vFV78ASgsak"
+      },
+      {
+        "title": "آموزش ۲ (شورت)",
+        "url": "https://www.youtube.com/shorts/EtZoHYaPeCw"
+      }
+    ]
+  },
+  {
+    "id": "cable_oblique_crunch",
+    "fa": "کرانچ مورب سیم‌کش",
+    "en": "Cable Oblique crunch",
+    "muscles": "مورب شکمی (ابلیک)",
+    "category": "gym",
+    "defaultReps": "3 × 12–20",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/GDUt_JPammw"
+      },
+      {
+        "title": "آموزش ۲",
+        "url": "https://www.youtube.com/shorts/qcMftnfpht0"
+      },
+      {
+        "title": "آموزش ۳ (کامل)",
+        "url": "https://www.youtube.com/watch?v=g8YWFMSJFIc"
+      }
+    ]
+  },
+  {
+    "id": "cable_hip_abduction",
+    "fa": "ابداکشن کابل",
+    "en": "Cable Hip Abduction",
+    "muscles": "خارج ران، سرینی میانی",
+    "category": "gym",
+    "defaultReps": "3 × 12–20",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش کامل",
+        "url": "https://www.youtube.com/watch?v=EHq78mQYLbI"
+      }
+    ]
+  },
+  {
+    "id": "cable_hip_adduction",
+    "fa": "اداکشن کابل",
+    "en": "Cable Hip Adduction",
+    "muscles": "داخل ران",
+    "category": "gym",
+    "defaultReps": "3 × 12–20",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش کامل",
+        "url": "https://www.youtube.com/watch?v=EHq78mQYLbI"
+      }
+    ]
+  },
+  {
+    "id": "bent_knee_cable_hip_abduction",
+    "fa": "ابداکشن ران زانو خم سیم‌کش",
+    "en": "Bent Knee Cable Hip Abduction",
+    "muscles": "سرینی میانی و خارج ران",
+    "category": "gym",
+    "defaultReps": "3 × 12–20",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش کامل",
+        "url": "https://www.youtube.com/watch?v=h0S0m95tTxY"
+      }
+    ]
+  },
+  {
+    "id": "rdl",
+    "fa": "ددلیفت رومانیایی",
+    "en": "RDL",
+    "muscles": "همسترینگ، باسن، فیله",
+    "category": "gym",
+    "defaultReps": "2 × 8–12",
+    "defaultSets": 2,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/5rIqP63yWFg"
+      }
+    ]
+  },
+  {
+    "id": "back_extension",
+    "fa": "بک اکستنشن / فیله",
+    "en": "Back Extension",
+    "muscles": "فیله کمر، باسن، همسترینگ",
+    "category": "gym",
+    "defaultReps": "3 × 10–15",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/9XN23dIEqLE"
+      }
+    ]
+  },
+  {
+    "id": "bench_crunch",
+    "fa": "کرانچ نیمکت",
+    "en": "Bench Crunch",
+    "muscles": "شکم",
+    "category": "gym",
+    "defaultReps": "3 × 12–20",
+    "defaultSets": 3,
+    "videos": []
+  },
+  {
+    "id": "wall_sit",
+    "fa": "وال‌سیت",
+    "en": "Wall sit",
+    "muscles": "چهارسر و ایزومتریک",
+    "category": "home",
+    "defaultReps": "3 × 30–60 ثانیه",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش استاندارد",
+        "url": "https://www.youtube.com/shorts/mDdLC-yKudY"
+      },
+      {
+        "title": "مدل اصلاحی برای زانوی حساس",
+        "url": "https://www.youtube.com/shorts/dkyWIHEjgBE"
+      }
+    ]
+  },
+  {
+    "id": "side_plank_iso",
+    "fa": "ساید پلانک ایزومتریک",
+    "en": "Side plank Isometric",
+    "muscles": "ابلیک و Core",
+    "category": "home",
+    "defaultReps": "3 × 20–40 ثانیه هر طرف",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/sKMD_pbNm7w"
+      }
+    ]
+  },
+  {
+    "id": "side_plank_dips",
+    "fa": "ساید پلانک با حرکت لگن",
+    "en": "Side plank dips",
+    "muscles": "ابلیک و Core",
+    "category": "home",
+    "defaultReps": "3 × 10–15 هر طرف",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/F63KKkm18xw"
+      },
+      {
+        "title": "آموزش ۲",
+        "url": "https://www.youtube.com/shorts/d-pNRtspSK0"
+      }
+    ]
+  },
+  {
+    "id": "dead_bug_iso",
+    "fa": "ددباگ ایزومتریک",
+    "en": "Dead bug iso",
+    "muscles": "Core",
+    "category": "home",
+    "defaultReps": "3 × 20–30 ثانیه",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/mMiGFa_jWhA"
+      }
+    ]
+  },
+  {
+    "id": "dead_bug",
+    "fa": "ددباگ",
+    "en": "dead bug",
+    "muscles": "Core",
+    "category": "home",
+    "defaultReps": "3 × 6–10 هر طرف",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/apYmFYLsCNs"
+      }
+    ]
+  },
+  {
+    "id": "prone_itwy",
+    "fa": "پرون ITWY",
+    "en": "Prone ITWY",
+    "muscles": "پشت سرشانه، تراپز و کنترل کتف",
+    "category": "home",
+    "defaultReps": "3 × 8–12",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش کامل",
+        "url": "https://www.youtube.com/watch?v=Yv6sUKOwOY8&pp=ygUZUHJvbmUgVyBSYWlzZSBwcm9wZXIgZm9ybQ%3D%3D"
+      }
+    ]
+  },
+  {
+    "id": "glute_bridge_iso",
+    "fa": "گلوت بریج ایزومتریک",
+    "en": "glute bridge iso",
+    "muscles": "باسن و زنجیره خلفی",
+    "category": "home",
+    "defaultReps": "3 × 20–40 ثانیه",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/1bOEz-3SgHI"
+      }
+    ]
+  },
+  {
+    "id": "glute_bridge",
+    "fa": "پل باسن پویا",
+    "en": "Glute bridge",
+    "muscles": "باسن و زنجیره خلفی",
+    "category": "home",
+    "defaultReps": "3 × 12–15",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/LORVjN2bg5o"
+      }
+    ]
+  },
+  {
+    "id": "iso_bird_dog",
+    "fa": "برد داگ ایزومتریک",
+    "en": "Iso bird dog",
+    "muscles": "Core و کنترل تنه",
+    "category": "home",
+    "defaultReps": "3 × 20–30 ثانیه هر طرف",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/3HDd3iKb_RI"
+      }
+    ]
+  },
+  {
+    "id": "bird_dog",
+    "fa": "برد داگ",
+    "en": "bird dog",
+    "muscles": "Core و کنترل تنه",
+    "category": "home",
+    "defaultReps": "3 × 8–12 هر طرف",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/Xj1z9NqwuM8"
+      }
+    ]
+  },
+  {
+    "id": "push_up_plus",
+    "fa": "پوش‌آپ پلاس",
+    "en": "Push up plus (scap push up)",
+    "muscles": "سراتوس قدامی و کنترل کتف",
+    "category": "home",
+    "defaultReps": "3 × 8–15",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/opcjCCX7FLg"
+      }
+    ]
+  },
+  {
+    "id": "wall_slide",
+    "fa": "وال اسلاید",
+    "en": "Wall slide",
+    "muscles": "کنترل کتف و شانه",
+    "category": "home",
+    "defaultReps": "3 × 8–12",
+    "defaultSets": 3,
+    "videos": []
+  }
+]

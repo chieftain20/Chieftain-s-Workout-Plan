@@ -611,24 +611,33 @@ function closeMuscleWikiModal() {
   document.getElementById('muscleWikiModal').classList.remove('open');
 }
 
+function searchYouTubeDirect() {
+  const query = document.getElementById('mwSearchQuery').value.trim();
+  if (!query) {
+    window.open('https://www.youtube.com/results?search_query=gym+workout+exercise+tutorial', '_blank');
+    return;
+  }
+  const targetUrl = 'https://www.youtube.com/results?search_query=' + encodeURIComponent(query + ' exercise form tutorial');
+  window.open(targetUrl, '_blank');
+}
+
 function searchMuscleWikiDirect() {
   const query = document.getElementById('mwSearchQuery').value.trim();
   if (!query) {
     window.open('https://musclewiki.com/', '_blank');
     return;
   }
-  // Open MuscleWiki search or search query
   const targetUrl = 'https://www.google.com/search?q=' + encodeURIComponent('site:musclewiki.com ' + query);
   window.open(targetUrl, '_blank');
 }
 
-function searchMuscleWikiFromCustom() {
+function searchVideosForCustom() {
   const en = document.getElementById('custEnName').value.trim() || document.getElementById('custFaName').value.trim();
   if (!en) {
     window.open('https://musclewiki.com/', '_blank');
     return;
   }
-  const targetUrl = 'https://www.google.com/search?q=' + encodeURIComponent('site:musclewiki.com ' + en);
+  const targetUrl = 'https://www.youtube.com/results?search_query=' + encodeURIComponent(en + ' workout form tutorial');
   window.open(targetUrl, '_blank');
 }
 

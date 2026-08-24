@@ -49,7 +49,7 @@
 
     <div style="margin-top:16px; padding:12px; background:#141f33; border:1px dashed var(--border-light); border-radius:12px; text-align:center;">
       <div style="font-size:13px; font-weight:700; color:#38bdf8; margin-bottom:4px;">حرکت مورد نظرت رو پیدا نکردی؟</div>
-      <p style="font-size:11.5px; color:var(--text-muted); margin-bottom:8px;">می‌تونی در مرجع جهانی MuscleWiki تمام حرکات و ویدیوهای دنیا رو پیدا کنی:</p>
+      <p style="font-size:11.5px; color:var(--text-muted); margin-bottom:8px;">می‌تونی در مرجع جهانی MuscleWiki نقشه آناتومی بدن و ویدیوهای تمام حرکات دنیا رو ببینی:</p>
       <button class="btn-header-action btn-action-primary" style="margin:0 auto; justify-content:center;" onclick="openMuscleWikiModal()">
         🌐 باز کردن بانک جهانی MuscleWiki
       </button>
@@ -59,71 +59,48 @@
 
 <!-- MuscleWiki Integration Modal -->
 <div id="muscleWikiModal" class="modal-overlay">
-  <div class="modal-dialog" style="max-width: 540px;">
+  <div class="modal-dialog" style="max-width: 520px;">
     <button class="modal-close-btn" onclick="closeMuscleWikiModal()">✕</button>
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
       <span style="font-size:24px;">🌐</span>
-      <h3 style="margin:0;">بانک جهانی حرکات MuscleWiki</h3>
+      <h3 style="margin:0;">بانک جهانی حرکات MuscleWiki & ویدیوها</h3>
     </div>
     <p style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 14px;">
-      دسترسی مستقیم به کامل‌ترین پایگاه داده حرکات بدنسازی با آناتومی و ویدیوهای آموزشی 4K:
+      دسترسی به نقشه آناتومی تعاملی بدن و ویدیوی آموزشی تمام حرکات بدنسازی دنیا:
     </p>
 
-    <!-- Direct Search on MuscleWiki -->
+    <!-- Interactive MuscleWiki Portal Button -->
+    <a href="https://musclewiki.com/" target="_blank" rel="noopener" class="btn-header-action btn-action-primary" style="justify-content:center; padding:12px; font-size:13.5px; text-decoration:none; margin-bottom:14px; box-shadow:0 4px 15px rgba(14,165,233,0.35);">
+      <span>🔥</span>
+      <span>ورود به نقشه تعاملی بدن در MuscleWiki.com ↗</span>
+    </a>
+
+    <!-- Smart Exercise Search -->
     <div style="background:#152033; border:1px solid var(--border-color); border-radius:12px; padding:12px; margin-bottom:14px;">
-      <label class="form-label">🔍 جستجوی مستقیم نام انگلیسی هر حرکت در MuscleWiki:</label>
+      <label class="form-label">🔍 جستجوی نام حرکت برای دریافت فوری ویدیو و آموزش:</label>
+      <div style="margin-bottom:8px;">
+        <input type="text" id="mwSearchQuery" class="form-input" placeholder="نام فارسی یا انگلیسی حرکت (مثلاً: پرس بالا سینه، Bulgarian Split Squat)..." style="direction:rtl">
+      </div>
       <div style="display:flex; gap:6px;">
-        <input type="text" id="mwSearchQuery" class="form-input" placeholder="مثلاً: Bulgarian Split Squat, Arnold Press..." style="direction:ltr">
-        <button class="btn-header-action btn-action-primary" onclick="searchMuscleWikiDirect()" style="white-space:nowrap;">
-          جستجو ↗
+        <button class="btn-header-action btn-action-primary" onclick="searchYouTubeDirect()" style="flex:1; justify-content:center;">
+          <span>▶</span> <span>ویدیو در یوتیوب</span>
+        </button>
+        <button class="btn-header-action" onclick="searchMuscleWikiDirect()" style="flex:1; justify-content:center;">
+          <span>🌐</span> <span>سرچ MuscleWiki</span>
         </button>
       </div>
     </div>
 
-    <!-- Muscle Anatomy Quick Categories -->
-    <div style="font-size:12.5px; font-weight:700; color:#cbd5e1; margin-bottom:8px;">🎯 انتخاب بر اساس عضله هدف در MuscleWiki:</div>
-    <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:8px; margin-bottom:14px;">
-      <a href="https://musclewiki.com/exercises/male/chest" target="_blank" rel="noopener" class="btn-header-action" style="justify-content:flex-start; text-decoration:none;">
-        <span>🏋️‍♂️</span> <span>عضلات سینه (Chest)</span>
-      </a>
-      <a href="https://musclewiki.com/exercises/male/lats" target="_blank" rel="noopener" class="btn-header-action" style="justify-content:flex-start; text-decoration:none;">
-        <span>🦅</span> <span>زیر بغل و پشت (Lats/Back)</span>
-      </a>
-      <a href="https://musclewiki.com/exercises/male/quads" target="_blank" rel="noopener" class="btn-header-action" style="justify-content:flex-start; text-decoration:none;">
-        <span>🦵</span> <span>چهارسر ران (Quads)</span>
-      </a>
-      <a href="https://musclewiki.com/exercises/male/hamstrings" target="_blank" rel="noopener" class="btn-header-action" style="justify-content:flex-start; text-decoration:none;">
-        <span>🦵</span> <span>همسترینگ و باسن (Hamstrings)</span>
-      </a>
-      <a href="https://musclewiki.com/exercises/male/shoulders" target="_blank" rel="noopener" class="btn-header-action" style="justify-content:flex-start; text-decoration:none;">
-        <span>🎯</span> <span>سرشانه (Shoulders)</span>
-      </a>
-      <a href="https://musclewiki.com/exercises/male/biceps" target="_blank" rel="noopener" class="btn-header-action" style="justify-content:flex-start; text-decoration:none;">
-        <span>💪</span> <span>جلو بازو (Biceps)</span>
-      </a>
-      <a href="https://musclewiki.com/exercises/male/triceps" target="_blank" rel="noopener" class="btn-header-action" style="justify-content:flex-start; text-decoration:none;">
-        <span>⚡</span> <span>پشت بازو (Triceps)</span>
-      </a>
-      <a href="https://musclewiki.com/exercises/male/abdominals" target="_blank" rel="noopener" class="btn-header-action" style="justify-content:flex-start; text-decoration:none;">
-        <span>🧱</span> <span>شکم و Core (Abs)</span>
-      </a>
-      <a href="https://musclewiki.com/exercises/male/calves" target="_blank" rel="noopener" class="btn-header-action" style="justify-content:flex-start; text-decoration:none;">
-        <span>🦿</span> <span>ساق پا (Calves)</span>
-      </a>
-      <a href="https://musclewiki.com/exercises/male/traps" target="_blank" rel="noopener" class="btn-header-action" style="justify-content:flex-start; text-decoration:none;">
-        <span>🛡️</span> <span>کول و تراپز (Traps)</span>
-      </a>
-      <a href="https://musclewiki.com/bodyweight/male/chest" target="_blank" rel="noopener" class="btn-header-action" style="grid-column: span 2; justify-content:center; text-decoration:none; color:#34d399; border-color:#34d39955;">
-        <span>🏠</span> <span>تمرینات با وزن بدن و خانگی (Bodyweight)</span>
-      </a>
+    <!-- Muscle Anatomy Shortcuts -->
+    <div style="font-size:12.5px; font-weight:700; color:#cbd5e1; margin-bottom:8px;">💡 راهنمای انتخاب عضله در MuscleWiki:</div>
+    <div style="font-size:12px; color:var(--text-muted); line-height:1.7; background:rgba(30,41,59,0.4); padding:10px 12px; border-radius:10px; border:1px solid var(--border-color); margin-bottom:14px;">
+      در سایت <bdi>MuscleWiki</bdi>، کافیست روی هر عضله از بدن (سینه، جلو بازو، چهارسر ران، زیر بغل، شکم) کلیک کنید تا تمام حرکات با دمبل، هالتر، دستگاه یا وزن بدن به همراه ویدیوهای متحرک نمایش داده شوند.
     </div>
 
     <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-color); padding-top:12px;">
-      <a href="https://musclewiki.com/" target="_blank" rel="noopener" class="btn-header-action" style="text-decoration:none;">
-        صفحه اصلی MuscleWiki ↗
-      </a>
+      <button class="btn-header-action" onclick="closeMuscleWikiModal()">بستن</button>
       <button class="btn-header-action btn-action-primary" onclick="closeMuscleWikiModal(); openCustomExerciseModal();">
-        + ثبت حرکت جدید در برنامه‌ام
+        + ثبت حرکت جدید در برنامه
       </button>
     </div>
   </div>
@@ -146,7 +123,7 @@
     <div class="form-group">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
         <label class="form-label" style="margin:0;">نام انگلیسی حرکت (اختیاری)</label>
-        <a href="javascript:void(0)" onclick="searchMuscleWikiFromCustom()" style="font-size:11.5px; color:#38bdf8; text-decoration:none;">🔍 جستجو در MuscleWiki</a>
+        <a href="javascript:void(0)" onclick="searchVideosForCustom()" style="font-size:11.5px; color:#38bdf8; text-decoration:none;">🔍 یافتن ویدیو آموزشی</a>
       </div>
       <input type="text" id="custEnName" class="form-input" placeholder="e.g. Incline Neutral Dumbbell Press" style="direction:ltr">
     </div>
