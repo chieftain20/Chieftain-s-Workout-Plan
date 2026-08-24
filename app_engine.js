@@ -17,15 +17,14 @@ function loadAppData() {
     if (rawProfiles) {
       allProfiles = JSON.parse(rawProfiles);
     } else {
-      // First time loading v3 or upgrading from old version:
-      // Ensure Hossein profile has full 7 days (including Saturday) and pin: 'gym'
+      // First time loading v3 or upgrading:
       const defaultProf = JSON.parse(JSON.stringify(HOSSEIN_PROFILE));
       defaultProf.pin = 'gym';
       allProfiles = [defaultProf];
       localStorage.setItem('chieftain_profiles_v3', JSON.stringify(allProfiles));
     }
 
-    // Auto-heal check: if Hossein profile has lost Saturday (d1) or has fewer than 7 days, automatically restore it!
+    // Auto-heal check: if Hossein profile has lost Saturday (d1) or has fewer than 7 days, restore it!
     const hProf = allProfiles.find(p => p.id === 'hossein_chieftain');
     if (hProf) {
       if (!hProf.pin) hProf.pin = 'gym';
@@ -1157,14 +1156,12 @@ document.getElementById('searchInput')?.addEventListener('input', (e) => {
   });
 });
 
-// PWA Banner & Modals
+// PWA Install Handlers (Clean, non-intrusive)
 let deferredPrompt = null;
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
 
 const headerInstallBtn = document.getElementById('headerInstallBtn');
-const banner = document.getElementById('installBanner');
-const bannerInstallBtn = document.getElementById('bannerInstallBtn');
 const installModal = document.getElementById('installGuideModal');
 const iosGuide = document.getElementById('iosGuideContent');
 const androidGuide = document.getElementById('androidGuideContent');
@@ -1172,27 +1169,20 @@ const nativeTriggerBtn = document.getElementById('triggerNativeInstall');
 
 if (isStandalone) {
   if (headerInstallBtn) {
-    headerInstallBtn.innerHTML = '<span>✓</span> <span>نصب شده</span>';
+    headerInstallBtn.innerHTML = '<span>✓</span> <span>اپ نصب شده</span>';
     headerInstallBtn.style.opacity = '0.7';
-  }
-  if (banner) banner.style.display = 'none';
-} else {
-  if (!sessionStorage.getItem('dismiss_banner')) {
-    setTimeout(() => { if (banner) banner.style.display = 'block'; }, 2500);
   }
 }
 
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  if (banner) banner.style.display = 'block';
 });
 
 function showInstallFlow() {
   if (deferredPrompt) {
     deferredPrompt.prompt();
     deferredPrompt.userChoice.then((choice) => {
-      if (choice.outcome === 'accepted' && banner) banner.style.display = 'none';
       deferredPrompt = null;
     });
   } else {
@@ -1208,14 +1198,13 @@ function showInstallFlow() {
 }
 
 headerInstallBtn?.addEventListener('click', showInstallFlow);
-bannerInstallBtn?.addEventListener('click', showInstallFlow);
 
 nativeTriggerBtn?.addEventListener('click', () => {
   if (deferredPrompt) {
     deferredPrompt.prompt();
     closeInstallGuide();
   } else {
-    alert('در کروم گوشی، روی ۳ نقطه بالای صفحه بزنید و Install app یا Add to Home Screen را انتخاب کنید.');
+    alert('در مرورگر کروم گوشی، روی ۳ نقطه بالای صفحه بزنید و گزینه "Install app" یا "Add to Home Screen" را انتخاب نمایید.');
   }
 });
 
@@ -1223,12 +1212,9 @@ function closeInstallGuide() {
   if (installModal) installModal.classList.remove('open');
 }
 
-function dismissBanner() {
-  if (banner) banner.style.display = 'none';
-  sessionStorage.setItem('dismiss_banner', '1');
-}
-
 window.addEventListener('appinstalled', () => {
-  if (banner) banner.style.display = 'none';
-  if (headerInstallBtn) headerInstallBtn.innerHTML = '<span>✓</span> <span>نصب شده</span>';
+  if (headerInstallBtn) {
+    headerInstallBtn.innerHTML = '<span>✓</span> <span>اپ نصب شده</span>';
+    headerInstallBtn.style.opacity = '0.7';
+  }
 });
