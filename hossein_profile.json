@@ -343,7 +343,7 @@
           ]
         },
         {
-          "title": "D1 + D2 · ددلیفت رومانیایی + ابداکشن کابل",
+          "title": "D1 + D2 · ددلیفت رومانیایی + ابداکشن ایستاده با صفحه",
           "exercises": [
             {
               "exId": "rdl",
@@ -351,14 +351,14 @@
               "sets": 2
             },
             {
-              "exId": "cable_hip_abduction",
-              "reps": "3 × 12–20",
+              "exId": "standing_plate_hip_abduction",
+              "reps": "3 × 12–15 هر طرف",
               "sets": 3
             }
           ]
         },
         {
-          "title": "E1 + E2 · فلای بالا سینه دستگاه + اداکشن کابل",
+          "title": "E1 + E2 · فلای بالا سینه دستگاه + اسکوات قزاقی",
           "exercises": [
             {
               "exId": "incline_chest_fly",
@@ -366,8 +366,8 @@
               "sets": 3
             },
             {
-              "exId": "cable_hip_adduction",
-              "reps": "3 × 12–20",
+              "exId": "cossack_squat",
+              "reps": "3 × 8–12 هر طرف",
               "sets": 3
             }
           ]

@@ -3,6 +3,8 @@ let customExercises = [];
 let allProfiles = [];
 let activeProfileId = 'hossein_chieftain';
 let activeDayForAdding = null;
+let convertTargetDayIdx = null;
+let convertTargetSingleIdx = null;
 
 const WEEK_DAYS = ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'روز تمرینی ۱', 'روز تمرینی ۲', 'روز تمرینی ۳', 'روز تمرینی ۴'];
 
@@ -13,23 +15,44 @@ function loadAppData() {
   } catch(e) { customExercises = []; }
 
   try {
-    const rawProfiles = localStorage.getItem('chieftain_profiles_v3');
+    const rawProfiles = localStorage.getItem('chieftain_profiles_v4');
     if (rawProfiles) {
       allProfiles = JSON.parse(rawProfiles);
     } else {
-      // First time loading v3 or upgrading:
       const defaultProf = JSON.parse(JSON.stringify(HOSSEIN_PROFILE));
       defaultProf.pin = 'gym';
       allProfiles = [defaultProf];
-      localStorage.setItem('chieftain_profiles_v3', JSON.stringify(allProfiles));
+      localStorage.setItem('chieftain_profiles_v4', JSON.stringify(allProfiles));
     }
 
-    // Auto-heal check: if Hossein profile has lost Saturday (d1) or has fewer than 7 days, restore it!
+    // Auto-heal check: ensure Hossein profile has updated Thursday and 7 days
     const hProf = allProfiles.find(p => p.id === 'hossein_chieftain');
     if (hProf) {
       if (!hProf.pin) hProf.pin = 'gym';
       if (!hProf.days || hProf.days.length < 7 || !hProf.days.some(d => d.id === 'd1' || d.title === 'شنبه')) {
         hProf.days = JSON.parse(JSON.stringify(HOSSEIN_PROFILE.days));
+      }
+      // Ensure Thursday has cossack_squat and standing_plate_hip_abduction
+      const thurDay = hProf.days.find(d => d.id === 'd6' || d.title === 'پنجشنبه');
+      if (thurDay) {
+        thurDay.supersets.forEach(ss => {
+          ss.exercises.forEach(item => {
+            if (item.exId === 'cable_hip_abduction') {
+              item.exId = 'standing_plate_hip_abduction';
+              item.reps = '3 × 12–15 هر طرف';
+            }
+            if (item.exId === 'cable_hip_adduction') {
+              item.exId = 'cossack_squat';
+              item.reps = '3 × 8–12 هر طرف';
+            }
+          });
+          if (ss.title.includes('ابداکشن کابل')) {
+            ss.title = 'D1 + D2 · ددلیفت رومانیایی + ابداکشن ایستاده با صفحه';
+          }
+          if (ss.title.includes('اداکشن کابل')) {
+            ss.title = 'E1 + E2 · فلای بالا سینه دستگاه + اسکوات قزاقی';
+          }
+        });
       }
     } else {
       const defaultProf = JSON.parse(JSON.stringify(HOSSEIN_PROFILE));
@@ -52,7 +75,7 @@ function loadAppData() {
 }
 
 function saveProfiles() {
-  localStorage.setItem('chieftain_profiles_v3', JSON.stringify(allProfiles));
+  localStorage.setItem('chieftain_profiles_v4', JSON.stringify(allProfiles));
 }
 
 function saveCustomExercises() {
@@ -68,7 +91,7 @@ function findExerciseById(id) {
     id: id,
     fa: id,
     en: '',
-    muscles: 'نامشخص',
+    muscles: 'عمومی',
     videos: [],
     defaultReps: '3 × 8–12',
     defaultSets: 3
@@ -129,7 +152,13 @@ function renderDayNav() {
   
   const tabsHtml = prof.days.map((d, idx) => {
     const typeLabel = d.type === 'gym' ? 'باشگاه' : (d.type === 'home' ? 'خانه' : 'استراحت');
-    return `<a href="#${d.id}" class="nav-tab" data-day="${idx}">${d.title} <span class="tab-badge">${typeLabel}</span></a>`;
+    return `
+      <a href="#${d.id}" class="nav-tab" data-day="${idx}">
+        <span>${d.title}</span>
+        <span class="tab-badge">${typeLabel}</span>
+        <span id="nav-pill-${d.id}" class="tab-prog-pill" style="display:none;">۰٪</span>
+      </a>
+    `;
   }).join('');
 
   nav.innerHTML = tabsHtml + `<a href="#weekly-summary" class="nav-tab" data-day="summary">📊 جمع‌بندی</a>`;
@@ -162,6 +191,25 @@ function renderExerciseCard(item, dayId, isSuperset = false) {
     `<button class="set-btn" onclick="toggleSet(this)">${i+1}</button>`
   ).join('');
 
+  // Isometric Quick Button check
+  let isoBtnHtml = '';
+  const lowerFa = ex.fa.toLowerCase();
+  const lowerEn = (ex.en || '').toLowerCase();
+  const isIso = lowerFa.includes('ایزومتریک') || lowerFa.includes('پلانک') || lowerFa.includes('دیدباگ') || lowerFa.includes('وال سیت') || lowerEn.includes('iso') || lowerEn.includes('plank') || lowerEn.includes('wall sit') || reps.includes('ثانیه');
+
+  if (isIso) {
+    let defaultSeconds = 30;
+    if (reps.includes('20') || reps.includes('۲۰')) defaultSeconds = 20;
+    if (reps.includes('40') || reps.includes('۴۰') || reps.includes('45') || reps.includes('۴۵')) defaultSeconds = 45;
+    if (reps.includes('60') || reps.includes('۶۰')) defaultSeconds = 60;
+    
+    isoBtnHtml = `
+      <button class="quick-iso-btn" onclick="quickStartIsoTimer(${defaultSeconds}, '${ex.fa}')" title="شروع تایمر ایزومتریک ${defaultSeconds} ثانیه">
+        <span>⏱️</span> <span>تایمر ${defaultSeconds}ث</span>
+      </button>
+    `;
+  }
+
   return `
     <article class="exercise-card" data-ex-id="${dayId}_${ex.id}">
       <div class="exercise-header">
@@ -173,6 +221,7 @@ function renderExerciseCard(item, dayId, isSuperset = false) {
       </div>
       <div class="muscles-row">
         <span class="muscle-tag">عضلات هدف: ${ex.muscles || 'عمومی'}</span>
+        ${isoBtnHtml}
       </div>
       <div class="card-footer">
         <div class="video-links-group">
@@ -289,8 +338,8 @@ function renderWorkoutDays() {
             <tr><td><b>چهارسر</b></td><td><span class="set-highlight">9 ست</span></td><td>۲–۳ بار</td><td>هک اسکوات، پرس پا، جلوپا دستگاه</td></tr>
             <tr><td><b>همسترینگ</b></td><td><span class="set-highlight">12 ست</span></td><td>۳ بار</td><td>پشت‌پا دستگاه + ددلیفت رومانیایی (RDL)</td></tr>
             <tr><td><b>ساق پا</b></td><td><span class="set-highlight">9 ست</span></td><td>۳ بار</td><td>ساق روی هک اسکوات</td></tr>
-            <tr><td><b>داخل ران</b></td><td><span class="set-highlight">6 ست</span></td><td>۲ بار</td><td>اداکشن کابل (Cable Adduction)</td></tr>
-            <tr><td><b>خارج ران</b></td><td><span class="set-highlight">6 ست</span></td><td>۲ بار</td><td>ابداکشن کابل (Cable Abduction)</td></tr>
+            <tr><td><b>داخل ران</b></td><td><span class="set-highlight">6 ست</span></td><td>۲ بار</td><td>اسکوات قزاقی (Cossack Squat) + اداکشن</td></tr>
+            <tr><td><b>خارج ران</b></td><td><span class="set-highlight">6 ست</span></td><td>۲ بار</td><td>ابداکشن ایستاده با صفحه + ابداکشن کابل</td></tr>
             <tr><td><b>فیله / کمر</b></td><td><span class="set-highlight">9 ست</span></td><td>۳ بار</td><td>بک اکستنشن (Back Extension)</td></tr>
             <tr><td><b>شکم</b></td><td><span class="set-highlight">6 ست</span></td><td>۲ بار</td><td>کرانچ ایستاده کابل + کرانچ نیمکت</td></tr>
             <tr><td><b>مورب شکمی</b></td><td><span class="set-highlight">تمرین خانه</span></td><td>۳ بار</td><td>ساید پلانک ایزومتریک</td></tr>
@@ -432,13 +481,13 @@ function deleteActiveProfile() {
 
 function factoryResetActiveProfile() {
   const prof = getActiveProfile();
-  if (confirm(`آیا می‌خواهید تمام روزهای اصلی (شنبه تا جمعه با تمام ۵۱ حرکت) برای "${prof.name}" بازیابی و ریست شوند؟`)) {
+  if (confirm(`آیا می‌خواهید تمام روزهای اصلی (شنبه تا جمعه با تمام حرکات جدید) برای "${prof.name}" بازیابی شوند؟`)) {
     prof.days = JSON.parse(JSON.stringify(HOSSEIN_PROFILE.days));
     if (prof.isDefault) prof.pin = 'gym';
     saveProfiles();
     renderEditPlanDaysList();
     renderApp();
-    alert('برنامه ۷ روزه اصلی (شنبه تا جمعه) با موفقیت بازیابی شد! ⚡');
+    alert('برنامه ۷ روزه اصلی با موفقیت بازیابی شد! ⚡');
   }
 }
 
@@ -464,28 +513,42 @@ function exportActiveProfile() {
   downloadAnchor.remove();
 }
 
-// --- Detailed Routine & Exercise Editor ---
+// --- Rich Routine & Granular Exercise Editor ---
 function renderEditPlanDaysList() {
   const prof = getActiveProfile();
   const container = document.getElementById('editPlanDaysList');
+  const allEx = getAllExercises();
 
   container.innerHTML = prof.days.map((day, dIdx) => {
     // Supersets List HTML
     let supersetsHtml = '';
     if (day.supersets && day.supersets.length > 0) {
       supersetsHtml = day.supersets.map((ss, ssIdx) => `
-        <div style="background:#10192a; border:1px solid rgba(56,189,248,0.25); border-radius:10px; padding:10px; margin-bottom:8px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-            <span style="font-size:12px; font-weight:800; color:#38bdf8;">⚡ ${ss.title}</span>
-            <button class="btn-header-action" style="padding:2px 7px; font-size:11px; color:#f87171;" onclick="removeSuperset(${dIdx}, ${ssIdx})">حذف سوپرست</button>
+        <div class="editor-superset-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span style="font-size:12px; font-weight:800; color:#38bdf8;">⚡</span>
+              <input type="text" value="${ss.title}" class="form-input" style="font-weight:700; width:220px; padding:4px 8px; font-size:12px;" onchange="updateSupersetTitle(${dIdx}, ${ssIdx}, this.value)">
+            </div>
+            <div style="display:flex; gap:6px;">
+              <button class="btn-header-action" style="padding:3px 8px; font-size:11px; color:#38bdf8; border-color:#38bdf855;" title="تفکیک این سوپرست به ۲ حرکت تکی مجزا" onclick="splitSupersetToSingles(${dIdx}, ${ssIdx})">🔓 تفکیک به ۲ حرکت تکی</button>
+              <button class="btn-header-action" style="padding:3px 8px; font-size:11px; color:#f87171; border-color:#f8717155;" onclick="removeSuperset(${dIdx}, ${ssIdx})">🗑️ حذف سوپرست</button>
+            </div>
           </div>
+
           ${ss.exercises.map((item, exIdx) => {
             const ex = findExerciseById(item.exId);
+            const exOptions = allEx.map(e => `<option value="${e.id}" ${e.id === item.exId ? 'selected' : ''}>${e.fa} ${e.en ? `(${e.en})` : ''}</option>`).join('');
             return `
-              <div style="display:flex; justify-content:space-between; align-items:center; padding:4px 0; border-bottom:1px dashed rgba(255,255,255,0.05); font-size:12.5px;">
-                <span>${ex.fa}</span>
-                <div style="display:flex; gap:4px; align-items:center;">
-                  <input type="text" value="${item.reps || '3 × 8–12'}" class="form-input" style="width:90px; padding:3px 6px; font-size:11.5px; direction:ltr;" onchange="updateSsExReps(${dIdx}, ${ssIdx}, ${exIdx}, this.value)">
+              <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px dashed rgba(255,255,255,0.08); flex-wrap:wrap; gap:6px;">
+                <div style="display:flex; align-items:center; gap:6px; flex:1; min-width:200px;">
+                  <span style="font-size:11px; color:#94a3b8; font-weight:800;">${exIdx === 0 ? 'حرکت ۱:' : 'حرکت ۲:'}</span>
+                  <select class="form-select" style="font-size:12px; padding:4px 8px;" onchange="updateSsExerciseId(${dIdx}, ${ssIdx}, ${exIdx}, this.value)">
+                    ${exOptions}
+                  </select>
+                </div>
+                <div style="display:flex; gap:6px; align-items:center;">
+                  <input type="text" value="${item.reps || '3 × 8–12'}" class="form-input" style="width:95px; padding:4px 6px; font-size:11.5px; direction:ltr;" title="تغییر ست و تکرار" onchange="updateSsExReps(${dIdx}, ${ssIdx}, ${exIdx}, this.value)">
                 </div>
               </div>
             `;
@@ -499,31 +562,39 @@ function renderEditPlanDaysList() {
     if (day.singles && day.singles.length > 0) {
       singlesHtml = day.singles.map((item, sIdx) => {
         const ex = findExerciseById(item.exId);
+        const exOptions = allEx.map(e => `<option value="${e.id}" ${e.id === item.exId ? 'selected' : ''}>${e.fa} ${e.en ? `(${e.en})` : ''}</option>`).join('');
         return `
-          <div style="background:#10192a; border:1px solid var(--border-color); border-radius:8px; padding:8px 10px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
-            <div style="display:flex; align-items:center; gap:8px;">
-              <span style="font-size:13px; font-weight:700; color:#fff;">${ex.fa}</span>
-              ${ex.en ? `<span style="font-size:11px; color:var(--accent-cyan); direction:ltr;">(${ex.en})</span>` : ''}
-            </div>
-            <div style="display:flex; gap:6px; align-items:center;">
-              <input type="text" value="${item.reps || '3 × 8–12'}" class="form-input" style="width:95px; padding:3px 6px; font-size:11.5px; direction:ltr;" title="تغییر ست و تکرار" onchange="updateSingleExReps(${dIdx}, ${sIdx}, this.value)">
-              <button class="btn-header-action" style="padding:2px 6px; font-size:11px;" title="انتقال به بالا" onclick="moveSingleEx(${dIdx}, ${sIdx}, -1)">▲</button>
-              <button class="btn-header-action" style="padding:2px 6px; font-size:11px;" title="انتقال به پایین" onclick="moveSingleEx(${dIdx}, ${sIdx}, 1)">▼</button>
-              <button class="btn-header-action" style="padding:2px 6px; font-size:11px; color:#f87171;" title="حذف حرکت" onclick="removeSingleEx(${dIdx}, ${sIdx})">✕</button>
+          <div class="editor-ex-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+              <!-- Exercise Selector Dropdown -->
+              <div style="display:flex; align-items:center; gap:6px; flex:1; min-width:220px;">
+                <span style="font-size:11px; color:var(--text-muted);">#${sIdx + 1}</span>
+                <select class="form-select" style="font-size:12.5px; font-weight:700; padding:5px 8px;" onchange="updateSingleExId(${dIdx}, ${sIdx}, this.value)">
+                  ${exOptions}
+                </select>
+              </div>
+
+              <!-- Reps / Convert to Superset / Reorder / Delete -->
+              <div style="display:flex; gap:5px; align-items:center; flex-wrap:wrap;">
+                <input type="text" value="${item.reps || '3 × 8–12'}" class="form-input" style="width:90px; padding:4px 6px; font-size:11.5px; direction:ltr;" title="ست و تکرار" onchange="updateSingleExReps(${dIdx}, ${sIdx}, this.value)">
+                <button class="btn-header-action" style="padding:3px 7px; font-size:11px; color:#38bdf8;" title="تبدیل این حرکت به یک سوپرست دوتایی" onclick="openConvertToSupersetModal(${dIdx}, ${sIdx})">⚡ تبدیل به سوپرست</button>
+                <button class="btn-header-action" style="padding:3px 6px; font-size:11px;" title="حرکت به بالا" onclick="moveSingleEx(${dIdx}, ${sIdx}, -1)">▲</button>
+                <button class="btn-header-action" style="padding:3px 6px; font-size:11px;" title="حرکت به پایین" onclick="moveSingleEx(${dIdx}, ${sIdx}, 1)">▼</button>
+                <button class="btn-header-action" style="padding:3px 6px; font-size:11px; color:#f87171;" title="حذف حرکت" onclick="removeSingleEx(${dIdx}, ${sIdx})">✕</button>
+              </div>
             </div>
           </div>
         `;
       }).join('');
     }
 
-    // Week day dropdown options
     const dayOptionsHtml = WEEK_DAYS.map(w => 
       `<option value="${w}" ${day.title === w ? 'selected' : ''}>${w}</option>`
     ).join('');
 
     return `
       <div style="background:#152033; border:1px solid var(--border-color); border-radius:14px; padding:14px; margin-bottom:14px;">
-        <!-- Day Header with Dropdown Day Selector -->
+        <!-- Day Header -->
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px; border-bottom:1px solid var(--border-color); padding-bottom:8px;">
           <div style="display:flex; gap:6px; align-items:center;">
             <select class="form-select" style="font-weight:800; width:125px; display:inline-block; color:#38bdf8;" onchange="updateDayTitle(${dIdx}, this.value)">
@@ -536,7 +607,7 @@ function renderEditPlanDaysList() {
             </select>
           </div>
           <div style="display:flex; gap:6px;">
-            <button class="btn-header-action btn-action-primary" style="padding:5px 10px; font-size:12px;" onclick="openAddExToDayModal('${day.id}')">+ افزودن حرکت</button>
+            <button class="btn-header-action btn-action-primary" style="padding:5px 10px; font-size:12px;" onclick="openAddExToDayModal('${day.id}')">+ افزودن حرکت / سوپرست</button>
             <button class="btn-header-action" style="padding:5px 8px; color:#f87171;" title="حذف این روز" onclick="removeDay(${dIdx})">🗑️</button>
           </div>
         </div>
@@ -589,6 +660,13 @@ function updateDayTreadmill(dIdx, treadmill) {
   renderApp();
 }
 
+function updateSingleExId(dIdx, sIdx, newExId) {
+  const prof = getActiveProfile();
+  prof.days[dIdx].singles[sIdx].exId = newExId;
+  saveProfiles();
+  renderApp();
+}
+
 function updateSingleExReps(dIdx, sIdx, reps) {
   const prof = getActiveProfile();
   prof.days[dIdx].singles[sIdx].reps = reps;
@@ -620,11 +698,99 @@ function removeSingleEx(dIdx, sIdx) {
   }
 }
 
+// Convert Single Exercise to Superset
+function openConvertToSupersetModal(dIdx, sIdx) {
+  convertTargetDayIdx = dIdx;
+  convertTargetSingleIdx = sIdx;
+  const prof = getActiveProfile();
+  const targetSingle = prof.days[dIdx].singles[sIdx];
+  const ex1 = findExerciseById(targetSingle.exId);
+
+  document.getElementById('convertSingleName1').value = `${ex1.fa} (${targetSingle.reps || '3 × 8–12'})`;
+  
+  const allEx = getAllExercises();
+  document.getElementById('convertSingleSelect2').innerHTML = allEx.map(e => 
+    `<option value="${e.id}">${e.fa} ${e.en ? `(${e.en})` : ''} - ${e.muscles || ''}</option>`
+  ).join('');
+
+  document.getElementById('convertSingleReps2').value = '3 × 10–15';
+  document.getElementById('convertSingleTitle').value = `سوپرست · ${ex1.fa} + ...`;
+
+  document.getElementById('convertSingleModal').classList.add('open');
+}
+
+function closeConvertSingleModal() {
+  document.getElementById('convertSingleModal').classList.remove('open');
+}
+
+function confirmConvertSingleToSuperset() {
+  const prof = getActiveProfile();
+  const day = prof.days[convertTargetDayIdx];
+  const single = day.singles[convertTargetSingleIdx];
+  const ex1 = findExerciseById(single.exId);
+
+  const exId2 = document.getElementById('convertSingleSelect2').value;
+  const reps2 = document.getElementById('convertSingleReps2').value.trim() || '3 × 10–15';
+  const ex2 = findExerciseById(exId2);
+  const title = document.getElementById('convertSingleTitle').value.trim() || `سوپرست · ${ex1.fa} + ${ex2.fa}`;
+
+  if (!day.supersets) day.supersets = [];
+  day.supersets.push({
+    title: title,
+    exercises: [
+      { exId: single.exId, reps: single.reps || '3 × 8–12', sets: 3 },
+      { exId: exId2, reps: reps2, sets: 3 }
+    ]
+  });
+
+  day.singles.splice(convertTargetSingleIdx, 1);
+  saveProfiles();
+  closeConvertSingleModal();
+  renderEditPlanDaysList();
+  renderApp();
+}
+
+// Superset Handlers
+function updateSupersetTitle(dIdx, ssIdx, newTitle) {
+  const prof = getActiveProfile();
+  prof.days[dIdx].supersets[ssIdx].title = newTitle;
+  saveProfiles();
+  renderApp();
+}
+
+function updateSsExerciseId(dIdx, ssIdx, exIdx, newExId) {
+  const prof = getActiveProfile();
+  prof.days[dIdx].supersets[ssIdx].exercises[exIdx].exId = newExId;
+  saveProfiles();
+  renderApp();
+}
+
 function updateSsExReps(dIdx, ssIdx, exIdx, reps) {
   const prof = getActiveProfile();
   prof.days[dIdx].supersets[ssIdx].exercises[exIdx].reps = reps;
   saveProfiles();
   renderApp();
+}
+
+function splitSupersetToSingles(dIdx, ssIdx) {
+  const prof = getActiveProfile();
+  const day = prof.days[dIdx];
+  const ss = day.supersets[ssIdx];
+
+  if (confirm(`آیا می‌خواهید سوپرست "${ss.title}" را تفکیک کنید و به ۲ حرکت تکی تبدیل شود؟`)) {
+    if (!day.singles) day.singles = [];
+    ss.exercises.forEach(item => {
+      day.singles.push({
+        exId: item.exId,
+        reps: item.reps || '3 × 8–12',
+        sets: item.sets || 3
+      });
+    });
+    day.supersets.splice(ssIdx, 1);
+    saveProfiles();
+    renderEditPlanDaysList();
+    renderApp();
+  }
 }
 
 function removeSuperset(dIdx, ssIdx) {
@@ -976,22 +1142,54 @@ function updateDayProgress(daySec) {
   const textEl = document.getElementById('prog-text-' + dayId);
   if (fillEl) fillEl.style.width = pct + '%';
   if (textEl) textEl.innerText = pct + '٪';
+
+  // Update Nav Tab Pill & Sticky Progress
+  const navPill = document.getElementById('nav-pill-' + dayId);
+  if (navPill) {
+    navPill.innerText = pct + '٪';
+    navPill.style.display = pct > 0 ? 'inline-block' : 'none';
+  }
+
+  // Update Global Sticky Progress Bar if this is current day
+  const stickyFill = document.getElementById('globalStickyProgress');
+  if (stickyFill && daySec.classList.contains('today-highlight')) {
+    stickyFill.style.width = pct + '%';
+  }
 }
 
 function updateAllProgressBars() {
   document.querySelectorAll('.day-section').forEach(sec => updateDayProgress(sec));
 }
 
-// --- Rest Timer Engine ---
+// --- Universal Rest & Isometric Timer Engine ---
 let timerInterval = null;
 let timerRemaining = 90;
 let timerInitial = 90;
 let isTimerRunning = false;
+let currentTimerMode = 'rest'; // 'rest' or 'iso'
 
 const timerDisplay = document.getElementById('timerDisplay');
 const timerFab = document.getElementById('openTimerBtn');
 const fabLabel = document.getElementById('fabTimerLabel');
 const startBtn = document.getElementById('startTimerBtn');
+const modalTitle = document.getElementById('timerModalTitle');
+const modalDesc = document.getElementById('timerModalDesc');
+
+function switchTimerMode(mode) {
+  currentTimerMode = mode;
+  document.getElementById('modeRestBtn').classList.toggle('active', mode === 'rest');
+  document.getElementById('modeIsoBtn').classList.toggle('active', mode === 'iso');
+
+  if (mode === 'rest') {
+    modalTitle.innerText = '⏱️ تایمر استراحت بین ست‌ها';
+    modalDesc.innerText = 'برای حفظ ریتم تمرین زمان استراحت را مدیریت کن';
+    if (!isTimerRunning) setTimerDuration(90);
+  } else {
+    modalTitle.innerText = '🧘‍♂️ تایمر حرکات ایزومتریک و نگه‌داشتن';
+    modalDesc.innerText = 'زمان‌گیری دقیق برای پلانک، وال‌سیت، دیدباگ و حرکات ایزومتریک';
+    if (!isTimerRunning) setTimerDuration(30);
+  }
+}
 
 function formatTime(sec) {
   const m = Math.floor(sec / 60);
@@ -1009,7 +1207,7 @@ function updateTimerUI() {
       startBtn.className = 'timer-ctl-btn btn-pause';
     }
   } else {
-    if (fabLabel) fabLabel.innerText = timerRemaining === timerInitial ? 'تایمر استراحت' : formatTime(timerRemaining);
+    if (fabLabel) fabLabel.innerText = timerRemaining === timerInitial ? 'تایمر تمرین' : formatTime(timerRemaining);
     if (timerFab) timerFab.classList.remove('running');
     if (startBtn) {
       startBtn.innerText = 'ادامه ⚡';
@@ -1026,12 +1224,40 @@ function setTimerDuration(seconds) {
 
   document.querySelectorAll('.preset-btn').forEach(btn => {
     btn.classList.remove('active');
-    if (btn.innerText.includes(String(seconds)) || (seconds === 120 && btn.innerText.includes('۲'))) {
+    const text = btn.innerText;
+    if (
+      (seconds === 20 && text.includes('۲۰')) ||
+      (seconds === 30 && text.includes('۳۰')) ||
+      (seconds === 45 && text.includes('۴۵')) ||
+      (seconds === 60 && text.includes('۶۰')) ||
+      (seconds === 90 && text.includes('۹۰')) ||
+      (seconds === 120 && text.includes('۲')) ||
+      (seconds === 180 && text.includes('۳'))
+    ) {
       btn.classList.add('active');
     }
   });
 
   updateTimerUI();
+}
+
+function applyCustomTimer() {
+  const m = parseInt(document.getElementById('customMin').value) || 0;
+  const s = parseInt(document.getElementById('customSec').value) || 0;
+  const total = (m * 60) + s;
+  if (total <= 0) {
+    alert('لطفاً زمان معتبری وارد کنید.');
+    return;
+  }
+  setTimerDuration(total);
+}
+
+function quickStartIsoTimer(seconds, exName) {
+  switchTimerMode('iso');
+  setTimerDuration(seconds);
+  modalTitle.innerText = `🧘‍♂️ تایمر ایزومتریک: ${exName}`;
+  openTimerModal();
+  toggleTimer();
 }
 
 function toggleTimer() {
@@ -1067,6 +1293,7 @@ function resetTimer() {
 }
 
 function quickTimer(seconds) {
+  switchTimerMode('rest');
   setTimerDuration(seconds);
   openTimerModal();
   toggleTimer();
@@ -1074,7 +1301,7 @@ function quickTimer(seconds) {
 
 function triggerTimerEndAlarm() {
   if ('vibrate' in navigator) {
-    navigator.vibrate([300, 150, 300, 150, 500]);
+    navigator.vibrate([400, 200, 400, 200, 600]);
   }
   
   try {
@@ -1085,12 +1312,12 @@ function triggerTimerEndAlarm() {
       const gain = ctx.createGain();
       osc.type = 'sine';
       osc.frequency.setValueAtTime(880, ctx.currentTime);
-      gain.gain.setValueAtTime(0.3, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+      gain.gain.setValueAtTime(0.35, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.9);
       osc.connect(gain);
       gain.connect(ctx.destination);
       osc.start();
-      osc.stop(ctx.currentTime + 0.8);
+      osc.stop(ctx.currentTime + 0.9);
     }
   } catch(e) {}
 
@@ -1105,7 +1332,7 @@ function closeTimerModal() {
   document.getElementById('timerModal').classList.remove('open');
 }
 
-timerFab.addEventListener('click', openTimerModal);
+timerFab?.addEventListener('click', openTimerModal);
 
 // --- PWA Installation & Date Logic ---
 if ('serviceWorker' in navigator) {
@@ -1145,8 +1372,23 @@ window.addEventListener('scroll', () => {
   });
 
   document.querySelectorAll('.nav-tab').forEach(tab => {
-    tab.classList.toggle('active', tab.getAttribute('href') === '#' + current);
+    const isCurrent = tab.getAttribute('href') === '#' + current;
+    tab.classList.toggle('active', isCurrent);
   });
+
+  // Sync Global Sticky Progress Bar with current section
+  if (current) {
+    const activeSec = document.getElementById(current);
+    if (activeSec) {
+      const btns = activeSec.querySelectorAll('.set-btn');
+      if (btns.length) {
+        const doneBtns = activeSec.querySelectorAll('.set-btn.done');
+        const pct = Math.round((doneBtns.length / btns.length) * 100);
+        const stickyFill = document.getElementById('globalStickyProgress');
+        if (stickyFill) stickyFill.style.width = pct + '%';
+      }
+    }
+  }
 });
 
 document.getElementById('searchInput')?.addEventListener('input', (e) => {

@@ -1,20 +1,44 @@
-<!-- Rest Timer Modal -->
+<!-- Universal Rest & Isometric Timer Modal -->
 <div id="timerModal" class="modal-overlay">
-  <div class="modal-dialog" style="max-width: 360px; text-align: center;">
+  <div class="modal-dialog" style="max-width: 400px; text-align: center;">
     <button class="modal-close-btn" onclick="closeTimerModal()">✕</button>
-    <h3 style="font-size: 16px; font-weight: 800; color: #fff; margin-bottom: 4px; justify-content: center;">⏱️ تایمر استراحت بین ست‌ها</h3>
-    <p style="font-size: 12px; color: var(--text-muted);">برای حفظ ریتم تمرین زمان استراحت را مدیریت کن</p>
+    
+    <!-- Mode Switcher -->
+    <div class="timer-mode-tabs">
+      <button id="modeRestBtn" class="timer-mode-btn active" onclick="switchTimerMode('rest')">⏱️ استراحت بین ست‌ها</button>
+      <button id="modeIsoBtn" class="timer-mode-btn" onclick="switchTimerMode('iso')">🧘‍♂️ حرکات ایزومتریک</button>
+    </div>
+
+    <h3 id="timerModalTitle" style="font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 2px; justify-content: center;">⏱️ تایمر استراحت بین ست‌ها</h3>
+    <p id="timerModalDesc" style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 8px;">برای حفظ ریتم تمرین زمان استراحت را مدیریت کن</p>
 
     <div class="timer-display" id="timerDisplay">01:30</div>
 
-    <div class="timer-presets">
+    <!-- Presets (20s, 30s, 45s, 60s, 2m, 3m) -->
+    <div class="timer-presets" id="timerPresetsContainer">
+      <button class="preset-btn" onclick="setTimerDuration(20)">۲۰ ثانیه</button>
+      <button class="preset-btn" onclick="setTimerDuration(30)">۳۰ ثانیه</button>
       <button class="preset-btn" onclick="setTimerDuration(45)">۴۵ ثانیه</button>
       <button class="preset-btn" onclick="setTimerDuration(60)">۶۰ ثانیه</button>
       <button class="preset-btn active" onclick="setTimerDuration(90)">۹۰ ثانیه</button>
       <button class="preset-btn" onclick="setTimerDuration(120)">۲ دقیقه</button>
+      <button class="preset-btn" onclick="setTimerDuration(180)">۳ دقیقه</button>
     </div>
 
-    <div class="timer-controls">
+    <!-- Custom Time Setter -->
+    <div class="custom-time-row">
+      <span style="font-size: 12px; color: #cbd5e1; font-weight: 700;">⏳ زمان دلخواه:</span>
+      <div style="display:flex; align-items:center; gap:4px; direction:ltr;">
+        <input type="number" id="customMin" value="0" min="0" max="60" class="custom-time-input" placeholder="دقیقه" title="دقیقه">
+        <span style="color:#fff; font-weight:800;">:</span>
+        <input type="number" id="customSec" value="45" min="0" max="59" class="custom-time-input" placeholder="ثانیه" title="ثانیه">
+      </div>
+      <button class="preset-btn" style="background:rgba(56,189,248,0.2); border-color:#38bdf8; color:#fff;" onclick="applyCustomTimer()">
+        تنظیم ⚡
+      </button>
+    </div>
+
+    <div class="timer-controls" style="margin-top: 14px;">
       <button id="startTimerBtn" class="timer-ctl-btn btn-start" onclick="toggleTimer()">شروع ⚡</button>
       <button class="timer-ctl-btn btn-reset" onclick="resetTimer()">ریست ↺</button>
     </div>
@@ -52,7 +76,7 @@
     </p>
 
     <div style="display:flex; gap:8px; margin-bottom:12px;">
-      <input type="text" id="librarySearchInput" class="form-input" placeholder="جستجو در بانک حرکات (مثلاً: لت، پرس، سینه)..." oninput="filterLibrary(this.value)">
+      <input type="text" id="librarySearchInput" class="form-input" placeholder="جستجو در بانک حرکات (مثلاً: اسکوات، پرس، لت)..." oninput="filterLibrary(this.value)">
       <button class="btn-header-action btn-action-primary" onclick="openCustomExerciseModal()">+ حرکت دلخواه</button>
     </div>
 
@@ -100,7 +124,7 @@
     <div style="background:#152033; border:1px solid var(--border-color); border-radius:12px; padding:12px; margin-bottom:14px;">
       <label class="form-label">🔍 جستجوی نام حرکت برای دریافت فوری ویدیو و آموزش:</label>
       <div style="margin-bottom:8px;">
-        <input type="text" id="mwSearchQuery" class="form-input" placeholder="نام فارسی یا انگلیسی حرکت (مثلاً: پرس بالا سینه، Bulgarian Split Squat)..." style="direction:rtl">
+        <input type="text" id="mwSearchQuery" class="form-input" placeholder="نام فارسی یا انگلیسی حرکت (مثلاً: اسکوات قزاقی، Cossack Squat)..." style="direction:rtl">
       </div>
       <div style="display:flex; gap:6px;">
         <button class="btn-header-action btn-action-primary" onclick="searchYouTubeDirect()" style="flex:1; justify-content:center;">
@@ -213,14 +237,14 @@
 
 <!-- Detailed Routine & Exercise Builder Modal -->
 <div id="editPlanModal" class="modal-overlay">
-  <div class="modal-dialog" style="max-width: 680px;">
+  <div class="modal-dialog" style="max-width: 720px;">
     <button class="modal-close-btn" onclick="closeEditPlanModal()">✕</button>
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
-      <h3 style="margin: 0;">✏️ ویرایش دقیق روزها و حرکات برنامه</h3>
+      <h3 style="margin: 0;">✏️ ویرایش کامل و همه‌جانبه برنامه</h3>
       <span id="editPlanProfileBadge" style="font-size: 12px; background: rgba(56, 189, 248, 0.15); color: #38bdf8; padding: 3px 10px; border-radius: 20px; border: 1px solid rgba(56,189,248,0.3);"></span>
     </div>
     <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
-      می‌توانید هر حرکت، ست/تکرار، سوپرست یا روز تمرین را به طور دقیق ویرایش، جابجا یا حذف کنید.
+      امکان تغییر نوع حرکت، تفکیک یا ساخت سوپرست، ویرایش ست/تکرار، جابجایی و حذف در اختیار شماست:
     </p>
 
     <!-- Change PIN Box -->
@@ -253,7 +277,7 @@
   </div>
 </div>
 
-<!-- Add Exercise to Day Modal -->
+<!-- Add Exercise or Superset to Day Modal -->
 <div id="addExToDayModal" class="modal-overlay">
   <div class="modal-dialog" style="max-width: 480px;">
     <button class="modal-close-btn" onclick="closeAddExToDayModal()">✕</button>
@@ -296,6 +320,41 @@
 
     <button class="btn-header-action btn-action-primary" style="width:100%; justify-content:center; padding:11px; margin-top:10px;" onclick="confirmAddExerciseToDay()">
       ➕ اضافه کردن به برنامه
+    </button>
+  </div>
+</div>
+
+<!-- Convert Single Exercise to Superset Modal -->
+<div id="convertSingleModal" class="modal-overlay">
+  <div class="modal-dialog" style="max-width: 460px;">
+    <button class="modal-close-btn" onclick="closeConvertSingleModal()">✕</button>
+    <h3>⚡ تبدیل حرکت تکی به سوپرست</h3>
+    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
+      حرکت اول در سوپرست قرار می‌گیرد، لطفاً حرکت دوم را انتخاب نمایید:
+    </p>
+
+    <div class="form-group">
+      <label class="form-label">حرکت اول (موجود)</label>
+      <input type="text" id="convertSingleName1" class="form-input" readonly style="opacity:0.8; font-weight:700;">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">انتخاب حرکت دوم برای جفت شدن *</label>
+      <select id="convertSingleSelect2" class="form-select"></select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">ست و تکرار حرکت دوم</label>
+      <input type="text" id="convertSingleReps2" class="form-input" value="3 × 10–15" style="direction:ltr">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">عنوان سوپرست</label>
+      <input type="text" id="convertSingleTitle" class="form-input" placeholder="عنوان دلخواه سوپرست...">
+    </div>
+
+    <button class="btn-header-action btn-action-primary" style="width:100%; justify-content:center; padding:11px;" onclick="confirmConvertSingleToSuperset()">
+      ⚡ ساخت سوپرست دوتایی
     </button>
   </div>
 </div>

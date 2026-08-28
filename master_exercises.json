@@ -594,7 +594,7 @@
     "defaultSets": 3,
     "videos": [
       {
-        "title": "آموزش کامل",
+        "title": "آموزش ۱",
         "url": "https://www.youtube.com/watch?v=h0S0m95tTxY"
       }
     ]
@@ -821,5 +821,54 @@
     "defaultReps": "3 × 8–12",
     "defaultSets": 3,
     "videos": []
+  },
+  {
+    "id": "cossack_squat",
+    "fa": "اسکوات قزاقی",
+    "en": "Cossack Squat",
+    "muscles": "داخل ران، چهارسر، باسن، انعطاف لگن",
+    "category": "gym",
+    "defaultReps": "3 × 8–12 هر طرف",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/PtOrJrwpVYQ"
+      },
+      {
+        "title": "آموزش ۲",
+        "url": "https://www.youtube.com/shorts/ZYAb9Qn8Q-o"
+      }
+    ]
+  },
+  {
+    "id": "standing_plate_hip_abduction",
+    "fa": "ابداکشن ایستاده با صفحه",
+    "en": "standing plate hip abduction",
+    "muscles": "خارج ران، سرینی میانی (Glute Medius)",
+    "category": "gym",
+    "defaultReps": "3 × 12–15 هر طرف",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/KzwU_bKkFBE"
+      }
+    ]
+  },
+  {
+    "id": "lying_plate_hip_abduction",
+    "fa": "ابداکشن خوابیده با صفحه",
+    "en": "lying plate hip abduction",
+    "muscles": "خارج ران، سرینی میانی",
+    "category": "gym",
+    "defaultReps": "3 × 12–15 هر طرف",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/XkDcRxS9slI"
+      }
+    ]
   }
 ]
