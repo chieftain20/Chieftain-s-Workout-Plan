@@ -50,8 +50,8 @@
   <div class="modal-dialog" style="max-width: 380px; text-align: center;">
     <button class="modal-close-btn" onclick="closePinModal()">✕</button>
     <div style="font-size: 32px; margin-bottom: 6px;">🔒</div>
-    <h3 style="justify-content: center; margin-bottom: 4px;">ورود به بخش ویرایش برنامه</h3>
-    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
+    <h3 id="pinModalTitle" style="justify-content: center; margin-bottom: 4px;">ورود به بخش اختصاصی برنامه</h3>
+    <p id="pinModalDesc" style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
       این برنامه محافظت‌شده است. لطفاً رمز عبور را وارد کنید:
     </p>
 
@@ -225,7 +225,7 @@
     </div>
 
     <div class="form-group">
-      <label class="form-label">رمز عبور برای قفل ویرایش برنامه (اختیاری)</label>
+      <label class="form-label">رمز عبور برای قفل برنامه و ثبت ست‌ها (اختیاری)</label>
       <input type="password" id="newProfilePin" class="form-input" placeholder="مثلاً: 1234 یا رمز دلخواه">
     </div>
 
@@ -241,15 +241,18 @@
     <button class="modal-close-btn" onclick="closeEditPlanModal()">✕</button>
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
       <h3 style="margin: 0;">✏️ ویرایش کامل و همه‌جانبه برنامه</h3>
-      <span id="editPlanProfileBadge" style="font-size: 12px; background: rgba(56, 189, 248, 0.15); color: #38bdf8; padding: 3px 10px; border-radius: 20px; border: 1px solid rgba(56,189,248,0.3);"></span>
+      <div style="display:flex; gap:6px; align-items:center;">
+        <span id="editPlanProfileBadge" style="font-size: 12px; background: rgba(56, 189, 248, 0.15); color: #38bdf8; padding: 3px 10px; border-radius: 20px; border: 1px solid rgba(56,189,248,0.3);"></span>
+        <button class="btn-header-action btn-action-success" onclick="applyAndSavePlanEdits()" style="padding:4px 10px; font-size:12px;">💾 اعمال تغییرات</button>
+      </div>
     </div>
     <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
-      امکان تغییر نوع حرکت، تفکیک یا ساخت سوپرست، ویرایش ست/تکرار، جابجایی و حذف در اختیار شماست:
+      امکان تغییر حرکت، تفکیک/ساخت سوپرست، ویرایش تعداد ست و تکرار در اختیار شماست:
     </p>
 
     <!-- Change PIN Box -->
     <div style="background:#152033; border:1px solid var(--border-color); border-radius:12px; padding:10px 14px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-      <div style="font-size:12px; color:#cbd5e1;">🔒 رمز عبور ویرایش این برنامه:</div>
+      <div style="font-size:12px; color:#cbd5e1;">🔒 رمز عبور ویرایش و ثبت برنامه:</div>
       <div style="display:flex; gap:6px;">
         <input type="text" id="editProfilePinInput" class="form-input" style="width:110px; padding:6px 10px; font-size:12px;" placeholder="رمز جدید...">
         <button class="btn-header-action" onclick="updateProfilePin()" style="padding:6px 10px; font-size:11.5px;">ذخیره رمز</button>
@@ -261,8 +264,11 @@
 
     <!-- Actions Footer -->
     <div style="display:flex; gap:8px; margin-top:16px; flex-wrap:wrap;">
+      <button class="btn-header-action btn-action-success" onclick="applyAndSavePlanEdits()" style="flex:2; justify-content:center; font-weight:800; padding:11px;">
+        💾 اعمال و ذخیره نهایی ویرایش‌ها
+      </button>
       <button class="btn-header-action btn-action-primary" onclick="addNewDayToActiveProfile()" style="flex:1; justify-content:center;">
-        + افزودن روز تمرینی جدید
+        + افزودن روز جدید
       </button>
       <button class="btn-header-action" onclick="exportActiveProfile()" style="padding:10px 14px;" title="خروجی گرفتن فایل JSON برنامه">
         📥 خروجی (JSON)
@@ -296,9 +302,21 @@
       <select id="addExSelect1" class="form-select"></select>
     </div>
 
-    <div class="form-group">
-      <label class="form-label">ست و تکرار حرکت اول</label>
-      <input type="text" id="addExReps1" class="form-input" value="3 × 8–12" style="direction:ltr">
+    <div style="display:flex; gap:8px;">
+      <div class="form-group" style="flex:2;">
+        <label class="form-label">ست و تکرار حرکت اول</label>
+        <input type="text" id="addExReps1" class="form-input" value="3 × 8–12" style="direction:ltr">
+      </div>
+      <div class="form-group" style="flex:1;">
+        <label class="form-label">تعداد ست</label>
+        <select id="addExSets1" class="form-select">
+          <option value="1">۱ ست</option>
+          <option value="2">۲ ست</option>
+          <option value="3" selected>۳ ست</option>
+          <option value="4">۴ ست</option>
+          <option value="5">۵ ست</option>
+        </select>
+      </div>
     </div>
 
     <div id="supersetSecondExGroup" style="display:none; border-top:1px dashed var(--border-color); padding-top:12px; margin-top:12px;">
@@ -312,9 +330,21 @@
         <select id="addExSelect2" class="form-select"></select>
       </div>
 
-      <div class="form-group">
-        <label class="form-label">ست و تکرار حرکت دوم</label>
-        <input type="text" id="addExReps2" class="form-input" value="3 × 12–20" style="direction:ltr">
+      <div style="display:flex; gap:8px;">
+        <div class="form-group" style="flex:2;">
+          <label class="form-label">ست و تکرار حرکت دوم</label>
+          <input type="text" id="addExReps2" class="form-input" value="3 × 12–20" style="direction:ltr">
+        </div>
+        <div class="form-group" style="flex:1;">
+          <label class="form-label">تعداد ست</label>
+          <select id="addExSets2" class="form-select">
+            <option value="1">۱ ست</option>
+            <option value="2">۲ ست</option>
+            <option value="3" selected>۳ ست</option>
+            <option value="4">۴ ست</option>
+            <option value="5">۵ ست</option>
+          </select>
+        </div>
       </div>
     </div>
 
@@ -343,9 +373,20 @@
       <select id="convertSingleSelect2" class="form-select"></select>
     </div>
 
-    <div class="form-group">
-      <label class="form-label">ست و تکرار حرکت دوم</label>
-      <input type="text" id="convertSingleReps2" class="form-input" value="3 × 10–15" style="direction:ltr">
+    <div style="display:flex; gap:8px;">
+      <div class="form-group" style="flex:2;">
+        <label class="form-label">ست و تکرار حرکت دوم</label>
+        <input type="text" id="convertSingleReps2" class="form-input" value="3 × 10–15" style="direction:ltr">
+      </div>
+      <div class="form-group" style="flex:1;">
+        <label class="form-label">تعداد ست</label>
+        <select id="convertSingleSets2" class="form-select">
+          <option value="1">۱ ست</option>
+          <option value="2">۲ ست</option>
+          <option value="3" selected>۳ ست</option>
+          <option value="4">۴ ست</option>
+        </select>
+      </div>
     </div>
 
     <div class="form-group">
@@ -395,4 +436,10 @@
       </button>
     </div>
   </div>
+</div>
+
+<!-- Floating Toast Message Container -->
+<div id="toastMsg" class="toast-msg">
+  <span>✅</span>
+  <span id="toastText">تغییرات با موفقیت ذخیره و اعمال شد!</span>
 </div>

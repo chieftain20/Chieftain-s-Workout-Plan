@@ -5,6 +5,7 @@ let activeProfileId = 'hossein_chieftain';
 let activeDayForAdding = null;
 let convertTargetDayIdx = null;
 let convertTargetSingleIdx = null;
+let pendingActionAfterPin = null;
 
 const WEEK_DAYS = ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'روز تمرینی ۱', 'روز تمرینی ۲', 'روز تمرینی ۳', 'روز تمرینی ۴'];
 
@@ -15,35 +16,41 @@ function loadAppData() {
   } catch(e) { customExercises = []; }
 
   try {
-    const rawProfiles = localStorage.getItem('chieftain_profiles_v4');
+    const rawProfiles = localStorage.getItem('chieftain_profiles_v5');
     if (rawProfiles) {
       allProfiles = JSON.parse(rawProfiles);
     } else {
       const defaultProf = JSON.parse(JSON.stringify(HOSSEIN_PROFILE));
       defaultProf.pin = 'gym';
       allProfiles = [defaultProf];
-      localStorage.setItem('chieftain_profiles_v4', JSON.stringify(allProfiles));
+      localStorage.setItem('chieftain_profiles_v5', JSON.stringify(allProfiles));
     }
 
-    // Auto-heal check: ensure Hossein profile has updated Thursday and 7 days
+    // Auto-heal check: ensure Hossein profile has updated Thursday, 3-set RDL, and 7 days
     const hProf = allProfiles.find(p => p.id === 'hossein_chieftain');
     if (hProf) {
       if (!hProf.pin) hProf.pin = 'gym';
       if (!hProf.days || hProf.days.length < 7 || !hProf.days.some(d => d.id === 'd1' || d.title === 'شنبه')) {
         hProf.days = JSON.parse(JSON.stringify(HOSSEIN_PROFILE.days));
       }
-      // Ensure Thursday has cossack_squat and standing_plate_hip_abduction
+      // Ensure Thursday has cossack_squat, standing_plate_hip_abduction, and 3-set RDL
       const thurDay = hProf.days.find(d => d.id === 'd6' || d.title === 'پنجشنبه');
       if (thurDay) {
         thurDay.supersets.forEach(ss => {
           ss.exercises.forEach(item => {
+            if (item.exId === 'rdl') {
+              item.sets = 3;
+              item.reps = '3 × 8–12';
+            }
             if (item.exId === 'cable_hip_abduction') {
               item.exId = 'standing_plate_hip_abduction';
               item.reps = '3 × 12–15 هر طرف';
+              item.sets = 3;
             }
             if (item.exId === 'cable_hip_adduction') {
               item.exId = 'cossack_squat';
               item.reps = '3 × 8–12 هر طرف';
+              item.sets = 3;
             }
           });
           if (ss.title.includes('ابداکشن کابل')) {
@@ -75,7 +82,7 @@ function loadAppData() {
 }
 
 function saveProfiles() {
-  localStorage.setItem('chieftain_profiles_v4', JSON.stringify(allProfiles));
+  localStorage.setItem('chieftain_profiles_v5', JSON.stringify(allProfiles));
 }
 
 function saveCustomExercises() {
@@ -100,6 +107,27 @@ function findExerciseById(id) {
 
 function getActiveProfile() {
   return allProfiles.find(p => p.id === activeProfileId) || HOSSEIN_PROFILE;
+}
+
+function parseSetsFromReps(repsStr, fallbackSets) {
+  if (fallbackSets && fallbackSets > 0) return fallbackSets;
+  if (!repsStr) return 3;
+  const match = repsStr.match(/^(\d+)/);
+  if (match) {
+    const num = parseInt(match[1]);
+    if (num > 0 && num <= 10) return num;
+  }
+  return 3;
+}
+
+// Toast Notification Engine
+function showToast(message) {
+  const toast = document.getElementById('toastMsg');
+  const toastText = document.getElementById('toastText');
+  if (!toast || !toastText) return;
+  toastText.innerText = message;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
 }
 
 // --- UI Rendering Engine ---
@@ -133,16 +161,36 @@ function renderHeader() {
     deleteBtn.style.display = prof.isDefault ? 'none' : 'inline-flex';
   }
 
-  const hour = new Date().getHours();
+  updateGreetingText();
+}
+
+function updateGreetingText() {
+  const prof = getActiveProfile();
   const greetingEl = document.getElementById('greetingText');
-  if (greetingEl) {
-    if (hour >= 5 && hour < 12) {
-      greetingEl.innerText = `صبح بخیر ${prof.name}! وقت انرژی و ساختن عضلاته ⚡`;
-    } else if (hour >= 12 && hour < 18) {
-      greetingEl.innerText = `عصر بخیر ${prof.name}! آماده یک جلسه تمرینی پرقدرت هستی؟ 💪`;
-    } else {
-      greetingEl.innerText = `شب بخیر ${prof.name}! ریکاوری و ثبات کلید موفقیته 🔥`;
+  if (!greetingEl) return;
+
+  const todaySec = document.getElementById(todaySectionId);
+  let isToday100 = false;
+  if (todaySec) {
+    const btns = todaySec.querySelectorAll('.set-btn');
+    const doneBtns = todaySec.querySelectorAll('.set-btn.done');
+    if (btns.length > 0 && btns.length === doneBtns.length) {
+      isToday100 = true;
     }
+  }
+
+  if (isToday100) {
+    greetingEl.innerText = `🎉 دمت گرم ${prof.name}! تمرین امروز رو ۱۰۰٪ با موفقیت ترکوندی و تموم کردی! 🔥 عضلات در حال رشد و ریکاوری‌ان 💪`;
+    return;
+  }
+
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 12) {
+    greetingEl.innerText = `صبح بخیر ${prof.name}! وقت انرژی و ساختن عضلاته ⚡`;
+  } else if (hour >= 12 && hour < 18) {
+    greetingEl.innerText = `عصر بخیر ${prof.name}! آماده یک جلسه تمرینی پرقدرت هستی؟ 💪`;
+  } else {
+    greetingEl.innerText = `شب بخیر ${prof.name}! ریکاوری و ثبات کلید موفقیته 🔥`;
   }
 }
 
@@ -185,10 +233,10 @@ function renderVideoButtons(videos) {
 function renderExerciseCard(item, dayId, isSuperset = false) {
   const ex = findExerciseById(item.exId);
   const reps = item.reps || ex.defaultReps || '3 × 8–12';
-  const setsCount = item.sets || ex.defaultSets || 3;
+  const setsCount = parseSetsFromReps(reps, item.sets);
 
   const setBtns = Array.from({length: setsCount}, (_, i) => 
-    `<button class="set-btn" onclick="toggleSet(this)">${i+1}</button>`
+    `<button class="set-btn" onclick="handleSetClick(this)">${i+1}</button>`
   ).join('');
 
   // Isometric Quick Button check
@@ -295,6 +343,11 @@ function renderWorkoutDays() {
           </div>
         </div>
 
+        <div id="complete-banner-${day.id}" class="day-complete-banner" style="display:none;">
+          <span>🏆 جلسه تمرینی ${day.title} ۱۰۰٪ تکمیل شد · خسته نباشی قهرمان! ✨</span>
+          <span>💪 ریکاوری عالی</span>
+        </div>
+
         ${day.note ? `
           <div class="session-note">
             <span>📌</span>
@@ -360,21 +413,44 @@ function renderWorkoutDays() {
   container.innerHTML = daysHtml + summaryCardHtml;
 }
 
-// --- PIN & Access Control ---
-function requestEditPlanAccess() {
+// --- PIN & Access Control (for editing AND set recording) ---
+function isProfileUnlocked() {
   const prof = getActiveProfile();
-  if (prof.pin) {
+  if (!prof.pin) return true;
+  return sessionStorage.getItem('chieftain_unlocked_' + activeProfileId) === 'true';
+}
+
+function requestEditPlanAccess() {
+  if (isProfileUnlocked()) {
+    openEditPlanModalDirect();
+  } else {
+    pendingActionAfterPin = 'edit_plan';
+    document.getElementById('pinModalTitle').innerText = 'ورود به بخش ویرایش برنامه';
+    document.getElementById('pinModalDesc').innerText = 'این برنامه محافظت‌شده است. لطفاً رمز عبور را وارد نمایید:';
     document.getElementById('profilePinInput').value = '';
     document.getElementById('pinErrorMsg').style.display = 'none';
     document.getElementById('pinModal').classList.add('open');
     setTimeout(() => document.getElementById('profilePinInput').focus(), 200);
+  }
+}
+
+function handleSetClick(btn) {
+  if (isProfileUnlocked()) {
+    toggleSet(btn);
   } else {
-    openEditPlanModalDirect();
+    pendingActionAfterPin = () => toggleSet(btn);
+    document.getElementById('pinModalTitle').innerText = 'ثبت ست‌های تمرینی';
+    document.getElementById('pinModalDesc').innerText = 'برای ثبت ست‌های این برنامه شخصی، لطفاً رمز عبور را وارد کنید:';
+    document.getElementById('profilePinInput').value = '';
+    document.getElementById('pinErrorMsg').style.display = 'none';
+    document.getElementById('pinModal').classList.add('open');
+    setTimeout(() => document.getElementById('profilePinInput').focus(), 200);
   }
 }
 
 function closePinModal() {
   document.getElementById('pinModal').classList.remove('open');
+  pendingActionAfterPin = null;
 }
 
 function confirmProfilePin() {
@@ -382,8 +458,15 @@ function confirmProfilePin() {
   const enteredPin = document.getElementById('profilePinInput').value.trim();
 
   if (enteredPin === prof.pin) {
+    sessionStorage.setItem('chieftain_unlocked_' + activeProfileId, 'true');
     closePinModal();
-    openEditPlanModalDirect();
+    if (pendingActionAfterPin === 'edit_plan') {
+      openEditPlanModalDirect();
+    } else if (typeof pendingActionAfterPin === 'function') {
+      pendingActionAfterPin();
+    }
+    pendingActionAfterPin = null;
+    showToast('🔓 قفل باز شد. دسترسی شما تایید گردید.');
   } else {
     document.getElementById('pinErrorMsg').style.display = 'block';
   }
@@ -401,12 +484,19 @@ function closeEditPlanModal() {
   document.getElementById('editPlanModal').classList.remove('open');
 }
 
+function applyAndSavePlanEdits() {
+  saveProfiles();
+  closeEditPlanModal();
+  renderApp();
+  showToast('✅ تغییرات برنامه با موفقیت ذخیره و اعمال شد!');
+}
+
 function updateProfilePin() {
   const prof = getActiveProfile();
   const newPin = document.getElementById('editProfilePinInput').value.trim();
   prof.pin = newPin;
   saveProfiles();
-  alert(newPin ? `رمز عبور برنامه به "${newPin}" تغییر یافت.` : 'رمز عبور این برنامه حذف شد.');
+  showToast(newPin ? `🔒 رمز عبور برنامه به "${newPin}" تغییر یافت.` : 'رمز عبور این برنامه حذف شد.');
 }
 
 // --- Profile Switching & Creation ---
@@ -460,6 +550,7 @@ function saveNewProfile() {
   localStorage.setItem('chieftain_active_profile_id', newId);
   closeNewProfileModal();
   renderApp();
+  showToast(`✨ برنامه شخصی "${name}" با موفقیت ایجاد شد.`);
 }
 
 function deleteActiveProfile() {
@@ -476,6 +567,7 @@ function deleteActiveProfile() {
     localStorage.setItem('chieftain_active_profile_id', 'hossein_chieftain');
     closeEditPlanModal();
     renderApp();
+    showToast('برنامه با موفقیت حذف شد.');
   }
 }
 
@@ -487,18 +579,23 @@ function factoryResetActiveProfile() {
     saveProfiles();
     renderEditPlanDaysList();
     renderApp();
-    alert('برنامه ۷ روزه اصلی با موفقیت بازیابی شد! ⚡');
+    showToast('برنامه ۷ روزه اصلی با موفقیت بازنشانی شد! ⚡');
   }
 }
 
 function resetCurrentSets() {
   const prof = getActiveProfile();
+  if (!isProfileUnlocked()) {
+    handleSetClick({ click: () => resetCurrentSets() });
+    return;
+  }
+
   if (confirm(`آیا می‌خواهید تمام تیک‌های ست‌های ثبت‌شده برای "${prof.name}" ریست شوند تا جلسه تمرینی جدید را شروع کنید؟`)) {
     localStorage.removeItem('chieftain_sets_' + activeProfileId);
     document.querySelectorAll('.set-btn').forEach(btn => btn.classList.remove('done'));
     document.querySelectorAll('.exercise-card').forEach(card => card.classList.remove('completed'));
     updateAllProgressBars();
-    alert('تمام ست‌ها ریست شدند. آماده تمرین جدید! 💪');
+    showToast('تمام ست‌ها ریست شدند. آماده تمرین جدید! 💪');
   }
 }
 
@@ -539,6 +636,7 @@ function renderEditPlanDaysList() {
           ${ss.exercises.map((item, exIdx) => {
             const ex = findExerciseById(item.exId);
             const exOptions = allEx.map(e => `<option value="${e.id}" ${e.id === item.exId ? 'selected' : ''}>${e.fa} ${e.en ? `(${e.en})` : ''}</option>`).join('');
+            const currentSets = parseSetsFromReps(item.reps, item.sets);
             return `
               <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px dashed rgba(255,255,255,0.08); flex-wrap:wrap; gap:6px;">
                 <div style="display:flex; align-items:center; gap:6px; flex:1; min-width:200px;">
@@ -548,7 +646,14 @@ function renderEditPlanDaysList() {
                   </select>
                 </div>
                 <div style="display:flex; gap:6px; align-items:center;">
-                  <input type="text" value="${item.reps || '3 × 8–12'}" class="form-input" style="width:95px; padding:4px 6px; font-size:11.5px; direction:ltr;" title="تغییر ست و تکرار" onchange="updateSsExReps(${dIdx}, ${ssIdx}, ${exIdx}, this.value)">
+                  <select class="form-select" style="width:75px; padding:4px 6px; font-size:11.5px;" title="تعداد ست" onchange="updateSsExSets(${dIdx}, ${ssIdx}, ${exIdx}, this.value)">
+                    <option value="1" ${currentSets===1?'selected':''}>۱ ست</option>
+                    <option value="2" ${currentSets===2?'selected':''}>۲ ست</option>
+                    <option value="3" ${currentSets===3?'selected':''}>۳ ست</option>
+                    <option value="4" ${currentSets===4?'selected':''}>۴ ست</option>
+                    <option value="5" ${currentSets===5?'selected':''}>۵ ست</option>
+                  </select>
+                  <input type="text" value="${item.reps || '3 × 8–12'}" class="form-input" style="width:90px; padding:4px 6px; font-size:11.5px; direction:ltr;" title="متن ست و تکرار" onchange="updateSsExReps(${dIdx}, ${ssIdx}, ${exIdx}, this.value)">
                 </div>
               </div>
             `;
@@ -563,21 +668,29 @@ function renderEditPlanDaysList() {
       singlesHtml = day.singles.map((item, sIdx) => {
         const ex = findExerciseById(item.exId);
         const exOptions = allEx.map(e => `<option value="${e.id}" ${e.id === item.exId ? 'selected' : ''}>${e.fa} ${e.en ? `(${e.en})` : ''}</option>`).join('');
+        const currentSets = parseSetsFromReps(item.reps, item.sets);
         return `
           <div class="editor-ex-card">
             <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
               <!-- Exercise Selector Dropdown -->
-              <div style="display:flex; align-items:center; gap:6px; flex:1; min-width:220px;">
+              <div style="display:flex; align-items:center; gap:6px; flex:1; min-width:200px;">
                 <span style="font-size:11px; color:var(--text-muted);">#${sIdx + 1}</span>
                 <select class="form-select" style="font-size:12.5px; font-weight:700; padding:5px 8px;" onchange="updateSingleExId(${dIdx}, ${sIdx}, this.value)">
                   ${exOptions}
                 </select>
               </div>
 
-              <!-- Reps / Convert to Superset / Reorder / Delete -->
+              <!-- Reps / Set Count / Convert to Superset / Reorder / Delete -->
               <div style="display:flex; gap:5px; align-items:center; flex-wrap:wrap;">
-                <input type="text" value="${item.reps || '3 × 8–12'}" class="form-input" style="width:90px; padding:4px 6px; font-size:11.5px; direction:ltr;" title="ست و تکرار" onchange="updateSingleExReps(${dIdx}, ${sIdx}, this.value)">
-                <button class="btn-header-action" style="padding:3px 7px; font-size:11px; color:#38bdf8;" title="تبدیل این حرکت به یک سوپرست دوتایی" onclick="openConvertToSupersetModal(${dIdx}, ${sIdx})">⚡ تبدیل به سوپرست</button>
+                <select class="form-select" style="width:75px; padding:4px 6px; font-size:11.5px;" title="تعداد ست" onchange="updateSingleExSets(${dIdx}, ${sIdx}, this.value)">
+                  <option value="1" ${currentSets===1?'selected':''}>۱ ست</option>
+                  <option value="2" ${currentSets===2?'selected':''}>۲ ست</option>
+                  <option value="3" ${currentSets===3?'selected':''}>۳ ست</option>
+                  <option value="4" ${currentSets===4?'selected':''}>۴ ست</option>
+                  <option value="5" ${currentSets===5?'selected':''}>۵ ست</option>
+                </select>
+                <input type="text" value="${item.reps || '3 × 8–12'}" class="form-input" style="width:85px; padding:4px 6px; font-size:11.5px; direction:ltr;" title="متن ست و تکرار" onchange="updateSingleExReps(${dIdx}, ${sIdx}, this.value)">
+                <button class="btn-header-action" style="padding:3px 7px; font-size:11px; color:#38bdf8;" title="تبدیل این حرکت به یک سوپرست دوتایی" onclick="openConvertToSupersetModal(${dIdx}, ${sIdx})">⚡ سوپرست</button>
                 <button class="btn-header-action" style="padding:3px 6px; font-size:11px;" title="حرکت به بالا" onclick="moveSingleEx(${dIdx}, ${sIdx}, -1)">▲</button>
                 <button class="btn-header-action" style="padding:3px 6px; font-size:11px;" title="حرکت به پایین" onclick="moveSingleEx(${dIdx}, ${sIdx}, 1)">▼</button>
                 <button class="btn-header-action" style="padding:3px 6px; font-size:11px; color:#f87171;" title="حذف حرکت" onclick="removeSingleEx(${dIdx}, ${sIdx})">✕</button>
@@ -667,9 +780,22 @@ function updateSingleExId(dIdx, sIdx, newExId) {
   renderApp();
 }
 
+function updateSingleExSets(dIdx, sIdx, setsVal) {
+  const prof = getActiveProfile();
+  const setsNum = parseInt(setsVal) || 3;
+  prof.days[dIdx].singles[sIdx].sets = setsNum;
+  // Update reps string prefix if applicable
+  const oldReps = prof.days[dIdx].singles[sIdx].reps || '3 × 8–12';
+  prof.days[dIdx].singles[sIdx].reps = oldReps.replace(/^\d+/, setsNum);
+  saveProfiles();
+  renderEditPlanDaysList();
+  renderApp();
+}
+
 function updateSingleExReps(dIdx, sIdx, reps) {
   const prof = getActiveProfile();
   prof.days[dIdx].singles[sIdx].reps = reps;
+  prof.days[dIdx].singles[sIdx].sets = parseSetsFromReps(reps, 3);
   saveProfiles();
   renderApp();
 }
@@ -714,6 +840,7 @@ function openConvertToSupersetModal(dIdx, sIdx) {
   ).join('');
 
   document.getElementById('convertSingleReps2').value = '3 × 10–15';
+  document.getElementById('convertSingleSets2').value = '3';
   document.getElementById('convertSingleTitle').value = `سوپرست · ${ex1.fa} + ...`;
 
   document.getElementById('convertSingleModal').classList.add('open');
@@ -731,6 +858,7 @@ function confirmConvertSingleToSuperset() {
 
   const exId2 = document.getElementById('convertSingleSelect2').value;
   const reps2 = document.getElementById('convertSingleReps2').value.trim() || '3 × 10–15';
+  const sets2 = parseInt(document.getElementById('convertSingleSets2').value) || 3;
   const ex2 = findExerciseById(exId2);
   const title = document.getElementById('convertSingleTitle').value.trim() || `سوپرست · ${ex1.fa} + ${ex2.fa}`;
 
@@ -738,8 +866,8 @@ function confirmConvertSingleToSuperset() {
   day.supersets.push({
     title: title,
     exercises: [
-      { exId: single.exId, reps: single.reps || '3 × 8–12', sets: 3 },
-      { exId: exId2, reps: reps2, sets: 3 }
+      { exId: single.exId, reps: single.reps || '3 × 8–12', sets: single.sets || 3 },
+      { exId: exId2, reps: reps2, sets: sets2 }
     ]
   });
 
@@ -748,6 +876,7 @@ function confirmConvertSingleToSuperset() {
   closeConvertSingleModal();
   renderEditPlanDaysList();
   renderApp();
+  showToast('⚡ سوپرست جدید با موفقیت ایجاد شد.');
 }
 
 // Superset Handlers
@@ -765,9 +894,21 @@ function updateSsExerciseId(dIdx, ssIdx, exIdx, newExId) {
   renderApp();
 }
 
+function updateSsExSets(dIdx, ssIdx, exIdx, setsVal) {
+  const prof = getActiveProfile();
+  const setsNum = parseInt(setsVal) || 3;
+  prof.days[dIdx].supersets[ssIdx].exercises[exIdx].sets = setsNum;
+  const oldReps = prof.days[dIdx].supersets[ssIdx].exercises[exIdx].reps || '3 × 8–12';
+  prof.days[dIdx].supersets[ssIdx].exercises[exIdx].reps = oldReps.replace(/^\d+/, setsNum);
+  saveProfiles();
+  renderEditPlanDaysList();
+  renderApp();
+}
+
 function updateSsExReps(dIdx, ssIdx, exIdx, reps) {
   const prof = getActiveProfile();
   prof.days[dIdx].supersets[ssIdx].exercises[exIdx].reps = reps;
+  prof.days[dIdx].supersets[ssIdx].exercises[exIdx].sets = parseSetsFromReps(reps, 3);
   saveProfiles();
   renderApp();
 }
@@ -790,6 +931,7 @@ function splitSupersetToSingles(dIdx, ssIdx) {
     saveProfiles();
     renderEditPlanDaysList();
     renderApp();
+    showToast('🔓 سوپرست به ۲ حرکت تکی تفکیک شد.');
   }
 }
 
@@ -835,6 +977,7 @@ function addNewDayToActiveProfile() {
   saveProfiles();
   renderEditPlanDaysList();
   renderApp();
+  showToast('روز تمرینی جدید اضافه شد.');
 }
 
 // --- Add Exercise to Day Modal ---
@@ -870,17 +1013,19 @@ function confirmAddExerciseToDay() {
   const type = document.getElementById('addExType').value;
   const exId1 = document.getElementById('addExSelect1').value;
   const reps1 = document.getElementById('addExReps1').value.trim() || '3 × 8–12';
+  const sets1 = parseInt(document.getElementById('addExSets1').value) || 3;
 
   if (type === 'single') {
     if (!day.singles) day.singles = [];
     day.singles.push({
       exId: exId1,
       reps: reps1,
-      sets: 3
+      sets: sets1
     });
   } else {
     const exId2 = document.getElementById('addExSelect2').value;
     const reps2 = document.getElementById('addExReps2').value.trim() || '3 × 12–20';
+    const sets2 = parseInt(document.getElementById('addExSets2').value) || 3;
     const ex1Obj = findExerciseById(exId1);
     const ex2Obj = findExerciseById(exId2);
     const ssTitle = document.getElementById('addSupersetTitle').value.trim() || `سوپرست · ${ex1Obj.fa} + ${ex2Obj.fa}`;
@@ -889,8 +1034,8 @@ function confirmAddExerciseToDay() {
     day.supersets.push({
       title: ssTitle,
       exercises: [
-        { exId: exId1, reps: reps1, sets: 3 },
-        { exId: exId2, reps: reps2, sets: 3 }
+        { exId: exId1, reps: reps1, sets: sets1 },
+        { exId: exId2, reps: reps2, sets: sets2 }
       ]
     });
   }
@@ -899,6 +1044,7 @@ function confirmAddExerciseToDay() {
   closeAddExToDayModal();
   renderEditPlanDaysList();
   renderApp();
+  showToast('حرکت با موفقیت به برنامه اضافه شد.');
 }
 
 // --- Exercise Library Explorer ---
@@ -986,7 +1132,7 @@ function quickAddExFromLibrary(exId) {
 
   saveProfiles();
   renderApp();
-  alert(`حرکت "${ex.fa}" به روز "${firstDay.title}" برنامه اضافه شد!`);
+  showToast(`حرکت "${ex.fa}" به روز "${firstDay.title}" اضافه شد!`);
 }
 
 // --- MuscleWiki Integration Logic ---
@@ -1081,7 +1227,7 @@ function saveCustomExercise() {
   saveCustomExercises();
   closeCustomExerciseModal();
   renderLibraryList(getAllExercises());
-  alert(`حرکت "${fa}" با موفقیت در بانک حرکات ثبت شد.`);
+  showToast(`حرکت "${fa}" با موفقیت در بانک حرکات ثبت شد.`);
 }
 
 // --- Sets Tracker & Persistence ---
@@ -1095,6 +1241,7 @@ function toggleSet(btn) {
 
   saveSetsState();
   updateDayProgress(card.closest('.day-section'));
+  updateGreetingText();
 }
 
 function saveSetsState() {
@@ -1143,7 +1290,13 @@ function updateDayProgress(daySec) {
   if (fillEl) fillEl.style.width = pct + '%';
   if (textEl) textEl.innerText = pct + '٪';
 
-  // Update Nav Tab Pill & Sticky Progress
+  // Update Complete Celebration Banner
+  const completeBanner = document.getElementById('complete-banner-' + dayId);
+  if (completeBanner) {
+    completeBanner.style.display = pct === 100 ? 'flex' : 'none';
+  }
+
+  // Update Nav Tab Pill
   const navPill = document.getElementById('nav-pill-' + dayId);
   if (navPill) {
     navPill.innerText = pct + '٪';
@@ -1159,6 +1312,7 @@ function updateDayProgress(daySec) {
 
 function updateAllProgressBars() {
   document.querySelectorAll('.day-section').forEach(sec => updateDayProgress(sec));
+  updateGreetingText();
 }
 
 // --- Universal Rest & Isometric Timer Engine ---
