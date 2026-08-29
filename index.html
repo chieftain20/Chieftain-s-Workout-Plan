@@ -70,7 +70,10 @@
       <div class="header-controls">
         <div class="profile-selector-wrap">
           <span style="font-size:12px; color:var(--text-muted)">👤 کاربر:</span>
-          <select id="profileSelect" class="profile-select" onchange="onProfileChange(this.value)"></select>
+          <select id="profileSelect" class="profile-select" onchange="onProfileChange(this.value)">
+            <option value="hossein_chieftain">Hossein Chieftain (پیش‌فرض)</option>
+            <option value="morvarid">مروارید (پیش‌فرض)</option>
+          </select>
         </div>
         <button id="headerInstallBtn" class="btn-header-action">
           <span>📲</span>
@@ -2731,51 +2734,45 @@ function loadAppData() {
   } catch(e) { customExercises = []; }
 
   try {
-    const rawProfiles = localStorage.getItem('chieftain_profiles_v6');
+    const rawProfiles = localStorage.getItem('chieftain_profiles_v7') || localStorage.getItem('chieftain_profiles_v6') || localStorage.getItem('chieftain_profiles_v5');
     if (rawProfiles) {
       allProfiles = JSON.parse(rawProfiles);
     } else {
-      const hProf = JSON.parse(JSON.stringify(HOSSEIN_PROFILE));
-      hProf.pin = 'gym';
-      const mProf = JSON.parse(JSON.stringify(MORVARID_PROFILE));
-      mProf.pin = 'inci';
-      allProfiles = [hProf, mProf];
-      localStorage.setItem('chieftain_profiles_v6', JSON.stringify(allProfiles));
+      allProfiles = [];
     }
-
-    // Ensure built-in profiles Hossein and Morvarid always exist and have proper PINs
-    let hProf = allProfiles.find(p => p.id === 'hossein_chieftain');
-    if (!hProf) {
-      hProf = JSON.parse(JSON.stringify(HOSSEIN_PROFILE));
-      hProf.pin = 'gym';
-      allProfiles.unshift(hProf);
-    } else {
-      if (!hProf.pin) hProf.pin = 'gym';
-      if (!hProf.days || hProf.days.length < 7 || !hProf.days.some(d => d.id === 'd1' || d.title === 'شنبه')) {
-        hProf.days = JSON.parse(JSON.stringify(HOSSEIN_PROFILE.days));
-      }
-    }
-
-    let mProf = allProfiles.find(p => p.id === 'morvarid');
-    if (!mProf) {
-      mProf = JSON.parse(JSON.stringify(MORVARID_PROFILE));
-      mProf.pin = 'inci';
-      allProfiles.push(mProf);
-    } else {
-      if (!mProf.pin) mProf.pin = 'inci';
-      if (!mProf.days || mProf.days.length < 7 || mProf.days[0].type !== 'gym') {
-        mProf.days = JSON.parse(JSON.stringify(MORVARID_PROFILE.days));
-      }
-    }
-
-    saveProfiles();
   } catch(e) {
-    const hProf = JSON.parse(JSON.stringify(HOSSEIN_PROFILE));
-    hProf.pin = 'gym';
-    const mProf = JSON.parse(JSON.stringify(MORVARID_PROFILE));
-    mProf.pin = 'inci';
-    allProfiles = [hProf, mProf];
+    allProfiles = [];
   }
+
+  // Ensure built-in profile Hossein Chieftain exists and has proper PIN
+  let hProf = allProfiles.find(p => p.id === 'hossein_chieftain');
+  if (!hProf) {
+    hProf = JSON.parse(JSON.stringify(HOSSEIN_PROFILE));
+    hProf.pin = 'gym';
+    allProfiles.unshift(hProf);
+  } else {
+    if (!hProf.pin) hProf.pin = 'gym';
+    if (!hProf.days || hProf.days.length < 7 || !hProf.days.some(d => d.id === 'd1' || d.title === 'شنبه')) {
+      hProf.days = JSON.parse(JSON.stringify(HOSSEIN_PROFILE.days));
+    }
+  }
+
+  // Ensure built-in profile Morvarid exists and has proper PIN and 7 days
+  let mProf = allProfiles.find(p => p.id === 'morvarid');
+  if (!mProf) {
+    mProf = JSON.parse(JSON.stringify(MORVARID_PROFILE));
+    mProf.pin = 'inci';
+    allProfiles.push(mProf);
+  } else {
+    mProf.name = 'مروارید';
+    mProf.pin = 'inci';
+    mProf.isDefault = true;
+    if (!mProf.days || mProf.days.length < 7 || !mProf.days[0].singles || mProf.days[0].singles.length < 5) {
+      mProf.days = JSON.parse(JSON.stringify(MORVARID_PROFILE.days));
+    }
+  }
+
+  saveProfiles();
 
   const savedActiveId = localStorage.getItem('chieftain_active_profile_id');
   if (savedActiveId && allProfiles.some(p => p.id === savedActiveId)) {
@@ -2786,7 +2783,7 @@ function loadAppData() {
 }
 
 function saveProfiles() {
-  localStorage.setItem('chieftain_profiles_v6', JSON.stringify(allProfiles));
+  localStorage.setItem('chieftain_profiles_v7', JSON.stringify(allProfiles));
 }
 
 function saveCustomExercises() {
