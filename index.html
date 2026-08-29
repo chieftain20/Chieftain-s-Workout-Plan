@@ -684,11 +684,95 @@ tr:nth-child(even) { background: rgba(255, 255, 255, 0.02); }
   .modal-dialog { padding: 16px 12px; }
   .table-container { display: none; }
   .summary-mobile-grid { display: grid; }
-  .exercise-card { padding: 10px 10px; }
   .exercise-name-fa { font-size: 13.5px; }
   .muscles-row { gap: 4px; margin-bottom: 8px; }
   .card-footer { gap: 6px; }
 }
+
+/* Modern iOS/Cyber Style Switch */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 26px;
+  margin: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #334155;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: #ffffff;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+input:checked + .slider {
+  background-color: #10b981;
+  border-color: #34d399;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.45);
+}
+
+input:checked + .slider:before {
+  transform: translateX(22px);
+  background-color: #ffffff;
+}
+
+/* Reorder & Move Action Buttons in Workout Cards */
+.card-reorder-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.btn-move-action {
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  color: #cbd5e1;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  transition: all 0.15s ease;
+}
+
+.btn-move-action:hover {
+  background: #334155;
+  color: #00f2fe;
+  border-color: #00f2fe;
+  transform: translateY(-1px);
+}
+
 
 </style>
 </head>
@@ -1444,11 +1528,19 @@ tr:nth-child(even) { background: rgba(255, 255, 255, 0.02); }
         </button>
       </div>
 
-      <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-light); border-radius:8px; padding:8px 10px; display:flex; align-items:center; justify-content:space-between;">
-        <span style="font-size:11.5px; color:#cbd5e1; font-weight:700;">⚡ همگام‌سازی خودکار در پس‌زمینه (<bdi>Auto-Sync</bdi>)</span>
-        <label class="switch" style="position:relative; display:inline-block; width:38px; height:20px; margin:0;">
+      <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-light); border-radius:10px; padding:10px 12px; display:flex; align-items:center; justify-content:space-between;">
+        <div>
+          <div style="font-size:12px; color:#f8fafc; font-weight:800; display:flex; align-items:center; gap:6px;">
+            <span>⚡ همگام‌سازی خودکار در پس‌زمینه</span>
+            <span id="autoSyncStateBadge" style="font-size:10.5px; padding:1px 6px; border-radius:8px; background:rgba(16,185,129,0.2); color:#34d399; font-weight:800;">🟢 روشن و فعال</span>
+          </div>
+          <div style="font-size:10.5px; color:#94a3b8; margin-top:2px;">
+            هر تغییری در برنامه بدهید، خودکار و بدون نیاز به کلیک در سرور ابری ذخیره می‌شود.
+          </div>
+        </div>
+        <label class="switch">
           <input type="checkbox" id="autoCloudSyncToggle" onchange="toggleAutoCloudSync(this.checked)" checked>
-          <span style="position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background:#334155; transition:.3s; border-radius:20px;" class="slider"></span>
+          <span class="slider"></span>
         </label>
       </div>
     </div>
@@ -1477,6 +1569,36 @@ tr:nth-child(even) { background: rgba(255, 255, 255, 0.02); }
     <div style="margin-top:12px; text-align:center;">
       <button class="btn-header-action" style="width:100%; justify-content:center; padding:8px;" onclick="closeSyncBackupModal()">
         بستن ✕
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Move to Another Day Modal -->
+<div id="moveDayModal" class="modal-overlay">
+  <div class="modal-dialog" style="max-width: 440px;">
+    <button class="modal-close-btn" onclick="closeMoveDayModal()">✕</button>
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+      <span style="font-size:24px;">📅</span>
+      <h3 style="margin:0;">انتقال حرکت / سوپرست به روز دیگر</h3>
+    </div>
+    <p id="moveDayTargetLabel" style="font-size:12px; color:var(--text-muted); margin-bottom:14px;">
+      انتخاب روز مقصد برای انتقال:
+    </p>
+
+    <div class="form-group" style="margin-bottom:14px;">
+      <label class="form-label">انتقال به روز:</label>
+      <select id="moveDaySelect" class="form-select" style="font-weight:700; font-size:13px;">
+        <!-- Dynamically populated -->
+      </select>
+    </div>
+
+    <div style="display:flex; gap:8px;">
+      <button class="btn-header-action btn-action-primary" style="flex:1; justify-content:center; padding:10px; font-weight:800;" onclick="executeMoveDay()">
+        🚀 انتقال فوری
+      </button>
+      <button class="btn-header-action" style="flex-shrink:0; padding:10px 14px;" onclick="closeMoveDayModal()">
+        انصراف
       </button>
     </div>
   </div>
@@ -3829,7 +3951,7 @@ function closeImageModal() {
   document.getElementById('imageModal')?.classList.remove('open');
 }
 
-function renderExerciseCard(item, dayId, isSuperset = false) {
+function renderExerciseCard(item, dayId, isSuperset = false, singleIdx = -1, totalSingles = 0) {
   const ex = findExerciseById(item.exId);
   const reps = item.reps || ex.defaultReps || '3 × 8–12';
   const setsCount = parseSetsFromReps(reps, item.sets);
@@ -3870,6 +3992,17 @@ function renderExerciseCard(item, dayId, isSuperset = false) {
     </button>
   `;
 
+  let moveBtnsHtml = '';
+  if (!isSuperset && singleIdx >= 0) {
+    moveBtnsHtml = `
+      <div class="card-reorder-toolbar">
+        ${singleIdx > 0 ? `<button class="btn-move-action" onclick="moveSingleItem('${dayId}', ${singleIdx}, -1)" title="انتقال حرکت به بالا">⬆️ بالا</button>` : ''}
+        ${singleIdx < totalSingles - 1 ? `<button class="btn-move-action" onclick="moveSingleItem('${dayId}', ${singleIdx}, 1)" title="انتقال حرکت به پایین">⬇️ پایین</button>` : ''}
+        <button class="btn-move-action" style="color:#fcd34d; border-color:rgba(252,211,77,0.3);" onclick="openMoveDayModal('single', '${dayId}', -1, ${singleIdx})" title="انتقال این حرکت به روز دیگر">📅 تغییر روز</button>
+      </div>
+    `;
+  }
+
   return `
     <article class="exercise-card" data-ex-id="${dayId}_${ex.id}">
       <div class="exercise-header">
@@ -3884,6 +4017,7 @@ function renderExerciseCard(item, dayId, isSuperset = false) {
         ${isoBtnHtml}
         ${logBtnHtml}
       </div>
+      ${moveBtnsHtml}
       <div class="card-footer">
         <div class="video-links-group">
           ${renderVideoButtons(ex.videos)}
@@ -4340,9 +4474,17 @@ function renderWorkoutDays() {
 
     let supersetsHtml = '';
     if (day.supersets && day.supersets.length > 0) {
-      supersetsHtml = day.supersets.map(ss => `
+      const totalSS = day.supersets.length;
+      supersetsHtml = day.supersets.map((ss, ssIdx) => `
         <div class="superset-block">
-          <div class="superset-header">⚡ ${ss.title}</div>
+          <div class="superset-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+            <span>⚡ ${ss.title}</span>
+            <div class="card-reorder-toolbar" style="margin-top:0;">
+              ${ssIdx > 0 ? `<button class="btn-move-action" onclick="moveSupersetItem('${day.id}', ${ssIdx}, -1)" title="انتقال سوپرست به بالا">⬆️ بالا</button>` : ''}
+              ${ssIdx < totalSS - 1 ? `<button class="btn-move-action" onclick="moveSupersetItem('${day.id}', ${ssIdx}, 1)" title="انتقال سوپرست به پایین">⬇️ پایین</button>` : ''}
+              <button class="btn-move-action" style="color:#fcd34d; border-color:rgba(252,211,77,0.3);" onclick="openMoveDayModal('superset', '${day.id}', ${ssIdx})" title="انتقال این سوپرست به روز دیگر">📅 انتقال به روز دیگر</button>
+            </div>
+          </div>
           ${ss.exercises.map(item => renderExerciseCard(item, day.id, true)).join('')}
         </div>
       `).join('');
@@ -4350,7 +4492,8 @@ function renderWorkoutDays() {
 
     let singlesHtml = '';
     if (day.singles && day.singles.length > 0) {
-      singlesHtml = day.singles.map(item => renderExerciseCard(item, day.id, false)).join('');
+      const totalSingles = day.singles.length;
+      singlesHtml = day.singles.map((item, sIdx) => renderExerciseCard(item, day.id, false, sIdx, totalSingles)).join('');
     }
 
     let restHtml = '';
@@ -5932,6 +6075,18 @@ function isAutoCloudSyncEnabled() {
 
 function toggleAutoCloudSync(enabled) {
   localStorage.setItem('chieftain_auto_cloud_sync', enabled ? 'true' : 'false');
+  const badge = document.getElementById('autoSyncStateBadge');
+  if (badge) {
+    if (enabled) {
+      badge.innerHTML = '🟢 روشن و فعال';
+      badge.style.background = 'rgba(16,185,129,0.2)';
+      badge.style.color = '#34d399';
+    } else {
+      badge.innerHTML = '⚪ خاموش';
+      badge.style.background = 'rgba(148,163,184,0.15)';
+      badge.style.color = '#94a3b8';
+    }
+  }
   showToast(enabled ? '✅ همگام‌سازی خودکار ابری فعال شد' : '⏸ همگام‌سازی خودکار غیرفعال شد');
 }
 
@@ -6041,7 +6196,20 @@ function openSyncBackupModal() {
   if (keyInput) keyInput.value = syncKey;
 
   const autoToggle = document.getElementById('autoCloudSyncToggle');
-  if (autoToggle) autoToggle.checked = isAutoCloudSyncEnabled();
+  const isAuto = isAutoCloudSyncEnabled();
+  if (autoToggle) autoToggle.checked = isAuto;
+  const badge = document.getElementById('autoSyncStateBadge');
+  if (badge) {
+    if (isAuto) {
+      badge.innerHTML = '🟢 روشن و فعال';
+      badge.style.background = 'rgba(16,185,129,0.2)';
+      badge.style.color = '#34d399';
+    } else {
+      badge.innerHTML = '⚪ خاموش';
+      badge.style.background = 'rgba(148,163,184,0.15)';
+      badge.style.color = '#94a3b8';
+    }
+  }
 
   const syncInput = document.getElementById('syncUrlDisplayInput');
   try {
@@ -6144,6 +6312,127 @@ function downloadBackupJson() {
   } catch(e) {
     alert('خطا در دانلود پشتیبان: ' + e.message);
   }
+}
+
+// --- Reorder & Move Exercise / Superset Engine ---
+let moveDayState = { type: 'superset', dayId: '', ssIdx: -1, singleIdx: -1 };
+
+function verifyEditPIN(callback) {
+  const prof = getActiveProfile();
+  if (sessionStorage.getItem('chieftain_unlocked_' + prof.id) === 'true') {
+    callback();
+    return;
+  }
+  const entered = prompt(`برای جابجایی و ویرایش برنامه "${prof.name}" لطفاً رمز عبور را وارد کنید:`);
+  if (!entered) return;
+  if (entered.trim() === (prof.pin || 'gym')) {
+    sessionStorage.setItem('chieftain_unlocked_' + prof.id, 'true');
+    callback();
+  } else {
+    alert('❌ رمز عبور اشتباه است.');
+  }
+}
+
+function moveSupersetItem(dayId, ssIdx, direction) {
+  verifyEditPIN(() => {
+    const prof = getActiveProfile();
+    const day = prof.days.find(d => d.id === dayId);
+    if (!day || !day.supersets) return;
+
+    const newIdx = ssIdx + direction;
+    if (newIdx < 0 || newIdx >= day.supersets.length) return;
+
+    const temp = day.supersets[ssIdx];
+    day.supersets[ssIdx] = day.supersets[newIdx];
+    day.supersets[newIdx] = temp;
+
+    saveProfiles();
+    renderApp();
+    showToast('⚡ ترتیب سوپرست با موفقیت تغییر کرد و ذخیره شد!');
+  });
+}
+
+function moveSingleItem(dayId, singleIdx, direction) {
+  verifyEditPIN(() => {
+    const prof = getActiveProfile();
+    const day = prof.days.find(d => d.id === dayId);
+    if (!day || !day.singles) return;
+
+    const newIdx = singleIdx + direction;
+    if (newIdx < 0 || newIdx >= day.singles.length) return;
+
+    const temp = day.singles[singleIdx];
+    day.singles[singleIdx] = day.singles[newIdx];
+    day.singles[newIdx] = temp;
+
+    saveProfiles();
+    renderApp();
+    showToast('⚡ ترتیب حرکت با موفقیت تغییر کرد و ذخیره شد!');
+  });
+}
+
+function openMoveDayModal(type, dayId, ssIdx = -1, singleIdx = -1) {
+  verifyEditPIN(() => {
+    moveDayState = { type, dayId, ssIdx, singleIdx };
+    const prof = getActiveProfile();
+    const currentDay = prof.days.find(d => d.id === dayId);
+    const select = document.getElementById('moveDaySelect');
+    const label = document.getElementById('moveDayTargetLabel');
+
+    let itemName = '';
+    if (type === 'superset' && currentDay?.supersets?.[ssIdx]) {
+      itemName = currentDay.supersets[ssIdx].title;
+    } else if (type === 'single' && currentDay?.singles?.[singleIdx]) {
+      const ex = findExerciseById(currentDay.singles[singleIdx].exId);
+      itemName = ex.fa;
+    }
+
+    if (label) {
+      label.innerHTML = `انتقال «<b style="color:#00f2fe;">${itemName}</b>» از روز <b>${currentDay?.title || ''}</b> به:`;
+    }
+
+    if (select) {
+      select.innerHTML = prof.days
+        .filter(d => d.id !== dayId)
+        .map(d => `<option value="${d.id}">${d.title} (${d.type === 'gym' ? '🏋️ باشگاه' : (d.type === 'home' ? '🏠 خانه' : '🛌 استراحت')})</option>`)
+        .join('');
+    }
+
+    document.getElementById('moveDayModal')?.classList.add('open');
+  });
+}
+
+function closeMoveDayModal() {
+  document.getElementById('moveDayModal')?.classList.remove('open');
+}
+
+function executeMoveDay() {
+  const targetDayId = document.getElementById('moveDaySelect')?.value;
+  if (!targetDayId) return;
+
+  const prof = getActiveProfile();
+  const { type, dayId, ssIdx, singleIdx } = moveDayState;
+  const srcDay = prof.days.find(d => d.id === dayId);
+  const destDay = prof.days.find(d => d.id === targetDayId);
+  if (!srcDay || !destDay) return;
+
+  if (type === 'superset') {
+    if (!srcDay.supersets || !srcDay.supersets[ssIdx]) return;
+    const item = srcDay.supersets.splice(ssIdx, 1)[0];
+    if (!destDay.supersets) destDay.supersets = [];
+    destDay.supersets.push(item);
+    showToast(`🚀 سوپرست با موفقیت به روز "${destDay.title}" منتقل شد!`);
+  } else {
+    if (!srcDay.singles || !srcDay.singles[singleIdx]) return;
+    const item = srcDay.singles.splice(singleIdx, 1)[0];
+    if (!destDay.singles) destDay.singles = [];
+    destDay.singles.push(item);
+    showToast(`🚀 حرکت با موفقیت به روز "${destDay.title}" منتقل شد!`);
+  }
+
+  saveProfiles();
+  closeMoveDayModal();
+  renderApp();
 }
 
 function handleRestoreFile(input) {

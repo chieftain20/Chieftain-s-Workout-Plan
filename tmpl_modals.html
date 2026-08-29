@@ -636,11 +636,19 @@
         </button>
       </div>
 
-      <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-light); border-radius:8px; padding:8px 10px; display:flex; align-items:center; justify-content:space-between;">
-        <span style="font-size:11.5px; color:#cbd5e1; font-weight:700;">⚡ همگام‌سازی خودکار در پس‌زمینه (<bdi>Auto-Sync</bdi>)</span>
-        <label class="switch" style="position:relative; display:inline-block; width:38px; height:20px; margin:0;">
+      <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-light); border-radius:10px; padding:10px 12px; display:flex; align-items:center; justify-content:space-between;">
+        <div>
+          <div style="font-size:12px; color:#f8fafc; font-weight:800; display:flex; align-items:center; gap:6px;">
+            <span>⚡ همگام‌سازی خودکار در پس‌زمینه</span>
+            <span id="autoSyncStateBadge" style="font-size:10.5px; padding:1px 6px; border-radius:8px; background:rgba(16,185,129,0.2); color:#34d399; font-weight:800;">🟢 روشن و فعال</span>
+          </div>
+          <div style="font-size:10.5px; color:#94a3b8; margin-top:2px;">
+            هر تغییری در برنامه بدهید، خودکار و بدون نیاز به کلیک در سرور ابری ذخیره می‌شود.
+          </div>
+        </div>
+        <label class="switch">
           <input type="checkbox" id="autoCloudSyncToggle" onchange="toggleAutoCloudSync(this.checked)" checked>
-          <span style="position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background:#334155; transition:.3s; border-radius:20px;" class="slider"></span>
+          <span class="slider"></span>
         </label>
       </div>
     </div>
@@ -669,6 +677,36 @@
     <div style="margin-top:12px; text-align:center;">
       <button class="btn-header-action" style="width:100%; justify-content:center; padding:8px;" onclick="closeSyncBackupModal()">
         بستن ✕
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Move to Another Day Modal -->
+<div id="moveDayModal" class="modal-overlay">
+  <div class="modal-dialog" style="max-width: 440px;">
+    <button class="modal-close-btn" onclick="closeMoveDayModal()">✕</button>
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+      <span style="font-size:24px;">📅</span>
+      <h3 style="margin:0;">انتقال حرکت / سوپرست به روز دیگر</h3>
+    </div>
+    <p id="moveDayTargetLabel" style="font-size:12px; color:var(--text-muted); margin-bottom:14px;">
+      انتخاب روز مقصد برای انتقال:
+    </p>
+
+    <div class="form-group" style="margin-bottom:14px;">
+      <label class="form-label">انتقال به روز:</label>
+      <select id="moveDaySelect" class="form-select" style="font-weight:700; font-size:13px;">
+        <!-- Dynamically populated -->
+      </select>
+    </div>
+
+    <div style="display:flex; gap:8px;">
+      <button class="btn-header-action btn-action-primary" style="flex:1; justify-content:center; padding:10px; font-weight:800;" onclick="executeMoveDay()">
+        🚀 انتقال فوری
+      </button>
+      <button class="btn-header-action" style="flex-shrink:0; padding:10px 14px;" onclick="closeMoveDayModal()">
+        انصراف
       </button>
     </div>
   </div>
