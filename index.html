@@ -2948,7 +2948,8 @@ function updateGreetingText() {
   const greetingEl = document.getElementById('greetingText');
   if (!greetingEl) return;
 
-  const todaySec = document.getElementById(todaySectionId);
+  const todaySecId = getTodaySectionId();
+  const todaySec = document.getElementById(todaySecId);
   let isToday100 = false;
   if (todaySec) {
     const btns = todaySec.querySelectorAll('.set-btn');
@@ -4789,26 +4790,36 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-const jsDayToIranian = { 6: 'd1', 0: 'd2', 1: 'd3', 2: 'd4', 3: 'd5', 4: 'd6', 5: 'd7' };
-const todayIndex = new Date().getDay();
-const todaySectionId = jsDayToIranian[todayIndex] || 'd1';
+const todayIndex = new Date().getDay(); // 0 = Sunday, 6 = Saturday
+
+function getTodaySectionId() {
+  const prof = getActiveProfile();
+  // Saturday in JS is 6 -> index 0
+  // Sunday in JS is 0 -> index 1
+  // Monday in JS is 1 -> index 2, etc.
+  const dayIdx = (todayIndex === 6) ? 0 : (todayIndex + 1);
+  const targetDay = prof.days[dayIdx] || prof.days[0];
+  return targetDay ? targetDay.id : 'd1';
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   loadAppData();
   renderApp();
 
-  const todaySec = document.getElementById(todaySectionId);
+  const todaySecId = getTodaySectionId();
+  const todaySec = document.getElementById(todaySecId);
   if (todaySec) todaySec.classList.add('today-highlight');
 
   document.querySelectorAll('.nav-tab').forEach(tab => {
-    if (tab.getAttribute('href') === '#' + todaySectionId) {
+    if (tab.getAttribute('href') === '#' + todaySecId) {
       tab.classList.add('is-today', 'active');
     }
   });
 });
 
 document.getElementById('todayJumpBtn')?.addEventListener('click', () => {
-  document.getElementById(todaySectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const todaySecId = getTodaySectionId();
+  document.getElementById(todaySecId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
 
 window.addEventListener('scroll', () => {
