@@ -642,6 +642,17 @@
       </div>
     </div>
 
+    <div class="form-group">
+      <label class="form-label">عنوان سوپرست</label>
+      <input type="text" id="convertSingleTitle" class="form-input" placeholder="عنوان دلخواه سوپرست...">
+    </div>
+
+    <button class="btn-header-action btn-action-primary" style="width:100%; justify-content:center; padding:11px;" onclick="confirmConvertSingleToSuperset()">
+      ⚡ ساخت سوپرست دوتایی
+    </button>
+  </div>
+</div>
+
 <!-- Quick Single Exercise Editor Modal -->
 <div id="quickEditExModal" class="modal-overlay">
   <div class="modal-dialog" style="max-width: 480px;">
@@ -3039,13 +3050,13 @@ function renderExerciseCard(item, dayId, isSuperset = false) {
   }
 
   const logBtnHtml = `
-    <button class="log-btn" onclick="openLogModal('${ex.id}', '${ex.fa}', '${dayId}', ${setsCount})" title="ثبت وزنه، تکرار و RIR برای اضافه بار تدریجی">
+    <button class="log-btn" data-day-id="${dayId}" data-ex-id="${ex.id}" onclick="openLogForCard(this)" title="ثبت وزنه، تکرار و RIR برای اضافه بار تدریجی">
       <span>📝</span> <span>لاگ / وزنه</span>
     </button>
-    <button class="chart-btn" onclick="openOverloadChart('${ex.id}', '${ex.fa}')" title="نمودار پیشرفت و افزایش وزنه نسبت به جلسه اول">
+    <button class="chart-btn" data-ex-id="${ex.id}" onclick="openChartForCard(this)" title="نمودار پیشرفت و افزایش وزنه نسبت به جلسه اول">
       <span>📈</span> <span>نمودار</span>
     </button>
-    <button class="edit-card-btn" onclick="handleQuickEditClick('${dayId}', '${ex.id}', '${item.reps || ''}', ${item.sets || setsCount}, ${isSuperset})" title="ویرایش سریع این حرکت">
+    <button class="edit-card-btn" data-day-id="${dayId}" data-ex-id="${ex.id}" data-is-superset="${isSuperset ? '1' : '0'}" onclick="openQuickEditForCard(this)" title="ویرایش سریع این حرکت">
       <span>✏️</span> <span>ویرایش</span>
     </button>
   `;
@@ -3079,13 +3090,58 @@ function renderExerciseCard(item, dayId, isSuperset = false) {
 // --- Quick Single Exercise Editor Logic ---
 let currentQuickEditTarget = { dayId: '', exId: '', isSuperset: false };
 
-function handleQuickEditClick(dayId, exId, reps, sets, isSuperset) {
+function openLogForCard(btn) {
+  const dayId = btn.getAttribute('data-day-id');
+  const exId = btn.getAttribute('data-ex-id');
+  const ex = findExerciseById(exId);
+  const prof = getActiveProfile();
+  const day = prof.days.find(d => d.id === dayId);
+  let item = null;
+  if (day?.singles) item = day.singles.find(s => s.exId === exId);
+  if (!item && day?.supersets) {
+    for (const ss of day.supersets) {
+      item = ss.exercises.find(e => e.exId === exId);
+      if (item) break;
+    }
+  }
+  const setsCount = item ? parseSetsFromReps(item.reps, item.sets) : 3;
+  openLogModal(exId, ex.fa, dayId, setsCount);
+}
+
+function openChartForCard(btn) {
+  const exId = btn.getAttribute('data-ex-id');
+  const ex = findExerciseById(exId);
+  openOverloadChart(exId, ex.fa);
+}
+
+function openQuickEditForCard(btn) {
+  const dayId = btn.getAttribute('data-day-id');
+  const exId = btn.getAttribute('data-ex-id');
+  const isSuperset = btn.getAttribute('data-is-superset') === '1';
+
+  const prof = getActiveProfile();
+  const day = prof.days.find(d => d.id === dayId);
+  if (!day) return;
+
+  let item = null;
+  if (!isSuperset && day.singles) {
+    item = day.singles.find(s => s.exId === exId);
+  } else if (isSuperset && day.supersets) {
+    for (const ss of day.supersets) {
+      item = ss.exercises.find(e => e.exId === exId);
+      if (item) break;
+    }
+  }
+
+  const reps = item?.reps || '3 × 8–12';
+  const sets = item?.sets || parseSetsFromReps(reps, 3);
+
   if (isProfileUnlocked()) {
     openQuickEditExModal(dayId, exId, reps, sets, isSuperset);
   } else {
     pendingActionAfterPin = () => openQuickEditExModal(dayId, exId, reps, sets, isSuperset);
     document.getElementById('pinModalTitle').innerText = 'ورود به بخش ویرایش حرکت';
-    document.getElementById('pinModalDesc').innerText = 'برای ویرایش این برنامه شخصی، لطفاً رمز عبور را وارد کنید:';
+    document.getElementById('pinModalDesc').innerText = `برنامه ${prof.name} محافظت‌شده است. لطفاً رمز عبور را وارد کنید:`;
     document.getElementById('profilePinInput').value = '';
     document.getElementById('pinErrorMsg').style.display = 'none';
     document.getElementById('pinModal').classList.add('open');
@@ -3418,13 +3474,15 @@ function confirmProfilePin() {
 
   if (enteredPin === prof.pin) {
     sessionStorage.setItem('chieftain_unlocked_' + activeProfileId, 'true');
-    closePinModal();
-    if (pendingActionAfterPin === 'edit_plan') {
-      openEditPlanModalDirect();
-    } else if (typeof pendingActionAfterPin === 'function') {
-      pendingActionAfterPin();
-    }
+    const actionToRun = pendingActionAfterPin;
     pendingActionAfterPin = null;
+    document.getElementById('pinModal').classList.remove('open');
+
+    if (actionToRun === 'edit_plan') {
+      openEditPlanModalDirect();
+    } else if (typeof actionToRun === 'function') {
+      actionToRun();
+    }
     showToast('🔓 قفل باز شد. دسترسی شما تایید گردید.');
   } else {
     document.getElementById('pinErrorMsg').style.display = 'block';
