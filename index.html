@@ -1407,49 +1407,63 @@ tr:nth-child(even) { background: rgba(255, 255, 255, 0.02); }
 
 <!-- Sync & Cloud Backup / Restore Modal -->
 <div id="syncBackupModal" class="modal-overlay">
-  <div class="modal-dialog" style="max-width: 500px;">
+  <div class="modal-dialog" style="max-width: 520px;">
     <button class="modal-close-btn" onclick="closeSyncBackupModal()">✕</button>
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
       <span style="font-size:24px;">📲</span>
       <h3 style="margin:0;">همگام‌سازی و انتقال برنامه بین دستگاه‌ها</h3>
     </div>
-    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
-      برنامه تمرینی، تغییرات حرکات و لاگ‌های خود را به آسانی به گوشی، تبلت یا مرورگر دیگر منتقل کنید:
+    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+      چگونه برنامه‌ها، ست‌ها و تغییرات خود را روی تمام گوشی‌ها و مرورگرها داشته باشید:
     </p>
 
-    <!-- Method 1: Instant Direct Sync Link -->
-    <div style="background:#152033; border:1px solid rgba(56,189,248,0.3); border-radius:12px; padding:12px; margin-bottom:12px;">
+    <!-- Method 1: Instant 1-Click Sync Link -->
+    <div style="background:#152033; border:1px solid rgba(56,189,248,0.3); border-radius:12px; padding:12px; margin-bottom:10px;">
       <div style="font-size:13px; font-weight:800; color:#38bdf8; margin-bottom:4px;">
-        🔗 روش اول: تولید لینک انتقال فوری (پیشنهادی ⚡)
+        ⚡ روش اول: لینک انتقال فوری به گوشی
       </div>
-      <p style="font-size:11.5px; color:#cbd5e1; margin-bottom:10px; line-height:1.6;">
-        روی دکمه زیر کلیک کنید تا لینک اختصاصی حاوی تمام اطلاعات و تغییرات برنامه‌تان کپی شود. سپس این لینک را در مرورگر گوشی یا پیام‌رسان باز کنید تا در ۱ ثانیه فوراً ذخیره شود!
+      <p style="font-size:11.5px; color:#cbd5e1; margin-bottom:8px; line-height:1.5;">
+        لینک زیر را کپی کرده و در مرورگر گوشی باز کنید تا برنامه‌تان در ۱ ثانیه همگام و ذخیره شود:
       </p>
-      <button class="btn-header-action btn-action-primary" style="width:100%; justify-content:center; padding:10px; font-weight:800;" onclick="copyDirectSyncLink()">
-        📋 کپی لینک انتقال به گوشی 📱
+      <div style="display:flex; gap:6px; margin-bottom:6px;">
+        <input type="text" id="syncUrlDisplayInput" class="form-input" readonly style="font-size:11px; direction:ltr; text-align:left; color:#38bdf8;" value="">
+        <button class="btn-header-action btn-action-primary" style="flex-shrink:0; padding:8px 12px; font-weight:800;" onclick="copyDirectSyncLink()">
+          📋 کپی لینک
+        </button>
+      </div>
+      <div id="syncCopiedNotice" style="font-size:11px; color:#34d399; display:none; font-weight:700;">✅ لینک با موفقیت در کلیپ‌بورد کپی شد!</div>
+    </div>
+
+    <!-- Method 2: Permanent Source Code Sync -->
+    <div style="background:#152033; border:1px solid rgba(16,185,129,0.3); border-radius:12px; padding:12px; margin-bottom:10px;">
+      <div style="font-size:13px; font-weight:800; color:#34d399; margin-bottom:4px;">
+        🌐 روش دوم: ثبت دائمی و ابدی در سرور اصلی (<bdi>Permanent Server Sync</bdi>)
+      </div>
+      <p style="font-size:11.5px; color:#cbd5e1; margin-bottom:8px; line-height:1.5;">
+        وقتی فایل <bdi>index.html</bdi> را در گیت‌هاب آپلود می‌کنید، تغییرات برای همیشه روی سرور ثبت شده و روی تمام گوشی‌ها و مرورگرها به طور خودکار لود می‌شود. اگر تغییری در مرورگر دادید، می‌توانید کد آن را با دکمه زیر کپی کنید و به دستیار بفرستید تا دائمی شود:
+      </p>
+      <button class="btn-header-action" style="width:100%; justify-content:center; padding:8px; font-size:11.5px; border-color:#34d39966; color:#34d399;" onclick="copyRawProfileJson()">
+        💾 کپی کد تنظیمات من برای ثبت دائمی توسط هوش مصنوعی
       </button>
     </div>
 
-    <!-- Method 2: Backup JSON File -->
+    <!-- Method 3: Backup JSON File -->
     <div style="background:#152033; border:1px solid var(--border-color); border-radius:12px; padding:12px;">
-      <div style="font-size:13px; font-weight:800; color:#34d399; margin-bottom:4px;">
-        💾 روش دوم: پشتیبان‌گیری فایل (<bdi>JSON File</bdi>)
+      <div style="font-size:13px; font-weight:800; color:#fbbf24; margin-bottom:4px;">
+        💾 روش سوم: فایل نسخه پشتیبان (<bdi>Backup JSON</bdi>)
       </div>
-      <p style="font-size:11.5px; color:#cbd5e1; margin-bottom:10px; line-height:1.6;">
-        دانلود یک فایل نسخه پشتیبان کم‌حجم از کل برنامه‌ها و لاگ‌ها برای نگهداری یا بازیابی:
-      </p>
       <div style="display:flex; gap:8px;">
-        <button class="btn-header-action btn-action-success" style="flex:1; justify-content:center; padding:9px;" onclick="downloadBackupJson()">
-          📥 دانلود پشتیبان
+        <button class="btn-header-action" style="flex:1; justify-content:center; padding:8px; font-size:11.5px;" onclick="downloadBackupJson()">
+          📥 دانلود فایل پشتیبان
         </button>
-        <button class="btn-header-action" style="flex:1; justify-content:center; padding:9px; border-color:#fcd34d88; color:#fcd34d;" onclick="document.getElementById('restoreFileInput').click()">
-          📤 بارگذاری فایل
+        <button class="btn-header-action" style="flex:1; justify-content:center; padding:8px; font-size:11.5px; border-color:#fcd34d88; color:#fcd34d;" onclick="document.getElementById('restoreFileInput').click()">
+          📤 بارگذاری فایل پشتیبان
         </button>
         <input type="file" id="restoreFileInput" accept=".json" style="display:none;" onchange="handleRestoreFile(this)">
       </div>
     </div>
 
-    <div style="margin-top:14px; text-align:center;">
+    <div style="margin-top:12px; text-align:center;">
       <button class="btn-header-action" style="width:100%; justify-content:center; padding:8px;" onclick="closeSyncBackupModal()">
         بستن ✕
       </button>
@@ -5855,14 +5869,10 @@ function setupSectionObserver() {
 
 // --- Sync & Cloud Backup / Restore Handlers ---
 function openSyncBackupModal() {
-  document.getElementById('syncBackupModal')?.classList.add('open');
-}
+  const syncInput = document.getElementById('syncUrlDisplayInput');
+  const notice = document.getElementById('syncCopiedNotice');
+  if (notice) notice.style.display = 'none';
 
-function closeSyncBackupModal() {
-  document.getElementById('syncBackupModal')?.classList.remove('open');
-}
-
-function copyDirectSyncLink() {
   try {
     const payload = {
       version: 'v8',
@@ -5872,17 +5882,52 @@ function copyDirectSyncLink() {
       timestamp: Date.now()
     };
     const jsonStr = JSON.stringify(payload);
-    // Base64 encode with UTF-8 support
     const b64 = btoa(encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode('0x' + p1)));
     const syncUrl = window.location.origin + window.location.pathname + '#sync=' + b64;
+    if (syncInput) syncInput.value = syncUrl;
+  } catch(e) {}
 
-    navigator.clipboard.writeText(syncUrl).then(() => {
-      showToast('📋 لینک اختصاصی کپی شد! در مرورگر گوشی بازش کنید.');
+  document.getElementById('syncBackupModal')?.classList.add('open');
+}
+
+function closeSyncBackupModal() {
+  document.getElementById('syncBackupModal')?.classList.remove('open');
+}
+
+function copyDirectSyncLink() {
+  const syncInput = document.getElementById('syncUrlDisplayInput');
+  const notice = document.getElementById('syncCopiedNotice');
+  if (syncInput && syncInput.value) {
+    syncInput.select();
+    syncInput.setSelectionRange(0, 99999);
+    try {
+      navigator.clipboard.writeText(syncInput.value).then(() => {
+        if (notice) notice.style.display = 'block';
+        showToast('📋 لینک با موفقیت کپی شد! در مرورگر گوشی بازش کنید.');
+      }).catch(() => {
+        document.execCommand('copy');
+        if (notice) notice.style.display = 'block';
+        showToast('📋 لینک کپی شد!');
+      });
+    } catch(e) {
+      document.execCommand('copy');
+      if (notice) notice.style.display = 'block';
+      showToast('📋 لینک کپی شد!');
+    }
+  }
+}
+
+function copyRawProfileJson() {
+  const prof = getActiveProfile();
+  const rawStr = JSON.stringify(prof, null, 2);
+  try {
+    navigator.clipboard.writeText(rawStr).then(() => {
+      showToast('💾 کد تنظیمات کپی شد! آن را برای دستیار بفرستید تا دائمی شود.');
     }).catch(() => {
-      prompt('لینک زیر را کپی کرده و در گوشی باز کنید:', syncUrl);
+      prompt('کد زیر را کپی کرده و بفرستید:', rawStr);
     });
   } catch(e) {
-    alert('خطا در تولید لینک همگام‌سازی: ' + e.message);
+    prompt('کد زیر را کپی کرده و بفرستید:', rawStr);
   }
 }
 

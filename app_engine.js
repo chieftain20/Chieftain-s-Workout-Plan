@@ -2306,14 +2306,10 @@ function setupSectionObserver() {
 
 // --- Sync & Cloud Backup / Restore Handlers ---
 function openSyncBackupModal() {
-  document.getElementById('syncBackupModal')?.classList.add('open');
-}
+  const syncInput = document.getElementById('syncUrlDisplayInput');
+  const notice = document.getElementById('syncCopiedNotice');
+  if (notice) notice.style.display = 'none';
 
-function closeSyncBackupModal() {
-  document.getElementById('syncBackupModal')?.classList.remove('open');
-}
-
-function copyDirectSyncLink() {
   try {
     const payload = {
       version: 'v8',
@@ -2323,17 +2319,52 @@ function copyDirectSyncLink() {
       timestamp: Date.now()
     };
     const jsonStr = JSON.stringify(payload);
-    // Base64 encode with UTF-8 support
     const b64 = btoa(encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode('0x' + p1)));
     const syncUrl = window.location.origin + window.location.pathname + '#sync=' + b64;
+    if (syncInput) syncInput.value = syncUrl;
+  } catch(e) {}
 
-    navigator.clipboard.writeText(syncUrl).then(() => {
-      showToast('📋 لینک اختصاصی کپی شد! در مرورگر گوشی بازش کنید.');
+  document.getElementById('syncBackupModal')?.classList.add('open');
+}
+
+function closeSyncBackupModal() {
+  document.getElementById('syncBackupModal')?.classList.remove('open');
+}
+
+function copyDirectSyncLink() {
+  const syncInput = document.getElementById('syncUrlDisplayInput');
+  const notice = document.getElementById('syncCopiedNotice');
+  if (syncInput && syncInput.value) {
+    syncInput.select();
+    syncInput.setSelectionRange(0, 99999);
+    try {
+      navigator.clipboard.writeText(syncInput.value).then(() => {
+        if (notice) notice.style.display = 'block';
+        showToast('📋 لینک با موفقیت کپی شد! در مرورگر گوشی بازش کنید.');
+      }).catch(() => {
+        document.execCommand('copy');
+        if (notice) notice.style.display = 'block';
+        showToast('📋 لینک کپی شد!');
+      });
+    } catch(e) {
+      document.execCommand('copy');
+      if (notice) notice.style.display = 'block';
+      showToast('📋 لینک کپی شد!');
+    }
+  }
+}
+
+function copyRawProfileJson() {
+  const prof = getActiveProfile();
+  const rawStr = JSON.stringify(prof, null, 2);
+  try {
+    navigator.clipboard.writeText(rawStr).then(() => {
+      showToast('💾 کد تنظیمات کپی شد! آن را برای دستیار بفرستید تا دائمی شود.');
     }).catch(() => {
-      prompt('لینک زیر را کپی کرده و در گوشی باز کنید:', syncUrl);
+      prompt('کد زیر را کپی کرده و بفرستید:', rawStr);
     });
   } catch(e) {
-    alert('خطا در تولید لینک همگام‌سازی: ' + e.message);
+    prompt('کد زیر را کپی کرده و بفرستید:', rawStr);
   }
 }
 

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'chieftain-workout-v2.0';
+const CACHE_NAME = 'chieftain-workout-v8.0';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -29,13 +29,28 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Navigation preload or cache-first for same-origin
   if (event.request.method !== 'GET') return;
-  
+
+  // Network-First for HTML/Navigations so phone PWAs always get latest updates from server
+  if (event.request.mode === 'navigate' || event.request.destination === 'document') {
+    event.respondWith(
+      fetch(event.request).then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200) {
+          const resClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, resClone));
+        }
+        return networkResponse;
+      }).catch(() => {
+        return caches.match(event.request) || caches.match('./index.html');
+      })
+    );
+    return;
+  }
+
+  // Cache-First for static images and assets
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {
-        // Return cached, and update in background if online
         fetch(event.request).then((networkResponse) => {
           if (networkResponse && networkResponse.status === 200) {
             caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse));
@@ -45,7 +60,7 @@ self.addEventListener('fetch', (event) => {
       }
 
       return fetch(event.request).then((networkResponse) => {
-        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
+        if (!networkResponse || networkResponse.status !== 200) {
           return networkResponse;
         }
         const responseToCache = networkResponse.clone();
@@ -53,11 +68,6 @@ self.addEventListener('fetch', (event) => {
           cache.put(event.request, responseToCache);
         });
         return networkResponse;
-      }).catch(() => {
-        // Offline fallback if needed
-        if (event.request.mode === 'navigate') {
-          return caches.match('./index.html');
-        }
       });
     })
   );
