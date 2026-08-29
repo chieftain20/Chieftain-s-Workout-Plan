@@ -19,7 +19,7 @@ function loadAppData() {
   } catch(e) { customExercises = []; }
 
   try {
-    const rawProfiles = localStorage.getItem('chieftain_profiles_v7') || localStorage.getItem('chieftain_profiles_v6') || localStorage.getItem('chieftain_profiles_v5');
+    const rawProfiles = localStorage.getItem('chieftain_profiles_v8') || localStorage.getItem('chieftain_profiles_v7') || localStorage.getItem('chieftain_profiles_v6');
     if (rawProfiles) {
       allProfiles = JSON.parse(rawProfiles);
     } else {
@@ -29,15 +29,15 @@ function loadAppData() {
     allProfiles = [];
   }
 
-  // Ensure built-in profile Hossein Chieftain exists and has proper PIN
+  // Ensure built-in profile Hossein Chieftain exists and has proper PIN & latest routine
   let hProf = allProfiles.find(p => p.id === 'hossein_chieftain');
   if (!hProf) {
     hProf = JSON.parse(JSON.stringify(HOSSEIN_PROFILE));
     hProf.pin = 'gym';
     allProfiles.unshift(hProf);
   } else {
-    if (!hProf.pin) hProf.pin = 'gym';
-    if (!hProf.days || hProf.days.length === 0) {
+    hProf.pin = 'gym';
+    if (!localStorage.getItem('chieftain_profiles_v8')) {
       hProf.days = JSON.parse(JSON.stringify(HOSSEIN_PROFILE.days));
     }
   }
@@ -51,7 +51,7 @@ function loadAppData() {
   } else {
     mProf.name = 'مروارید';
     if (!mProf.pin) mProf.pin = 'inci';
-    if (!mProf.days || mProf.days.length === 0) {
+    if (!localStorage.getItem('chieftain_profiles_v8') || !mProf.days || mProf.days.length === 0) {
       mProf.days = JSON.parse(JSON.stringify(MORVARID_PROFILE.days));
     }
   }
@@ -67,7 +67,7 @@ function loadAppData() {
 }
 
 function saveProfiles() {
-  localStorage.setItem('chieftain_profiles_v7', JSON.stringify(allProfiles));
+  localStorage.setItem('chieftain_profiles_v8', JSON.stringify(allProfiles));
 }
 
 function saveCustomExercises() {
