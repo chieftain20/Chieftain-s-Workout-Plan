@@ -4822,33 +4822,45 @@ document.getElementById('todayJumpBtn')?.addEventListener('click', () => {
   document.getElementById(todaySecId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
 
+let isScrollTicking = false;
 window.addEventListener('scroll', () => {
-  let current = '';
-  document.querySelectorAll('.day-section, .summary-card').forEach(section => {
-    if (window.pageYOffset >= section.offsetTop - 130) {
-      current = section.getAttribute('id');
-    }
-  });
-
-  document.querySelectorAll('.nav-tab').forEach(tab => {
-    const isCurrent = tab.getAttribute('href') === '#' + current;
-    tab.classList.toggle('active', isCurrent);
-  });
-
-  // Sync Global Sticky Progress Bar with current section
-  if (current) {
-    const activeSec = document.getElementById(current);
-    if (activeSec) {
-      const btns = activeSec.querySelectorAll('.set-btn');
-      if (btns.length) {
-        const doneBtns = activeSec.querySelectorAll('.set-btn.done');
-        const pct = Math.round((doneBtns.length / btns.length) * 100);
-        const stickyFill = document.getElementById('globalStickyProgress');
-        if (stickyFill) stickyFill.style.width = pct + '%';
+  if (!isScrollTicking) {
+    window.requestAnimationFrame(() => {
+      let current = '';
+      const scrollPos = window.pageYOffset || document.documentElement.scrollTop || 0;
+      const sections = document.querySelectorAll('.day-section, .summary-card');
+      
+      for (let i = 0; i < sections.length; i++) {
+        const sec = sections[i];
+        if (scrollPos >= sec.offsetTop - 140) {
+          current = sec.getAttribute('id');
+        }
       }
-    }
+
+      if (current) {
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+          const isCurrent = tab.getAttribute('href') === '#' + current;
+          if (tab.classList.contains('active') !== isCurrent) {
+            tab.classList.toggle('active', isCurrent);
+          }
+        });
+
+        const activeSec = document.getElementById(current);
+        if (activeSec) {
+          const btns = activeSec.querySelectorAll('.set-btn');
+          if (btns.length) {
+            const doneBtns = activeSec.querySelectorAll('.set-btn.done');
+            const pct = Math.round((doneBtns.length / btns.length) * 100);
+            const stickyFill = document.getElementById('globalStickyProgress');
+            if (stickyFill) stickyFill.style.width = pct + '%';
+          }
+        }
+      }
+      isScrollTicking = false;
+    });
+    isScrollTicking = true;
   }
-});
+}, { passive: true });
 
 document.getElementById('searchInput')?.addEventListener('input', (e) => {
   const term = e.target.value.toLowerCase().trim();
