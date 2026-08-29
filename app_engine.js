@@ -37,12 +37,12 @@ function loadAppData() {
     allProfiles.unshift(hProf);
   } else {
     if (!hProf.pin) hProf.pin = 'gym';
-    if (!hProf.days || hProf.days.length < 7 || !hProf.days.some(d => d.id === 'd1' || d.title === 'شنبه')) {
+    if (!hProf.days || hProf.days.length === 0) {
       hProf.days = JSON.parse(JSON.stringify(HOSSEIN_PROFILE.days));
     }
   }
 
-  // Ensure built-in profile Morvarid exists and has proper PIN and 7 days
+  // Ensure built-in profile Morvarid exists and has proper PIN
   let mProf = allProfiles.find(p => p.id === 'morvarid');
   if (!mProf) {
     mProf = JSON.parse(JSON.stringify(MORVARID_PROFILE));
@@ -50,9 +50,8 @@ function loadAppData() {
     allProfiles.push(mProf);
   } else {
     mProf.name = 'مروارید';
-    mProf.pin = 'inci';
-    mProf.isDefault = true;
-    if (!mProf.days || mProf.days.length < 7 || !mProf.days[0].singles || mProf.days[0].singles.length < 5) {
+    if (!mProf.pin) mProf.pin = 'inci';
+    if (!mProf.days || mProf.days.length === 0) {
       mProf.days = JSON.parse(JSON.stringify(MORVARID_PROFILE.days));
     }
   }
@@ -128,9 +127,11 @@ function renderApp() {
 
 function renderProfileSelect() {
   const select = document.getElementById('profileSelect');
-  select.innerHTML = allProfiles.map(p => 
-    `<option value="${p.id}" ${p.id === activeProfileId ? 'selected' : ''}>${p.name} ${p.isDefault ? '(پیش‌فرض)' : ''}</option>`
-  ).join('');
+  if (!select) return;
+  select.innerHTML = allProfiles.map(p => {
+    const badge = (p.id === 'hossein_chieftain') ? ' (پیش‌فرض)' : '';
+    return `<option value="${p.id}" ${p.id === activeProfileId ? 'selected' : ''}>${p.name}${badge}</option>`;
+  }).join('');
 }
 
 function renderHeader() {
@@ -246,11 +247,12 @@ function renderExerciseCard(item, dayId, isSuperset = false) {
     `<button class="set-btn" onclick="handleSetClick(this)">${i+1}</button>`
   ).join('');
 
-  // Isometric Quick Button check
+  // Isometric Quick Button check (Only for true isometric holds, NOT rep-based variations)
   let isoBtnHtml = '';
   const lowerFa = ex.fa.toLowerCase();
   const lowerEn = (ex.en || '').toLowerCase();
-  const isIso = lowerFa.includes('ایزومتریک') || lowerFa.includes('پلانک') || lowerFa.includes('دیدباگ') || lowerFa.includes('وال سیت') || lowerEn.includes('iso') || lowerEn.includes('plank') || lowerEn.includes('wall sit') || reps.includes('ثانیه');
+  const isExcluded = lowerFa.includes('خرسی') || lowerFa.includes('پایک') || lowerFa.includes('کیک') || lowerEn.includes('bear') || lowerEn.includes('pike') || lowerEn.includes('kickback');
+  const isIso = !isExcluded && (ex.isIsometric === true || ((lowerFa.includes('ایزومتریک') || lowerFa.includes('پلانک آرنج') || lowerFa.includes('ساید پلانک') || lowerFa.includes('وال سیت') || lowerEn.includes('wall sit') || reps.includes('ثانیه')) && !reps.includes('تکرار')));
 
   if (isIso) {
     let defaultSeconds = 30;
@@ -271,6 +273,9 @@ function renderExerciseCard(item, dayId, isSuperset = false) {
     </button>
     <button class="chart-btn" onclick="openOverloadChart('${ex.id}', '${ex.fa}')" title="نمودار پیشرفت و افزایش وزنه نسبت به جلسه اول">
       <span>📈</span> <span>نمودار</span>
+    </button>
+    <button class="edit-card-btn" onclick="handleQuickEditClick('${dayId}', '${ex.id}', '${item.reps || ''}', ${item.sets || setsCount}, ${isSuperset})" title="ویرایش سریع این حرکت">
+      <span>✏️</span> <span>ویرایش</span>
     </button>
   `;
 
@@ -298,6 +303,100 @@ function renderExerciseCard(item, dayId, isSuperset = false) {
       </div>
     </article>
   `;
+}
+
+// --- Quick Single Exercise Editor Logic ---
+let currentQuickEditTarget = { dayId: '', exId: '', isSuperset: false };
+
+function handleQuickEditClick(dayId, exId, reps, sets, isSuperset) {
+  if (isProfileUnlocked()) {
+    openQuickEditExModal(dayId, exId, reps, sets, isSuperset);
+  } else {
+    pendingActionAfterPin = () => openQuickEditExModal(dayId, exId, reps, sets, isSuperset);
+    document.getElementById('pinModalTitle').innerText = 'ورود به بخش ویرایش حرکت';
+    document.getElementById('pinModalDesc').innerText = 'برای ویرایش این برنامه شخصی، لطفاً رمز عبور را وارد کنید:';
+    document.getElementById('profilePinInput').value = '';
+    document.getElementById('pinErrorMsg').style.display = 'none';
+    document.getElementById('pinModal').classList.add('open');
+    setTimeout(() => document.getElementById('profilePinInput').focus(), 200);
+  }
+}
+
+function openQuickEditExModal(dayId, exId, reps, sets, isSuperset) {
+  currentQuickEditTarget = { dayId, exId, isSuperset };
+  const ex = findExerciseById(exId);
+  document.getElementById('quickEditExModalTitle').innerText = `✏️ ویرایش: ${ex.fa}`;
+  document.getElementById('quickEditExSelectVal').value = exId;
+  document.getElementById('pickerSelectedDisplayQuickEdit').innerText = 'حرکت انتخابی: ' + ex.fa;
+  document.getElementById('pickerSearchQuickEdit').value = ex.fa;
+  filterPickerOptions('QuickEdit', '');
+
+  document.getElementById('quickEditExReps').value = reps || ex.defaultReps || '3 × 8–12';
+  document.getElementById('quickEditExSets').value = String(sets || 3);
+  document.getElementById('quickEditExModal').classList.add('open');
+}
+
+function closeQuickEditExModal() {
+  document.getElementById('quickEditExModal').classList.remove('open');
+}
+
+function saveQuickEditExercise() {
+  const prof = getActiveProfile();
+  const { dayId, exId, isSuperset } = currentQuickEditTarget;
+  const day = prof.days.find(d => d.id === dayId);
+  if (!day) return;
+
+  const newExId = document.getElementById('quickEditExSelectVal').value || exId;
+  const newReps = document.getElementById('quickEditExReps').value.trim() || '3 × 8–12';
+  const newSets = parseInt(document.getElementById('quickEditExSets').value) || 3;
+
+  if (!isSuperset && day.singles) {
+    const item = day.singles.find(s => s.exId === exId);
+    if (item) {
+      item.exId = newExId;
+      item.reps = newReps;
+      item.sets = newSets;
+    }
+  } else if (isSuperset && day.supersets) {
+    for (const ss of day.supersets) {
+      const item = ss.exercises.find(e => e.exId === exId);
+      if (item) {
+        item.exId = newExId;
+        item.reps = newReps;
+        item.sets = newSets;
+        break;
+      }
+    }
+  }
+
+  saveProfiles();
+  closeQuickEditExModal();
+  renderApp();
+  showToast('✅ تغییرات حرکت با موفقیت ذخیره و اعمال شد!');
+}
+
+function deleteQuickEditExercise() {
+  const prof = getActiveProfile();
+  const { dayId, exId, isSuperset } = currentQuickEditTarget;
+  const day = prof.days.find(d => d.id === dayId);
+  if (!day) return;
+
+  const ex = findExerciseById(exId);
+  if (confirm(`آیا از حذف حرکت "${ex.fa}" از روز "${day.title}" اطمینان دارید؟`)) {
+    if (!isSuperset && day.singles) {
+      day.singles = day.singles.filter(s => s.exId !== exId);
+    } else if (isSuperset && day.supersets) {
+      for (const ss of day.supersets) {
+        ss.exercises = ss.exercises.filter(e => e.exId !== exId);
+      }
+      day.supersets = day.supersets.filter(ss => ss.exercises.length > 0);
+    }
+
+    saveProfiles();
+    closeQuickEditExModal();
+    renderApp();
+    showToast(`حرکت "${ex.fa}" با موفقیت حذف شد.`);
+  }
 }
 
 // --- Dynamic Weekly Muscle Volume Engine ---
@@ -360,6 +459,26 @@ function renderDynamicWeeklySummary(prof) {
     `;
   }).join('');
 
+  const mobileCards = muscleGroups.filter(m => stats[m.key].sets > 0).map(m => {
+    const s = stats[m.key];
+    const daysList = Array.from(s.days).join('، ');
+    const exChips = Array.from(s.exercises).map(e => `<span class="summary-mobile-chip">${e}</span>`).join('');
+    return `
+      <div class="summary-mobile-card">
+        <div class="summary-mobile-top">
+          <span class="summary-mobile-title">${s.label}</span>
+          <span class="set-highlight">${s.sets} ست</span>
+        </div>
+        <div class="summary-mobile-freq">
+          <span>📅</span> <span>${s.days.size} جلسه: ${daysList}</span>
+        </div>
+        <div class="summary-mobile-chips">
+          ${exChips}
+        </div>
+      </div>
+    `;
+  }).join('');
+
   return `
     <section id="weekly-summary" class="summary-card">
       <div class="day-header">
@@ -370,9 +489,10 @@ function renderDynamicWeeklySummary(prof) {
       </div>
 
       <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">
-        این جدول به صورت کاملاً پویا بر اساس حرکات و ست‌های برنامه اختصاصی <b>${prof.name}</b> محاسبه شده است.
+        این آمار به صورت کاملاً پویا بر اساس حرکات و ست‌های برنامه اختصاصی <b>${prof.name}</b> محاسبه شده است.
       </p>
 
+      <!-- Desktop Table View -->
       <div class="table-container">
         <table>
           <thead>
@@ -387,6 +507,11 @@ function renderDynamicWeeklySummary(prof) {
             ${activeRows || '<tr><td colspan="4" style="text-align:center; padding:16px;">هنوز حرکتی برای محاسبه حجم در این برنامه ثبت نشده است.</td></tr>'}
           </tbody>
         </table>
+      </div>
+
+      <!-- Mobile Responsive Cards View (Zero horizontal scroll on phone) -->
+      <div class="summary-mobile-grid">
+        ${mobileCards || '<div style="text-align:center; color:var(--text-muted); padding:16px;">هنوز حرکتی برای محاسبه حجم در این برنامه ثبت نشده است.</div>'}
       </div>
     </section>
   `;

@@ -656,7 +656,8 @@
         "title": "مدل اصلاحی برای زانوی حساس",
         "url": "https://www.youtube.com/shorts/dkyWIHEjgBE"
       }
-    ]
+    ],
+    "isIsometric": true
   },
   {
     "id": "side_plank_iso",
@@ -671,7 +672,8 @@
         "title": "آموزش ۱",
         "url": "https://www.youtube.com/shorts/sKMD_pbNm7w"
       }
-    ]
+    ],
+    "isIsometric": true
   },
   {
     "id": "side_plank_dips",
@@ -1077,13 +1079,19 @@
   },
   {
     "id": "plank_hold",
-    "fa": "پلانک",
-    "en": "Plank",
+    "fa": "پلانک روی دست (دست صاف)",
+    "en": "Plank on hands / Straight-arm plank",
     "muscles": "عضلات مرکزی و شکم (Core)",
     "category": "home",
     "defaultReps": "2 × 30–45 ثانیه",
     "defaultSets": 2,
-    "videos": []
+    "isIsometric": true,
+    "videos": [
+      {
+        "title": "آموزش ۱ (پلانک روی دست)",
+        "url": "https://www.youtube.com/shorts/3qI75s2V0fQ"
+      }
+    ]
   },
   {
     "id": "dumbbell_squat",
@@ -1167,7 +1175,8 @@
         "title": "آموزش ۱",
         "url": "https://www.youtube.com/watch?v=H43HI-zuRVg&pp=ygUlUGlrZSBQbGFuayB3aXRoIFN0cmFpZ2h0IExlZyBLaWNrYmFjaw%3D%3D"
       }
-    ]
+    ],
+    "isIsometric": false
   },
   {
     "id": "bench_reverse_crunch",
@@ -1239,7 +1248,8 @@
         "title": "آموزش ۱",
         "url": "https://www.youtube.com/shorts/v25dawSzRTM"
       }
-    ]
+    ],
+    "isIsometric": true
   },
   {
     "id": "onhand_plank_knee_in",
@@ -1264,7 +1274,8 @@
         "title": "آموزش ۱",
         "url": "https://www.youtube.com/shorts/v9f0ZwcKEns"
       }
-    ]
+    ],
+    "isIsometric": false
   },
   {
     "id": "clamshell_band",
