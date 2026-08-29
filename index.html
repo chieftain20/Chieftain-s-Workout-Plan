@@ -1407,49 +1407,78 @@ tr:nth-child(even) { background: rgba(255, 255, 255, 0.02); }
 
 <!-- Sync & Cloud Backup / Restore Modal -->
 <div id="syncBackupModal" class="modal-overlay">
-  <div class="modal-dialog" style="max-width: 500px;">
+  <div class="modal-dialog" style="max-width: 520px;">
     <button class="modal-close-btn" onclick="closeSyncBackupModal()">✕</button>
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
-      <span style="font-size:24px;">📲</span>
-      <h3 style="margin:0;">همگام‌سازی و انتقال برنامه بین دستگاه‌ها</h3>
+      <span style="font-size:24px;">☁️</span>
+      <h3 style="margin:0;">پایگاه ابری اختصاصی و همگام‌سازی خودکار</h3>
     </div>
-    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
-      برنامه تمرینی، تغییرات حرکات و لاگ‌های خود را به آسانی به گوشی، تبلت یا مرورگر دیگر منتقل کنید:
+    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+      برنامه تمرینی شما بدون نیاز به هیچ فایلی، به طور زنده و خودکار بین تمام دستگاه‌ها و مرورگرها همگام می‌شود:
     </p>
 
-    <!-- Method 1: Instant Direct Sync Link -->
-    <div style="background:#152033; border:1px solid rgba(56,189,248,0.3); border-radius:12px; padding:12px; margin-bottom:12px;">
-      <div style="font-size:13px; font-weight:800; color:#38bdf8; margin-bottom:4px;">
-        🔗 روش اول: تولید لینک انتقال فوری (پیشنهادی ⚡)
+    <!-- Cloud Sync Database System -->
+    <div style="background:#152033; border:1px solid rgba(0,242,254,0.35); border-radius:12px; padding:14px; margin-bottom:12px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <span style="font-size:13px; font-weight:800; color:#00f2fe;">☁️ حساب ابری همگام‌سازی (<bdi>Live Cloud Sync</bdi>)</span>
+        <span id="cloudStatusBadge" style="font-size:10.5px; padding:2px 8px; border-radius:10px; background:rgba(16,185,129,0.15); color:#34d399; font-weight:800;">🟢 آماده اتصال</span>
       </div>
-      <p style="font-size:11.5px; color:#cbd5e1; margin-bottom:10px; line-height:1.6;">
-        روی دکمه زیر کلیک کنید تا لینک اختصاصی حاوی تمام اطلاعات و تغییرات برنامه‌تان کپی شود. سپس این لینک را در مرورگر گوشی یا پیام‌رسان باز کنید تا در ۱ ثانیه فوراً ذخیره شود!
-      </p>
-      <button class="btn-header-action btn-action-primary" style="width:100%; justify-content:center; padding:10px; font-weight:800;" onclick="copyDirectSyncLink()">
-        📋 کپی لینک انتقال به گوشی 📱
-      </button>
+
+      <div class="form-group" style="margin-bottom:10px;">
+        <label class="form-label" style="font-size:11.5px;">شناسه اختصاصی شما در سرور ابری (<bdi>Cloud Sync Key</bdi>):</label>
+        <div style="display:flex; gap:6px;">
+          <input type="text" id="cloudSyncKeyInput" class="form-input" placeholder="نام یا شناسه شما مثلا hossein..." style="font-size:13px; font-weight:800; direction:ltr; text-align:center; color:#38bdf8; letter-spacing:1px;">
+          <button class="btn-header-action" style="flex-shrink:0; padding:8px 12px;" onclick="generateRandomSyncKey()" title="تولید شناسه رندوم جدید">🎲</button>
+        </div>
+        <div style="font-size:10.5px; color:#94a3b8; margin-top:3px;">
+          💡 فقط کافیست همین شناسه را در گوشی یا هر مرورگر دیگری وارد کنید تا برنامه‌تان متصل شود.
+        </div>
+      </div>
+
+      <div style="display:flex; gap:8px; margin-bottom:8px;">
+        <button class="btn-header-action btn-action-primary" style="flex:1; justify-content:center; padding:10px; font-weight:800;" onclick="pushToCloudStorage()">
+          ☁️ ذخیره در سرور ابری
+        </button>
+        <button class="btn-header-action btn-action-success" style="flex:1; justify-content:center; padding:10px; font-weight:800;" onclick="pullFromCloudStorage()">
+          📥 دریافت از سرور ابری
+        </button>
+      </div>
+
+      <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-light); border-radius:8px; padding:8px 10px; display:flex; align-items:center; justify-content:space-between;">
+        <span style="font-size:11.5px; color:#cbd5e1; font-weight:700;">⚡ همگام‌سازی خودکار در پس‌زمینه (<bdi>Auto-Sync</bdi>)</span>
+        <label class="switch" style="position:relative; display:inline-block; width:38px; height:20px; margin:0;">
+          <input type="checkbox" id="autoCloudSyncToggle" onchange="toggleAutoCloudSync(this.checked)" checked>
+          <span style="position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background:#334155; transition:.3s; border-radius:20px;" class="slider"></span>
+        </label>
+      </div>
     </div>
 
-    <!-- Method 2: Backup JSON File -->
-    <div style="background:#152033; border:1px solid var(--border-color); border-radius:12px; padding:12px;">
-      <div style="font-size:13px; font-weight:800; color:#34d399; margin-bottom:4px;">
-        💾 روش دوم: پشتیبان‌گیری فایل (<bdi>JSON File</bdi>)
+    <!-- Fallback 1-Click Link -->
+    <div style="background:#152033; border:1px solid var(--border-color); border-radius:12px; padding:10px 12px; margin-bottom:10px;">
+      <div style="font-size:12px; font-weight:800; color:#38bdf8; margin-bottom:4px;">
+        🔗 لینک انتقال مستقیم (روش جایگزین آفلاین)
       </div>
-      <p style="font-size:11.5px; color:#cbd5e1; margin-bottom:10px; line-height:1.6;">
-        دانلود یک فایل نسخه پشتیبان کم‌حجم از کل برنامه‌ها و لاگ‌ها برای نگهداری یا بازیابی:
-      </p>
-      <div style="display:flex; gap:8px;">
-        <button class="btn-header-action btn-action-success" style="flex:1; justify-content:center; padding:9px;" onclick="downloadBackupJson()">
-          📥 دانلود پشتیبان
+      <div style="display:flex; gap:6px;">
+        <input type="text" id="syncUrlDisplayInput" class="form-input" readonly style="font-size:10.5px; direction:ltr; text-align:left; color:#94a3b8;" value="">
+        <button class="btn-header-action" style="flex-shrink:0; padding:6px 10px; font-size:11px;" onclick="copyDirectSyncLink()">
+          📋 کپی لینک
         </button>
-        <button class="btn-header-action" style="flex:1; justify-content:center; padding:9px; border-color:#fcd34d88; color:#fcd34d;" onclick="document.getElementById('restoreFileInput').click()">
-          📤 بارگذاری فایل
-        </button>
-        <input type="file" id="restoreFileInput" accept=".json" style="display:none;" onchange="handleRestoreFile(this)">
       </div>
     </div>
 
-    <div style="margin-top:14px; text-align:center;">
+    <!-- Backup JSON File -->
+    <div style="background:#152033; border:1px solid var(--border-color); border-radius:12px; padding:10px 12px;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-size:12px; font-weight:800; color:#fbbf24;">💾 نسخه پشتیبان فایل (<bdi>Backup JSON</bdi>)</span>
+        <div style="display:flex; gap:6px;">
+          <button class="btn-header-action" style="padding:4px 8px; font-size:10.5px;" onclick="downloadBackupJson()">📥 دانلود</button>
+          <button class="btn-header-action" style="padding:4px 8px; font-size:10.5px; border-color:#fcd34d88; color:#fcd34d;" onclick="document.getElementById('restoreFileInput').click()">📤 بازیابی</button>
+          <input type="file" id="restoreFileInput" accept=".json" style="display:none;" onchange="handleRestoreFile(this)">
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:12px; text-align:center;">
       <button class="btn-header-action" style="width:100%; justify-content:center; padding:8px;" onclick="closeSyncBackupModal()">
         بستن ✕
       </button>
@@ -3617,6 +3646,9 @@ function loadAppData() {
 
 function saveProfiles() {
   localStorage.setItem('chieftain_profiles_v8', JSON.stringify(allProfiles));
+  if (typeof pushToCloudStorage === 'function' && isAutoCloudSyncEnabled()) {
+    pushToCloudStorage(true);
+  }
 }
 
 function saveCustomExercises() {
@@ -5799,6 +5831,11 @@ document.addEventListener('DOMContentLoaded', () => {
   checkUrlSyncData();
   renderApp();
 
+  // Background Auto-Sync from Cloud on startup
+  if (navigator.onLine && isAutoCloudSyncEnabled()) {
+    pullFromCloudStorage(true);
+  }
+
   const todaySecId = getTodaySectionId();
   const todaySec = document.getElementById(todaySecId);
   if (todaySec) todaySec.classList.add('today-highlight');
@@ -5854,15 +5891,151 @@ function setupSectionObserver() {
 }
 
 // --- Sync & Cloud Backup / Restore Handlers ---
+// --- Chieftain Real-Time Cloud Sync Database Engine ---
+const CLOUD_KV_BUCKET = 'https://kvdb.io/BgbDquBYHnhVdJyQMuGqds/';
+
+function getEffectiveCloudKey() {
+  let savedKey = localStorage.getItem('chieftain_cloud_sync_key');
+  if (!savedKey) {
+    savedKey = (activeProfileId === 'hossein_chieftain') ? 'hossein' : (activeProfileId === 'morvarid' ? 'morvarid' : 'user_' + activeProfileId.replace(/[^a-zA-Z0-9]/g, ''));
+    localStorage.setItem('chieftain_cloud_sync_key', savedKey);
+  }
+  return savedKey;
+}
+
+function setCloudSyncKey(key) {
+  const cleanKey = key.trim().toLowerCase().replace(/[^a-zA-Z0-9_\-]/g, '');
+  if (!cleanKey) return;
+  localStorage.setItem('chieftain_cloud_sync_key', cleanKey);
+}
+
+function generateRandomSyncKey() {
+  const newKey = 'user_' + Math.random().toString(36).substring(2, 8);
+  const input = document.getElementById('cloudSyncKeyInput');
+  if (input) input.value = newKey;
+  setCloudSyncKey(newKey);
+  showToast('🎲 شناسه جدید ابری تولید شد: ' + newKey);
+}
+
+function isAutoCloudSyncEnabled() {
+  const val = localStorage.getItem('chieftain_auto_cloud_sync');
+  return val === null ? true : val === 'true';
+}
+
+function toggleAutoCloudSync(enabled) {
+  localStorage.setItem('chieftain_auto_cloud_sync', enabled ? 'true' : 'false');
+  showToast(enabled ? '✅ همگام‌سازی خودکار ابری فعال شد' : '⏸ همگام‌سازی خودکار غیرفعال شد');
+}
+
+async function pushToCloudStorage(silent = false) {
+  const keyInput = document.getElementById('cloudSyncKeyInput');
+  if (keyInput && keyInput.value) {
+    setCloudSyncKey(keyInput.value);
+  }
+  const syncKey = getEffectiveCloudKey();
+  const badge = document.getElementById('cloudStatusBadge');
+
+  if (badge) {
+    badge.innerHTML = '🔄 در حال ارسال...';
+    badge.style.color = '#38bdf8';
+  }
+
+  const payload = {
+    version: 'v8',
+    syncKey: syncKey,
+    updatedAt: new Date().toISOString(),
+    activeId: activeProfileId,
+    profiles: allProfiles,
+    custom: customExercises
+  };
+
+  try {
+    const resp = await fetch(CLOUD_KV_BUCKET + syncKey, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+
+    if (resp.ok) {
+      const now = new Date().toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
+      if (badge) {
+        badge.innerHTML = `🟢 متصل و همگام (${now})`;
+        badge.style.color = '#34d399';
+      }
+      if (!silent) {
+        showToast('☁️ تمام برنامه‌ها و تغییرات با موفقیت در سرور ابری ذخیره شدند!');
+      }
+    } else {
+      if (badge) {
+        badge.innerHTML = '⚠️ خطا در اتصال';
+        badge.style.color = '#f87171';
+      }
+      if (!silent) alert('خطا در ذخیره ابری: ' + resp.statusText);
+    }
+  } catch(e) {
+    if (badge) {
+      badge.innerHTML = '⚠️ آفلاین';
+      badge.style.color = '#f87171';
+    }
+    if (!silent) console.error('Cloud push error:', e);
+  }
+}
+
+async function pullFromCloudStorage(silent = false) {
+  const keyInput = document.getElementById('cloudSyncKeyInput');
+  if (keyInput && keyInput.value) {
+    setCloudSyncKey(keyInput.value);
+  }
+  const syncKey = getEffectiveCloudKey();
+  const badge = document.getElementById('cloudStatusBadge');
+
+  if (badge) {
+    badge.innerHTML = '🔄 در حال دریافت...';
+    badge.style.color = '#38bdf8';
+  }
+
+  try {
+    const resp = await fetch(CLOUD_KV_BUCKET + syncKey);
+    if (resp.ok) {
+      const data = await resp.json();
+      if (data && data.profiles && Array.isArray(data.profiles)) {
+        allProfiles = data.profiles;
+        if (data.custom) customExercises = data.custom;
+        if (data.activeId) activeProfileId = data.activeId;
+        saveProfiles();
+        saveCustomExercises();
+        renderApp();
+
+        const now = new Date().toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
+        if (badge) {
+          badge.innerHTML = `🟢 همگام با ابر (${now})`;
+          badge.style.color = '#34d399';
+        }
+        if (!silent) {
+          showToast('✅ آخرین نسخه برنامه با موفقیت از سرور ابری دریافت و اعمال شد!');
+        }
+        return true;
+      }
+    } else if (resp.status === 404) {
+      if (!silent) {
+        alert('شناسه ابری "' + syncKey + '" هنوز در سرور ابری اطلاعاتی ندارد. لطفاً ابتدا روی "ذخیره در سرور ابری" بزنید.');
+      }
+    }
+  } catch(e) {
+    if (!silent) console.error('Cloud pull error:', e);
+  }
+  return false;
+}
+
+// --- Sync Modal UI Handlers ---
 function openSyncBackupModal() {
-  document.getElementById('syncBackupModal')?.classList.add('open');
-}
+  const syncKey = getEffectiveCloudKey();
+  const keyInput = document.getElementById('cloudSyncKeyInput');
+  if (keyInput) keyInput.value = syncKey;
 
-function closeSyncBackupModal() {
-  document.getElementById('syncBackupModal')?.classList.remove('open');
-}
+  const autoToggle = document.getElementById('autoCloudSyncToggle');
+  if (autoToggle) autoToggle.checked = isAutoCloudSyncEnabled();
 
-function copyDirectSyncLink() {
+  const syncInput = document.getElementById('syncUrlDisplayInput');
   try {
     const payload = {
       version: 'v8',
@@ -5872,17 +6045,48 @@ function copyDirectSyncLink() {
       timestamp: Date.now()
     };
     const jsonStr = JSON.stringify(payload);
-    // Base64 encode with UTF-8 support
     const b64 = btoa(encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode('0x' + p1)));
     const syncUrl = window.location.origin + window.location.pathname + '#sync=' + b64;
+    if (syncInput) syncInput.value = syncUrl;
+  } catch(e) {}
 
-    navigator.clipboard.writeText(syncUrl).then(() => {
-      showToast('📋 لینک اختصاصی کپی شد! در مرورگر گوشی بازش کنید.');
+  document.getElementById('syncBackupModal')?.classList.add('open');
+}
+
+function closeSyncBackupModal() {
+  document.getElementById('syncBackupModal')?.classList.remove('open');
+}
+
+function copyDirectSyncLink() {
+  const syncInput = document.getElementById('syncUrlDisplayInput');
+  if (syncInput && syncInput.value) {
+    syncInput.select();
+    syncInput.setSelectionRange(0, 99999);
+    try {
+      navigator.clipboard.writeText(syncInput.value).then(() => {
+        showToast('📋 لینک با موفقیت کپی شد!');
+      }).catch(() => {
+        document.execCommand('copy');
+        showToast('📋 لینک کپی شد!');
+      });
+    } catch(e) {
+      document.execCommand('copy');
+      showToast('📋 لینک کپی شد!');
+    }
+  }
+}
+
+function copyRawProfileJson() {
+  const prof = getActiveProfile();
+  const rawStr = JSON.stringify(prof, null, 2);
+  try {
+    navigator.clipboard.writeText(rawStr).then(() => {
+      showToast('💾 کد تنظیمات کپی شد! آن را برای دستیار بفرستید تا دائمی شود.');
     }).catch(() => {
-      prompt('لینک زیر را کپی کرده و در گوشی باز کنید:', syncUrl);
+      prompt('کد زیر را کپی کرده و بفرستید:', rawStr);
     });
   } catch(e) {
-    alert('خطا در تولید لینک همگام‌سازی: ' + e.message);
+    prompt('کد زیر را کپی کرده و بفرستید:', rawStr);
   }
 }
 
