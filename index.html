@@ -777,9 +777,9 @@ tr:nth-child(even) { background: rgba(255, 255, 255, 0.02); }
       <span>ریست ست‌ها</span>
     </button>
 
-    <button class="btn-header-action" onclick="openSyncBackupModal()" title="انتقال برنامه به گوشی یا مرورگر دیگر و پشتیبان‌گیری" style="border-color:#10b98188; color:#34d399;">
-      <span>📲</span>
-      <span>همگام‌سازی / انتقال</span>
+    <button class="btn-header-action" onclick="openSyncBackupModal()" title="پایگاه ابری زنده و همگام‌سازی خودکار بین تمام گوشی‌ها و مرورگرها" style="border-color:#00f2fe88; color:#00f2fe; background:rgba(0,242,254,0.12);">
+      <span>☁️</span>
+      <span>همگام‌سازی ابری</span>
     </button>
 
     <button id="todayJumpBtn" class="btn-header-action" title="پرش به روز جاری">
@@ -1450,19 +1450,6 @@ tr:nth-child(even) { background: rgba(255, 255, 255, 0.02); }
           <input type="checkbox" id="autoCloudSyncToggle" onchange="toggleAutoCloudSync(this.checked)" checked>
           <span style="position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background:#334155; transition:.3s; border-radius:20px;" class="slider"></span>
         </label>
-      </div>
-    </div>
-
-    <!-- Fallback 1-Click Link -->
-    <div style="background:#152033; border:1px solid var(--border-color); border-radius:12px; padding:10px 12px; margin-bottom:10px;">
-      <div style="font-size:12px; font-weight:800; color:#38bdf8; margin-bottom:4px;">
-        🔗 لینک انتقال مستقیم (روش جایگزین آفلاین)
-      </div>
-      <div style="display:flex; gap:6px;">
-        <input type="text" id="syncUrlDisplayInput" class="form-input" readonly style="font-size:10.5px; direction:ltr; text-align:left; color:#94a3b8;" value="">
-        <button class="btn-header-action" style="flex-shrink:0; padding:6px 10px; font-size:11px;" onclick="copyDirectSyncLink()">
-          📋 کپی لینک
-        </button>
       </div>
     </div>
 
@@ -6224,6 +6211,15 @@ document.addEventListener('keydown', (e) => {
     closeAllModals();
   }
 });
+
+// Register Service Worker with Auto Cache-Busting
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').then((reg) => {
+      reg.update();
+    }).catch((err) => {});
+  });
+}
 
 </script>
 </body>
