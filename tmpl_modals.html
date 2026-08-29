@@ -568,6 +568,35 @@
   </div>
 </div>
 
+<!-- Detailed Muscle Group Breakdown Modal -->
+<div id="muscleDetailModal" class="modal-overlay">
+  <div class="modal-dialog" style="max-width: 520px;">
+    <button class="modal-close-btn" onclick="closeMuscleDetailModal()">✕</button>
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+      <span style="font-size:24px;">📊</span>
+      <h3 id="muscleDetailModalTitle" style="margin:0;">تحلیل آناتومیک و تفکیک حجم</h3>
+    </div>
+    <p id="muscleDetailModalSubtitle" style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+      تفکیک علمی ست‌های پرفشار باشگاه و حرکات ثبات و فعال‌سازی در خانه
+    </p>
+
+    <!-- Quick Stats Summary Row -->
+    <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; margin-bottom:12px;" id="muscleDetailStatsRow"></div>
+
+    <div style="font-size:12px; font-weight:800; color:#38bdf8; margin-bottom:6px;">
+      📋 لیست کامل حرکات درگیر در طول هفته:
+    </div>
+
+    <div id="muscleDetailExercisesList" style="max-height:320px; overflow-y:auto; display:flex; flex-direction:column; gap:6px; padding-right:2px;"></div>
+
+    <div style="margin-top:14px; text-align:center;">
+      <button class="btn-header-action" style="width:100%; justify-content:center; padding:9px;" onclick="closeMuscleDetailModal()">
+        بستن ✕
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- Floating Toast Message Container -->
 <div id="toastMsg" class="toast-msg">
   <span>✅</span>
