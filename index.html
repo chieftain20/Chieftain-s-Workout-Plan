@@ -866,6 +866,11 @@ input:checked + .slider:before {
       <span>همگام‌سازی ابری</span>
     </button>
 
+    <button id="quickRefreshCloudBtn" class="btn-header-action" onclick="forceSyncAndHardRefresh(this)" title="دریافت آخرین نسخه از سرور ابری و رفرش کامل بدون کش" style="border-color:#10b98188; color:#34d399; background:rgba(16,185,129,0.08);">
+      <span>🔄</span>
+      <span>به‌روزرسانی و رفرش</span>
+    </button>
+
     <button id="todayJumpBtn" class="btn-header-action" title="پرش به روز جاری">
       <span>🎯</span>
       <span>امروز</span>
@@ -1435,6 +1440,25 @@ input:checked + .slider:before {
           <option value="4">۴ ست</option>
           <option value="5">۵ ست</option>
         </select>
+      </div>
+    </div>
+
+    <!-- Superset Conversion / Split Option in Quick Edit -->
+    <div id="quickEditSupersetSection" style="background:#152033; border:1px solid var(--border-color); border-radius:10px; padding:10px 12px; margin-top:12px;">
+      <div id="quickEditNotSupersetBox">
+        <div style="font-size:12px; font-weight:800; color:#00f2fe; margin-bottom:4px;">⚡ ترکیب و سوپرست کردن این حرکت</div>
+        <p style="font-size:11px; color:#94a3b8; margin-bottom:8px;">می‌توانید این حرکت را با یک حرکت دیگر از بانک حرکات جفت و سوپرست کنید:</p>
+        <button class="btn-header-action btn-action-primary" style="width:100%; justify-content:center; padding:8px; font-size:12px; font-weight:800;" onclick="startSupersetFromQuickEdit()">
+          ⚡ تبدیل به سوپرست دوتایی
+        </button>
+      </div>
+
+      <div id="quickEditIsSupersetBox" style="display:none;">
+        <div style="font-size:12px; font-weight:800; color:#fcd34d; margin-bottom:4px;">⚡ این حرکت در حال حاضر درون یک سوپرست است</div>
+        <p style="font-size:11px; color:#94a3b8; margin-bottom:8px;">می‌توانید این حرکت را از سوپرست جدا کرده و به عنوان یک حرکت تکی مستقل ذخیره کنید:</p>
+        <button class="btn-header-action" style="width:100%; justify-content:center; padding:8px; font-size:12px; font-weight:800; border-color:#fcd34d88; color:#fcd34d;" onclick="splitSupersetFromQuickEdit()">
+          ✂️ تفکیک و تبدیل به حرکت تکی مستقل
+        </button>
       </div>
     </div>
 
@@ -4103,7 +4127,57 @@ function openQuickEditExModal(dayId, exId, reps, sets, isSuperset) {
 
   document.getElementById('quickEditExReps').value = reps || ex.defaultReps || '3 × 8–12';
   document.getElementById('quickEditExSets').value = String(sets || 3);
+
+  // Toggle Superset UI boxes
+  const notSsBox = document.getElementById('quickEditNotSupersetBox');
+  const isSsBox = document.getElementById('quickEditIsSupersetBox');
+  if (notSsBox && isSsBox) {
+    notSsBox.style.display = isSuperset ? 'none' : 'block';
+    isSsBox.style.display = isSuperset ? 'block' : 'none';
+  }
+
   document.getElementById('quickEditExModal').classList.add('open');
+}
+
+function startSupersetFromQuickEdit() {
+  const { dayId, exId } = currentQuickEditTarget;
+  const prof = getActiveProfile();
+  const dIdx = prof.days.findIndex(d => d.id === dayId);
+  if (dIdx < 0) return;
+  const day = prof.days[dIdx];
+  const sIdx = day.singles ? day.singles.findIndex(s => s.exId === exId) : -1;
+  if (sIdx < 0) return;
+
+  closeQuickEditExModal();
+  openConvertToSupersetModal(dIdx, sIdx);
+}
+
+function splitSupersetFromQuickEdit() {
+  const { dayId, exId } = currentQuickEditTarget;
+  const prof = getActiveProfile();
+  const day = prof.days.find(d => d.id === dayId);
+  if (!day || !day.supersets) return;
+
+  let foundItem = null;
+  for (const ss of day.supersets) {
+    const idx = ss.exercises.findIndex(e => e.exId === exId);
+    if (idx >= 0) {
+      foundItem = ss.exercises.splice(idx, 1)[0];
+      break;
+    }
+  }
+
+  // Remove any empty supersets
+  day.supersets = day.supersets.filter(ss => ss.exercises.length > 0);
+
+  if (foundItem) {
+    if (!day.singles) day.singles = [];
+    day.singles.push(foundItem);
+    saveProfiles();
+    closeQuickEditExModal();
+    renderApp();
+    showToast(`✂️ حرکت "${findExerciseById(exId).fa}" از سوپرست تفکیک و به حرکت تکی تبدیل شد!`);
+  }
 }
 
 function closeQuickEditExModal() {
@@ -6187,6 +6261,45 @@ async function pullFromCloudStorage(silent = false) {
     if (!silent) console.error('Cloud pull error:', e);
   }
   return false;
+}
+
+async function forceSyncAndHardRefresh(btn) {
+  if (btn) {
+    btn.style.opacity = '0.5';
+    btn.innerHTML = '<span>🔄</span> <span>در حال دریافت...</span>';
+  }
+  showToast('🔄 در حال استعلام آخرین تغییرات از سرور ابری...');
+
+  // 1. Force update Service Worker cache if online
+  if ('serviceWorker' in navigator) {
+    try {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      for (const r of regs) {
+        await r.update();
+      }
+    } catch(e) {}
+  }
+
+  // 2. Pull latest from Cloud KV DB
+  try {
+    const success = await pullFromCloudStorage(true);
+    if (success) {
+      showToast('🎉 آخرین نسخه برنامه از سرور ابری دریافت و رفرش شد!');
+    } else {
+      loadAppData();
+      renderApp();
+      showToast('✅ صفحه با موفقیت به‌روزرسانی و رفرش شد!');
+    }
+  } catch(e) {
+    loadAppData();
+    renderApp();
+    showToast('✅ رفرش محلی انجام شد.');
+  }
+
+  if (btn) {
+    btn.style.opacity = '1';
+    btn.innerHTML = '<span>🔄</span> <span>به‌روزرسانی و رفرش</span>';
+  }
 }
 
 // --- Sync Modal UI Handlers ---
