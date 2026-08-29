@@ -602,56 +602,71 @@
   <div class="modal-dialog" style="max-width: 520px;">
     <button class="modal-close-btn" onclick="closeSyncBackupModal()">✕</button>
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
-      <span style="font-size:24px;">📲</span>
-      <h3 style="margin:0;">همگام‌سازی و انتقال برنامه بین دستگاه‌ها</h3>
+      <span style="font-size:24px;">☁️</span>
+      <h3 style="margin:0;">پایگاه ابری اختصاصی و همگام‌سازی خودکار</h3>
     </div>
     <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
-      چگونه برنامه‌ها، ست‌ها و تغییرات خود را روی تمام گوشی‌ها و مرورگرها داشته باشید:
+      برنامه تمرینی شما بدون نیاز به هیچ فایلی، به طور زنده و خودکار بین تمام دستگاه‌ها و مرورگرها همگام می‌شود:
     </p>
 
-    <!-- Method 1: Instant 1-Click Sync Link -->
-    <div style="background:#152033; border:1px solid rgba(56,189,248,0.3); border-radius:12px; padding:12px; margin-bottom:10px;">
-      <div style="font-size:13px; font-weight:800; color:#38bdf8; margin-bottom:4px;">
-        ⚡ روش اول: لینک انتقال فوری به گوشی
+    <!-- Cloud Sync Database System -->
+    <div style="background:#152033; border:1px solid rgba(0,242,254,0.35); border-radius:12px; padding:14px; margin-bottom:12px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <span style="font-size:13px; font-weight:800; color:#00f2fe;">☁️ حساب ابری همگام‌سازی (<bdi>Live Cloud Sync</bdi>)</span>
+        <span id="cloudStatusBadge" style="font-size:10.5px; padding:2px 8px; border-radius:10px; background:rgba(16,185,129,0.15); color:#34d399; font-weight:800;">🟢 آماده اتصال</span>
       </div>
-      <p style="font-size:11.5px; color:#cbd5e1; margin-bottom:8px; line-height:1.5;">
-        لینک زیر را کپی کرده و در مرورگر گوشی باز کنید تا برنامه‌تان در ۱ ثانیه همگام و ذخیره شود:
-      </p>
-      <div style="display:flex; gap:6px; margin-bottom:6px;">
-        <input type="text" id="syncUrlDisplayInput" class="form-input" readonly style="font-size:11px; direction:ltr; text-align:left; color:#38bdf8;" value="">
-        <button class="btn-header-action btn-action-primary" style="flex-shrink:0; padding:8px 12px; font-weight:800;" onclick="copyDirectSyncLink()">
+
+      <div class="form-group" style="margin-bottom:10px;">
+        <label class="form-label" style="font-size:11.5px;">شناسه اختصاصی شما در سرور ابری (<bdi>Cloud Sync Key</bdi>):</label>
+        <div style="display:flex; gap:6px;">
+          <input type="text" id="cloudSyncKeyInput" class="form-input" placeholder="نام یا شناسه شما مثلا hossein..." style="font-size:13px; font-weight:800; direction:ltr; text-align:center; color:#38bdf8; letter-spacing:1px;">
+          <button class="btn-header-action" style="flex-shrink:0; padding:8px 12px;" onclick="generateRandomSyncKey()" title="تولید شناسه رندوم جدید">🎲</button>
+        </div>
+        <div style="font-size:10.5px; color:#94a3b8; margin-top:3px;">
+          💡 فقط کافیست همین شناسه را در گوشی یا هر مرورگر دیگری وارد کنید تا برنامه‌تان متصل شود.
+        </div>
+      </div>
+
+      <div style="display:flex; gap:8px; margin-bottom:8px;">
+        <button class="btn-header-action btn-action-primary" style="flex:1; justify-content:center; padding:10px; font-weight:800;" onclick="pushToCloudStorage()">
+          ☁️ ذخیره در سرور ابری
+        </button>
+        <button class="btn-header-action btn-action-success" style="flex:1; justify-content:center; padding:10px; font-weight:800;" onclick="pullFromCloudStorage()">
+          📥 دریافت از سرور ابری
+        </button>
+      </div>
+
+      <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-light); border-radius:8px; padding:8px 10px; display:flex; align-items:center; justify-content:space-between;">
+        <span style="font-size:11.5px; color:#cbd5e1; font-weight:700;">⚡ همگام‌سازی خودکار در پس‌زمینه (<bdi>Auto-Sync</bdi>)</span>
+        <label class="switch" style="position:relative; display:inline-block; width:38px; height:20px; margin:0;">
+          <input type="checkbox" id="autoCloudSyncToggle" onchange="toggleAutoCloudSync(this.checked)" checked>
+          <span style="position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background:#334155; transition:.3s; border-radius:20px;" class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Fallback 1-Click Link -->
+    <div style="background:#152033; border:1px solid var(--border-color); border-radius:12px; padding:10px 12px; margin-bottom:10px;">
+      <div style="font-size:12px; font-weight:800; color:#38bdf8; margin-bottom:4px;">
+        🔗 لینک انتقال مستقیم (روش جایگزین آفلاین)
+      </div>
+      <div style="display:flex; gap:6px;">
+        <input type="text" id="syncUrlDisplayInput" class="form-input" readonly style="font-size:10.5px; direction:ltr; text-align:left; color:#94a3b8;" value="">
+        <button class="btn-header-action" style="flex-shrink:0; padding:6px 10px; font-size:11px;" onclick="copyDirectSyncLink()">
           📋 کپی لینک
         </button>
       </div>
-      <div id="syncCopiedNotice" style="font-size:11px; color:#34d399; display:none; font-weight:700;">✅ لینک با موفقیت در کلیپ‌بورد کپی شد!</div>
     </div>
 
-    <!-- Method 2: Permanent Source Code Sync -->
-    <div style="background:#152033; border:1px solid rgba(16,185,129,0.3); border-radius:12px; padding:12px; margin-bottom:10px;">
-      <div style="font-size:13px; font-weight:800; color:#34d399; margin-bottom:4px;">
-        🌐 روش دوم: ثبت دائمی و ابدی در سرور اصلی (<bdi>Permanent Server Sync</bdi>)
-      </div>
-      <p style="font-size:11.5px; color:#cbd5e1; margin-bottom:8px; line-height:1.5;">
-        وقتی فایل <bdi>index.html</bdi> را در گیت‌هاب آپلود می‌کنید، تغییرات برای همیشه روی سرور ثبت شده و روی تمام گوشی‌ها و مرورگرها به طور خودکار لود می‌شود. اگر تغییری در مرورگر دادید، می‌توانید کد آن را با دکمه زیر کپی کنید و به دستیار بفرستید تا دائمی شود:
-      </p>
-      <button class="btn-header-action" style="width:100%; justify-content:center; padding:8px; font-size:11.5px; border-color:#34d39966; color:#34d399;" onclick="copyRawProfileJson()">
-        💾 کپی کد تنظیمات من برای ثبت دائمی توسط هوش مصنوعی
-      </button>
-    </div>
-
-    <!-- Method 3: Backup JSON File -->
-    <div style="background:#152033; border:1px solid var(--border-color); border-radius:12px; padding:12px;">
-      <div style="font-size:13px; font-weight:800; color:#fbbf24; margin-bottom:4px;">
-        💾 روش سوم: فایل نسخه پشتیبان (<bdi>Backup JSON</bdi>)
-      </div>
-      <div style="display:flex; gap:8px;">
-        <button class="btn-header-action" style="flex:1; justify-content:center; padding:8px; font-size:11.5px;" onclick="downloadBackupJson()">
-          📥 دانلود فایل پشتیبان
-        </button>
-        <button class="btn-header-action" style="flex:1; justify-content:center; padding:8px; font-size:11.5px; border-color:#fcd34d88; color:#fcd34d;" onclick="document.getElementById('restoreFileInput').click()">
-          📤 بارگذاری فایل پشتیبان
-        </button>
-        <input type="file" id="restoreFileInput" accept=".json" style="display:none;" onchange="handleRestoreFile(this)">
+    <!-- Backup JSON File -->
+    <div style="background:#152033; border:1px solid var(--border-color); border-radius:12px; padding:10px 12px;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-size:12px; font-weight:800; color:#fbbf24;">💾 نسخه پشتیبان فایل (<bdi>Backup JSON</bdi>)</span>
+        <div style="display:flex; gap:6px;">
+          <button class="btn-header-action" style="padding:4px 8px; font-size:10.5px;" onclick="downloadBackupJson()">📥 دانلود</button>
+          <button class="btn-header-action" style="padding:4px 8px; font-size:10.5px; border-color:#fcd34d88; color:#fcd34d;" onclick="document.getElementById('restoreFileInput').click()">📤 بازیابی</button>
+          <input type="file" id="restoreFileInput" accept=".json" style="display:none;" onchange="handleRestoreFile(this)">
+        </div>
       </div>
     </div>
 

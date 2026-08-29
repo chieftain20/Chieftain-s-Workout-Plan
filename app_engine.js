@@ -68,6 +68,9 @@ function loadAppData() {
 
 function saveProfiles() {
   localStorage.setItem('chieftain_profiles_v8', JSON.stringify(allProfiles));
+  if (typeof pushToCloudStorage === 'function' && isAutoCloudSyncEnabled()) {
+    pushToCloudStorage(true);
+  }
 }
 
 function saveCustomExercises() {
@@ -2250,6 +2253,11 @@ document.addEventListener('DOMContentLoaded', () => {
   checkUrlSyncData();
   renderApp();
 
+  // Background Auto-Sync from Cloud on startup
+  if (navigator.onLine && isAutoCloudSyncEnabled()) {
+    pullFromCloudStorage(true);
+  }
+
   const todaySecId = getTodaySectionId();
   const todaySec = document.getElementById(todaySecId);
   if (todaySec) todaySec.classList.add('today-highlight');
@@ -2305,11 +2313,151 @@ function setupSectionObserver() {
 }
 
 // --- Sync & Cloud Backup / Restore Handlers ---
-function openSyncBackupModal() {
-  const syncInput = document.getElementById('syncUrlDisplayInput');
-  const notice = document.getElementById('syncCopiedNotice');
-  if (notice) notice.style.display = 'none';
+// --- Chieftain Real-Time Cloud Sync Database Engine ---
+const CLOUD_KV_BUCKET = 'https://kvdb.io/BgbDquBYHnhVdJyQMuGqds/';
 
+function getEffectiveCloudKey() {
+  let savedKey = localStorage.getItem('chieftain_cloud_sync_key');
+  if (!savedKey) {
+    savedKey = (activeProfileId === 'hossein_chieftain') ? 'hossein' : (activeProfileId === 'morvarid' ? 'morvarid' : 'user_' + activeProfileId.replace(/[^a-zA-Z0-9]/g, ''));
+    localStorage.setItem('chieftain_cloud_sync_key', savedKey);
+  }
+  return savedKey;
+}
+
+function setCloudSyncKey(key) {
+  const cleanKey = key.trim().toLowerCase().replace(/[^a-zA-Z0-9_\-]/g, '');
+  if (!cleanKey) return;
+  localStorage.setItem('chieftain_cloud_sync_key', cleanKey);
+}
+
+function generateRandomSyncKey() {
+  const newKey = 'user_' + Math.random().toString(36).substring(2, 8);
+  const input = document.getElementById('cloudSyncKeyInput');
+  if (input) input.value = newKey;
+  setCloudSyncKey(newKey);
+  showToast('🎲 شناسه جدید ابری تولید شد: ' + newKey);
+}
+
+function isAutoCloudSyncEnabled() {
+  const val = localStorage.getItem('chieftain_auto_cloud_sync');
+  return val === null ? true : val === 'true';
+}
+
+function toggleAutoCloudSync(enabled) {
+  localStorage.setItem('chieftain_auto_cloud_sync', enabled ? 'true' : 'false');
+  showToast(enabled ? '✅ همگام‌سازی خودکار ابری فعال شد' : '⏸ همگام‌سازی خودکار غیرفعال شد');
+}
+
+async function pushToCloudStorage(silent = false) {
+  const keyInput = document.getElementById('cloudSyncKeyInput');
+  if (keyInput && keyInput.value) {
+    setCloudSyncKey(keyInput.value);
+  }
+  const syncKey = getEffectiveCloudKey();
+  const badge = document.getElementById('cloudStatusBadge');
+
+  if (badge) {
+    badge.innerHTML = '🔄 در حال ارسال...';
+    badge.style.color = '#38bdf8';
+  }
+
+  const payload = {
+    version: 'v8',
+    syncKey: syncKey,
+    updatedAt: new Date().toISOString(),
+    activeId: activeProfileId,
+    profiles: allProfiles,
+    custom: customExercises
+  };
+
+  try {
+    const resp = await fetch(CLOUD_KV_BUCKET + syncKey, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+
+    if (resp.ok) {
+      const now = new Date().toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
+      if (badge) {
+        badge.innerHTML = `🟢 متصل و همگام (${now})`;
+        badge.style.color = '#34d399';
+      }
+      if (!silent) {
+        showToast('☁️ تمام برنامه‌ها و تغییرات با موفقیت در سرور ابری ذخیره شدند!');
+      }
+    } else {
+      if (badge) {
+        badge.innerHTML = '⚠️ خطا در اتصال';
+        badge.style.color = '#f87171';
+      }
+      if (!silent) alert('خطا در ذخیره ابری: ' + resp.statusText);
+    }
+  } catch(e) {
+    if (badge) {
+      badge.innerHTML = '⚠️ آفلاین';
+      badge.style.color = '#f87171';
+    }
+    if (!silent) console.error('Cloud push error:', e);
+  }
+}
+
+async function pullFromCloudStorage(silent = false) {
+  const keyInput = document.getElementById('cloudSyncKeyInput');
+  if (keyInput && keyInput.value) {
+    setCloudSyncKey(keyInput.value);
+  }
+  const syncKey = getEffectiveCloudKey();
+  const badge = document.getElementById('cloudStatusBadge');
+
+  if (badge) {
+    badge.innerHTML = '🔄 در حال دریافت...';
+    badge.style.color = '#38bdf8';
+  }
+
+  try {
+    const resp = await fetch(CLOUD_KV_BUCKET + syncKey);
+    if (resp.ok) {
+      const data = await resp.json();
+      if (data && data.profiles && Array.isArray(data.profiles)) {
+        allProfiles = data.profiles;
+        if (data.custom) customExercises = data.custom;
+        if (data.activeId) activeProfileId = data.activeId;
+        saveProfiles();
+        saveCustomExercises();
+        renderApp();
+
+        const now = new Date().toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
+        if (badge) {
+          badge.innerHTML = `🟢 همگام با ابر (${now})`;
+          badge.style.color = '#34d399';
+        }
+        if (!silent) {
+          showToast('✅ آخرین نسخه برنامه با موفقیت از سرور ابری دریافت و اعمال شد!');
+        }
+        return true;
+      }
+    } else if (resp.status === 404) {
+      if (!silent) {
+        alert('شناسه ابری "' + syncKey + '" هنوز در سرور ابری اطلاعاتی ندارد. لطفاً ابتدا روی "ذخیره در سرور ابری" بزنید.');
+      }
+    }
+  } catch(e) {
+    if (!silent) console.error('Cloud pull error:', e);
+  }
+  return false;
+}
+
+// --- Sync Modal UI Handlers ---
+function openSyncBackupModal() {
+  const syncKey = getEffectiveCloudKey();
+  const keyInput = document.getElementById('cloudSyncKeyInput');
+  if (keyInput) keyInput.value = syncKey;
+
+  const autoToggle = document.getElementById('autoCloudSyncToggle');
+  if (autoToggle) autoToggle.checked = isAutoCloudSyncEnabled();
+
+  const syncInput = document.getElementById('syncUrlDisplayInput');
   try {
     const payload = {
       version: 'v8',
@@ -2333,22 +2481,18 @@ function closeSyncBackupModal() {
 
 function copyDirectSyncLink() {
   const syncInput = document.getElementById('syncUrlDisplayInput');
-  const notice = document.getElementById('syncCopiedNotice');
   if (syncInput && syncInput.value) {
     syncInput.select();
     syncInput.setSelectionRange(0, 99999);
     try {
       navigator.clipboard.writeText(syncInput.value).then(() => {
-        if (notice) notice.style.display = 'block';
-        showToast('📋 لینک با موفقیت کپی شد! در مرورگر گوشی بازش کنید.');
+        showToast('📋 لینک با موفقیت کپی شد!');
       }).catch(() => {
         document.execCommand('copy');
-        if (notice) notice.style.display = 'block';
         showToast('📋 لینک کپی شد!');
       });
     } catch(e) {
       document.execCommand('copy');
-      if (notice) notice.style.display = 'block';
       showToast('📋 لینک کپی شد!');
     }
   }
