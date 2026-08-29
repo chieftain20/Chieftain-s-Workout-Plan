@@ -123,6 +123,7 @@ function renderApp() {
   renderWorkoutDays();
   loadSavedSets();
   updateAllProgressBars();
+  setupSectionObserver();
 }
 
 function renderProfileSelect() {
@@ -2246,6 +2247,7 @@ function getTodaySectionId() {
 
 document.addEventListener('DOMContentLoaded', () => {
   loadAppData();
+  checkUrlSyncData();
   renderApp();
 
   const todaySecId = getTodaySectionId();
@@ -2264,45 +2266,152 @@ document.getElementById('todayJumpBtn')?.addEventListener('click', () => {
   document.getElementById(todaySecId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
 
-let isScrollTicking = false;
-window.addEventListener('scroll', () => {
-  if (!isScrollTicking) {
-    window.requestAnimationFrame(() => {
-      let current = '';
-      const scrollPos = window.pageYOffset || document.documentElement.scrollTop || 0;
-      const sections = document.querySelectorAll('.day-section, .summary-card');
-      
-      for (let i = 0; i < sections.length; i++) {
-        const sec = sections[i];
-        if (scrollPos >= sec.offsetTop - 140) {
-          current = sec.getAttribute('id');
-        }
-      }
+// Native Asynchronous IntersectionObserver (Zero layout thrashing, 120fps smooth scrolling)
+let activeSectionObserver = null;
 
-      if (current) {
-        document.querySelectorAll('.nav-tab').forEach(tab => {
-          const isCurrent = tab.getAttribute('href') === '#' + current;
-          if (tab.classList.contains('active') !== isCurrent) {
+function setupSectionObserver() {
+  if (activeSectionObserver) {
+    activeSectionObserver.disconnect();
+  }
+
+  activeSectionObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const secId = entry.target.getAttribute('id');
+        if (secId) {
+          document.querySelectorAll('.nav-tab').forEach(tab => {
+            const isCurrent = tab.getAttribute('href') === '#' + secId;
             tab.classList.toggle('active', isCurrent);
-          }
-        });
+          });
 
-        const activeSec = document.getElementById(current);
-        if (activeSec) {
-          const btns = activeSec.querySelectorAll('.set-btn');
+          const btns = entry.target.querySelectorAll('.set-btn');
           if (btns.length) {
-            const doneBtns = activeSec.querySelectorAll('.set-btn.done');
+            const doneBtns = entry.target.querySelectorAll('.set-btn.done');
             const pct = Math.round((doneBtns.length / btns.length) * 100);
             const stickyFill = document.getElementById('globalStickyProgress');
             if (stickyFill) stickyFill.style.width = pct + '%';
           }
         }
       }
-      isScrollTicking = false;
     });
-    isScrollTicking = true;
+  }, {
+    rootMargin: '-10% 0px -65% 0px',
+    threshold: 0.05
+  });
+
+  document.querySelectorAll('.day-section, .summary-card').forEach(sec => {
+    activeSectionObserver.observe(sec);
+  });
+}
+
+// --- Sync & Cloud Backup / Restore Handlers ---
+function openSyncBackupModal() {
+  document.getElementById('syncBackupModal')?.classList.add('open');
+}
+
+function closeSyncBackupModal() {
+  document.getElementById('syncBackupModal')?.classList.remove('open');
+}
+
+function copyDirectSyncLink() {
+  try {
+    const payload = {
+      version: 'v8',
+      activeId: activeProfileId,
+      profiles: allProfiles,
+      custom: customExercises,
+      timestamp: Date.now()
+    };
+    const jsonStr = JSON.stringify(payload);
+    // Base64 encode with UTF-8 support
+    const b64 = btoa(encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode('0x' + p1)));
+    const syncUrl = window.location.origin + window.location.pathname + '#sync=' + b64;
+
+    navigator.clipboard.writeText(syncUrl).then(() => {
+      showToast('📋 لینک اختصاصی کپی شد! در مرورگر گوشی بازش کنید.');
+    }).catch(() => {
+      prompt('لینک زیر را کپی کرده و در گوشی باز کنید:', syncUrl);
+    });
+  } catch(e) {
+    alert('خطا در تولید لینک همگام‌سازی: ' + e.message);
   }
-}, { passive: true });
+}
+
+function checkUrlSyncData() {
+  try {
+    const hash = window.location.hash || '';
+    if (hash.startsWith('#sync=')) {
+      const b64 = hash.replace('#sync=', '');
+      const jsonStr = decodeURIComponent(Array.prototype.map.call(atob(b64), (c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+      const payload = JSON.parse(jsonStr);
+
+      if (payload && payload.profiles && Array.isArray(payload.profiles)) {
+        allProfiles = payload.profiles;
+        if (payload.custom) customExercises = payload.custom;
+        if (payload.activeId) activeProfileId = payload.activeId;
+        saveProfiles();
+        saveCustomExercises();
+        history.replaceState(null, document.title, window.location.pathname);
+        showToast('🎉 برنامه‌ها و تغییرات با موفقیت همگام‌سازی و ذخیره شدند!');
+      }
+    }
+  } catch(e) {
+    console.error('Error importing sync link:', e);
+  }
+}
+
+function downloadBackupJson() {
+  try {
+    const payload = {
+      app: 'Chieftain Workout PWA',
+      version: 'v8',
+      exportDate: new Date().toISOString(),
+      activeProfileId: activeProfileId,
+      profiles: allProfiles,
+      customExercises: customExercises
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `chieftain_workout_backup_${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('📥 فایل پشتیبان با موفقیت دانلود شد!');
+  } catch(e) {
+    alert('خطا در دانلود پشتیبان: ' + e.message);
+  }
+}
+
+function handleRestoreFile(input) {
+  const file = input.files?.[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data && data.profiles && Array.isArray(data.profiles)) {
+        allProfiles = data.profiles;
+        if (data.customExercises) customExercises = data.customExercises;
+        if (data.activeProfileId) activeProfileId = data.activeProfileId;
+        saveProfiles();
+        saveCustomExercises();
+        closeSyncBackupModal();
+        renderApp();
+        showToast('✅ فایل پشتیبان با موفقیت بازیابی شد!');
+      } else {
+        alert('فرمت فایل نامعتبر است.');
+      }
+    } catch(err) {
+      alert('خطا در پردازش فایل: ' + err.message);
+    }
+    input.value = '';
+  };
+  reader.readAsText(file, 'utf-8');
+}
 
 document.getElementById('searchInput')?.addEventListener('input', (e) => {
   const term = e.target.value.toLowerCase().trim();

@@ -190,15 +190,16 @@ nav::-webkit-scrollbar { display: none; }
   transition: width 0.3s ease;
 }
 
-/* Day Section */
+/* Day Section (Fast Native 120Hz Rendering) */
 .day-section {
   background: var(--bg-card); border: 1px solid var(--border-color);
   border-radius: var(--radius-lg); padding: 18px 14px; margin-bottom: 20px;
-  box-shadow: var(--shadow-card); scroll-margin-top: 110px; transition: border-color 0.2s ease;
+  scroll-margin-top: 110px; transition: border-color 0.2s ease;
+  content-visibility: auto; contain-intrinsic-size: 500px;
 }
 
 .day-section.today-highlight {
-  border-color: rgba(0, 242, 254, 0.4); box-shadow: var(--shadow-card), 0 0 20px rgba(0, 242, 254, 0.08);
+  border-color: rgba(0, 242, 254, 0.4);
 }
 
 .day-header {
@@ -227,7 +228,7 @@ nav::-webkit-scrollbar { display: none; }
   margin-bottom: 14px; display: flex; align-items: center; gap: 6px;
 }
 
-/* 100% Celebration Banner */
+/* 100% Celebration Banner (Static clean CSS) */
 .day-complete-banner {
   background: linear-gradient(135deg, rgba(16, 185, 129, 0.22), rgba(5, 150, 105, 0.12));
   border: 1px solid rgba(52, 211, 153, 0.45);
@@ -240,12 +241,6 @@ nav::-webkit-scrollbar { display: none; }
   color: #34d399;
   font-weight: 800;
   font-size: 12.5px;
-  animation: pulseGlow 2.5s infinite;
-}
-
-@keyframes pulseGlow {
-  0%, 100% { box-shadow: 0 0 15px rgba(16, 185, 129, 0.2); }
-  50% { box-shadow: 0 0 25px rgba(16, 185, 129, 0.45); }
 }
 
 /* Superset Block */
@@ -396,20 +391,21 @@ nav::-webkit-scrollbar { display: none; }
 .timer-fab:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(56, 189, 248, 0.4); }
 .timer-fab.running { background: linear-gradient(135deg, #10b981, #059669); border-color: #34d399; }
 
-/* Modals */
+/* Modals (Zero GPU overhead when closed) */
 .modal-overlay {
   position: fixed; inset: 0; z-index: 1000;
-  background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-  display: flex; align-items: center; justify-content: center; padding: 14px;
-  opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
+  background: rgba(0, 0, 0, 0.8);
+  display: none; align-items: center; justify-content: center; padding: 14px;
 }
 
-.modal-overlay.open { opacity: 1; pointer-events: auto; }
+.modal-overlay.open {
+  display: flex !important;
+}
 
 .modal-dialog {
   background: #0d1527; border: 1px solid var(--border-color);
   border-radius: var(--radius-lg); padding: 20px 16px; width: 100%; max-width: 600px;
-  max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+  max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9);
   position: relative;
 }
 

@@ -27,6 +27,11 @@ with open('tmpl_body.html', 'r', encoding='utf-8') as f:
 with open('tmpl_modals.html', 'r', encoding='utf-8') as f:
     modals_html = f.read()
 
+with open('styles.css', 'r', encoding='utf-8') as f:
+    styles_css = f.read()
+
+head_html = head_html.replace('<link rel="stylesheet" href="styles.css">', f'<style>\n{styles_css}\n</style>')
+
 with open('master_exercises.json', 'r', encoding='utf-8') as f:
     master_ex_json = f.read()
 
