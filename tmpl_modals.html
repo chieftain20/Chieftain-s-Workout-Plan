@@ -645,14 +645,23 @@
       </div>
     </div>
 
-    <!-- Backup JSON File -->
-    <div style="background:#152033; border:1px solid var(--border-color); border-radius:12px; padding:10px 12px;">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <span style="font-size:12px; font-weight:800; color:#fbbf24;">💾 نسخه پشتیبان فایل (<bdi>Backup JSON</bdi>)</span>
+    <!-- Backup JSON / Direct JSON Paste Section -->
+    <div style="background:#152033; border:1px solid var(--border-color); border-radius:12px; padding:12px; margin-bottom:10px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <span style="font-size:12.5px; font-weight:800; color:#fbbf24;">💾 پشتیبان‌گیری و بارگذاری فایل / متن (<bdi>JSON</bdi>)</span>
         <div style="display:flex; gap:6px;">
-          <button class="btn-header-action" style="padding:4px 8px; font-size:10.5px;" onclick="downloadBackupJson()">📥 دانلود</button>
-          <button class="btn-header-action" style="padding:4px 8px; font-size:10.5px; border-color:#fcd34d88; color:#fcd34d;" onclick="document.getElementById('restoreFileInput').click()">📤 بازیابی</button>
+          <button class="btn-header-action" style="padding:4px 8px; font-size:10.5px;" onclick="downloadBackupJson()">📥 دانلود فایل</button>
+          <button class="btn-header-action" style="padding:4px 8px; font-size:10.5px; border-color:#fcd34d88; color:#fcd34d;" onclick="document.getElementById('restoreFileInput').click()">📁 انتخاب فایل</button>
           <input type="file" id="restoreFileInput" accept=".json" style="display:none;" onchange="handleRestoreFile(this)">
+        </div>
+      </div>
+      <div style="margin-top:6px;">
+        <div style="font-size:11px; color:#cbd5e1; margin-bottom:4px;">یا متن / کد JSON برنامه را در کادر زیر پیست کرده و دکمه اعمال را بزنید:</div>
+        <div style="display:flex; gap:6px;">
+          <input type="text" id="pasteJsonInput" class="form-input" placeholder='{"app":"Chieftain Workout PWA", ...}' style="font-size:11px; direction:ltr; text-align:left;">
+          <button class="btn-header-action btn-action-success" style="flex-shrink:0; padding:6px 12px; font-weight:800; font-size:11.5px;" onclick="applyPastedJson()">
+            ⚡ اعمال کد
+          </button>
         </div>
       </div>
     </div>

@@ -2588,6 +2588,32 @@ function handleRestoreFile(input) {
   reader.readAsText(file, 'utf-8');
 }
 
+function applyPastedJson() {
+  const input = document.getElementById('pasteJsonInput');
+  if (!input || !input.value.trim()) {
+    alert('لطفاً ابتدا متن JSON را در کادر قرار دهید.');
+    return;
+  }
+  try {
+    const data = JSON.parse(input.value.trim());
+    if (data && data.profiles && Array.isArray(data.profiles)) {
+      allProfiles = data.profiles;
+      if (data.customExercises) customExercises = data.customExercises;
+      if (data.activeProfileId) activeProfileId = data.activeProfileId;
+      saveProfiles();
+      saveCustomExercises();
+      closeSyncBackupModal();
+      renderApp();
+      showToast('✅ برنامه با موفقیت از متن JSON اعمال و ذخیره شد!');
+      input.value = '';
+    } else {
+      alert('ساختار کد JSON نامعتبر است.');
+    }
+  } catch(e) {
+    alert('خطا در خواندن کد JSON: ' + e.message);
+  }
+}
+
 document.getElementById('searchInput')?.addEventListener('input', (e) => {
   const term = e.target.value.toLowerCase().trim();
   document.querySelectorAll('.exercise-card, .superset-block').forEach(card => {

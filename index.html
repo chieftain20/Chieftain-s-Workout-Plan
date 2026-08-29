@@ -1453,14 +1453,23 @@ tr:nth-child(even) { background: rgba(255, 255, 255, 0.02); }
       </div>
     </div>
 
-    <!-- Backup JSON File -->
-    <div style="background:#152033; border:1px solid var(--border-color); border-radius:12px; padding:10px 12px;">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <span style="font-size:12px; font-weight:800; color:#fbbf24;">💾 نسخه پشتیبان فایل (<bdi>Backup JSON</bdi>)</span>
+    <!-- Backup JSON / Direct JSON Paste Section -->
+    <div style="background:#152033; border:1px solid var(--border-color); border-radius:12px; padding:12px; margin-bottom:10px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <span style="font-size:12.5px; font-weight:800; color:#fbbf24;">💾 پشتیبان‌گیری و بارگذاری فایل / متن (<bdi>JSON</bdi>)</span>
         <div style="display:flex; gap:6px;">
-          <button class="btn-header-action" style="padding:4px 8px; font-size:10.5px;" onclick="downloadBackupJson()">📥 دانلود</button>
-          <button class="btn-header-action" style="padding:4px 8px; font-size:10.5px; border-color:#fcd34d88; color:#fcd34d;" onclick="document.getElementById('restoreFileInput').click()">📤 بازیابی</button>
+          <button class="btn-header-action" style="padding:4px 8px; font-size:10.5px;" onclick="downloadBackupJson()">📥 دانلود فایل</button>
+          <button class="btn-header-action" style="padding:4px 8px; font-size:10.5px; border-color:#fcd34d88; color:#fcd34d;" onclick="document.getElementById('restoreFileInput').click()">📁 انتخاب فایل</button>
           <input type="file" id="restoreFileInput" accept=".json" style="display:none;" onchange="handleRestoreFile(this)">
+        </div>
+      </div>
+      <div style="margin-top:6px;">
+        <div style="font-size:11px; color:#cbd5e1; margin-bottom:4px;">یا متن / کد JSON برنامه را در کادر زیر پیست کرده و دکمه اعمال را بزنید:</div>
+        <div style="display:flex; gap:6px;">
+          <input type="text" id="pasteJsonInput" class="form-input" placeholder='{"app":"Chieftain Workout PWA", ...}' style="font-size:11px; direction:ltr; text-align:left;">
+          <button class="btn-header-action btn-action-success" style="flex-shrink:0; padding:6px 12px; font-weight:800; font-size:11.5px;" onclick="applyPastedJson()">
+            ⚡ اعمال کد
+          </button>
         </div>
       </div>
     </div>
@@ -2780,6 +2789,7 @@ const HOSSEIN_PROFILE = {
   "id": "hossein_chieftain",
   "name": "Hossein Chieftain",
   "isDefault": true,
+  "pin": "gym",
   "days": [
     {
       "id": "d1",
@@ -2878,15 +2888,24 @@ const HOSSEIN_PROFILE = {
               "sets": 3
             }
           ]
+        },
+        {
+          "title": "G1 + G2 · کرانچ ایستاده کابل + جلو پا دستگاه",
+          "exercises": [
+            {
+              "exId": "standing_cable_crunch",
+              "reps": "3 × 10–15",
+              "sets": 3
+            },
+            {
+              "exId": "leg_extension",
+              "reps": "3 × 10–15",
+              "sets": 3
+            }
+          ]
         }
       ],
-      "singles": [
-        {
-          "exId": "standing_cable_crunch",
-          "reps": "3 × 10–15",
-          "sets": 3
-        }
-      ]
+      "singles": []
     },
     {
       "id": "d2",
@@ -3021,15 +3040,24 @@ const HOSSEIN_PROFILE = {
               "sets": 3
             }
           ]
+        },
+        {
+          "title": "G1 + G2 · کرانچ نیمکت + ابداکشن ایستاده با صفحه",
+          "exercises": [
+            {
+              "exId": "bench_crunch",
+              "reps": "3 × 12–20",
+              "sets": 3
+            },
+            {
+              "exId": "standing_plate_hip_abduction",
+              "reps": "3 × 10–15",
+              "sets": 3
+            }
+          ]
         }
       ],
-      "singles": [
-        {
-          "exId": "bench_crunch",
-          "reps": "3 × 12–20",
-          "sets": 3
-        }
-      ]
+      "singles": []
     },
     {
       "id": "d4",
@@ -3106,7 +3134,7 @@ const HOSSEIN_PROFILE = {
           ]
         },
         {
-          "title": "B1 + B2 · ددلیفت رومانیایی + ابداکشن ایستاده با صفحه",
+          "title": "B1 + B2 · ددلیفت رومانیایی + پشت بازو طناب",
           "exercises": [
             {
               "exId": "rdl",
@@ -3114,14 +3142,14 @@ const HOSSEIN_PROFILE = {
               "sets": 3
             },
             {
-              "exId": "standing_plate_hip_abduction",
+              "exId": "rope_triceps_pushdown",
               "reps": "3 × 12–15 هر طرف",
               "sets": 3
             }
           ]
         },
         {
-          "title": "C1 + C2 · روئینگ ایزولترال دستگاه + پشت بازو طناب",
+          "title": "C1 + C2 · روئینگ ایزولترال دستگاه + اسکوات قزاقی",
           "exercises": [
             {
               "exId": "iso_lateral_row",
@@ -3129,14 +3157,14 @@ const HOSSEIN_PROFILE = {
               "sets": 3
             },
             {
-              "exId": "rope_triceps_pushdown",
+              "exId": "cossack_squat",
               "reps": "3 × 10–15",
               "sets": 3
             }
           ]
         },
         {
-          "title": "D1 + D2 · جلو بازو لاری + پک‌دک فلای",
+          "title": "D1 + D2 · جلو بازو لاری + شراگ دمبل",
           "exercises": [
             {
               "exId": "preacher_curls",
@@ -3144,7 +3172,7 @@ const HOSSEIN_PROFILE = {
               "sets": 3
             },
             {
-              "exId": "peck_deck_fly",
+              "exId": "dumbbell_shrugs",
               "reps": "3 × 10–15",
               "sets": 3
             }
@@ -3166,10 +3194,10 @@ const HOSSEIN_PROFILE = {
           ]
         },
         {
-          "title": "F1 + F2 · شراگ دمبل + کرانچ ایستاده کابل",
+          "title": "F1 + F2 · پک‌دک فلای + کرانچ ایستاده کابل",
           "exercises": [
             {
-              "exId": "dumbbell_shrugs",
+              "exId": "peck_deck_fly",
               "reps": "3 × 10–15",
               "sets": 3
             },
@@ -3196,13 +3224,7 @@ const HOSSEIN_PROFILE = {
           ]
         }
       ],
-      "singles": [
-        {
-          "exId": "standing_calf_raise_hack",
-          "reps": "3 × 10–15",
-          "sets": 3
-        }
-      ]
+      "singles": []
     },
     {
       "id": "d7",
@@ -3245,8 +3267,7 @@ const HOSSEIN_PROFILE = {
         }
       ]
     }
-  ],
-  "pin": "gym"
+  ]
 };
 const MORVARID_PROFILE = {
   "id": "morvarid",
@@ -6151,6 +6172,32 @@ function handleRestoreFile(input) {
     input.value = '';
   };
   reader.readAsText(file, 'utf-8');
+}
+
+function applyPastedJson() {
+  const input = document.getElementById('pasteJsonInput');
+  if (!input || !input.value.trim()) {
+    alert('لطفاً ابتدا متن JSON را در کادر قرار دهید.');
+    return;
+  }
+  try {
+    const data = JSON.parse(input.value.trim());
+    if (data && data.profiles && Array.isArray(data.profiles)) {
+      allProfiles = data.profiles;
+      if (data.customExercises) customExercises = data.customExercises;
+      if (data.activeProfileId) activeProfileId = data.activeProfileId;
+      saveProfiles();
+      saveCustomExercises();
+      closeSyncBackupModal();
+      renderApp();
+      showToast('✅ برنامه با موفقیت از متن JSON اعمال و ذخیره شد!');
+      input.value = '';
+    } else {
+      alert('ساختار کد JSON نامعتبر است.');
+    }
+  } catch(e) {
+    alert('خطا در خواندن کد JSON: ' + e.message);
+  }
 }
 
 document.getElementById('searchInput')?.addEventListener('input', (e) => {

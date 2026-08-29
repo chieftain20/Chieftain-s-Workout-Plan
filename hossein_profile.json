@@ -2,6 +2,7 @@
   "id": "hossein_chieftain",
   "name": "Hossein Chieftain",
   "isDefault": true,
+  "pin": "gym",
   "days": [
     {
       "id": "d1",
@@ -100,15 +101,24 @@
               "sets": 3
             }
           ]
+        },
+        {
+          "title": "G1 + G2 · کرانچ ایستاده کابل + جلو پا دستگاه",
+          "exercises": [
+            {
+              "exId": "standing_cable_crunch",
+              "reps": "3 × 10–15",
+              "sets": 3
+            },
+            {
+              "exId": "leg_extension",
+              "reps": "3 × 10–15",
+              "sets": 3
+            }
+          ]
         }
       ],
-      "singles": [
-        {
-          "exId": "standing_cable_crunch",
-          "reps": "3 × 10–15",
-          "sets": 3
-        }
-      ]
+      "singles": []
     },
     {
       "id": "d2",
@@ -243,15 +253,24 @@
               "sets": 3
             }
           ]
+        },
+        {
+          "title": "G1 + G2 · کرانچ نیمکت + ابداکشن ایستاده با صفحه",
+          "exercises": [
+            {
+              "exId": "bench_crunch",
+              "reps": "3 × 12–20",
+              "sets": 3
+            },
+            {
+              "exId": "standing_plate_hip_abduction",
+              "reps": "3 × 10–15",
+              "sets": 3
+            }
+          ]
         }
       ],
-      "singles": [
-        {
-          "exId": "bench_crunch",
-          "reps": "3 × 12–20",
-          "sets": 3
-        }
-      ]
+      "singles": []
     },
     {
       "id": "d4",
@@ -328,7 +347,7 @@
           ]
         },
         {
-          "title": "B1 + B2 · ددلیفت رومانیایی + ابداکشن ایستاده با صفحه",
+          "title": "B1 + B2 · ددلیفت رومانیایی + پشت بازو طناب",
           "exercises": [
             {
               "exId": "rdl",
@@ -336,14 +355,14 @@
               "sets": 3
             },
             {
-              "exId": "standing_plate_hip_abduction",
+              "exId": "rope_triceps_pushdown",
               "reps": "3 × 12–15 هر طرف",
               "sets": 3
             }
           ]
         },
         {
-          "title": "C1 + C2 · روئینگ ایزولترال دستگاه + پشت بازو طناب",
+          "title": "C1 + C2 · روئینگ ایزولترال دستگاه + اسکوات قزاقی",
           "exercises": [
             {
               "exId": "iso_lateral_row",
@@ -351,14 +370,14 @@
               "sets": 3
             },
             {
-              "exId": "rope_triceps_pushdown",
+              "exId": "cossack_squat",
               "reps": "3 × 10–15",
               "sets": 3
             }
           ]
         },
         {
-          "title": "D1 + D2 · جلو بازو لاری + پک‌دک فلای",
+          "title": "D1 + D2 · جلو بازو لاری + شراگ دمبل",
           "exercises": [
             {
               "exId": "preacher_curls",
@@ -366,7 +385,7 @@
               "sets": 3
             },
             {
-              "exId": "peck_deck_fly",
+              "exId": "dumbbell_shrugs",
               "reps": "3 × 10–15",
               "sets": 3
             }
@@ -388,10 +407,10 @@
           ]
         },
         {
-          "title": "F1 + F2 · شراگ دمبل + کرانچ ایستاده کابل",
+          "title": "F1 + F2 · پک‌دک فلای + کرانچ ایستاده کابل",
           "exercises": [
             {
-              "exId": "dumbbell_shrugs",
+              "exId": "peck_deck_fly",
               "reps": "3 × 10–15",
               "sets": 3
             },
@@ -418,13 +437,7 @@
           ]
         }
       ],
-      "singles": [
-        {
-          "exId": "standing_calf_raise_hack",
-          "reps": "3 × 10–15",
-          "sets": 3
-        }
-      ]
+      "singles": []
     },
     {
       "id": "d7",
@@ -467,6 +480,5 @@
         }
       ]
     }
-  ],
-  "pin": "gym"
+  ]
 }
