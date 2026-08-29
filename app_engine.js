@@ -395,7 +395,57 @@ function openQuickEditExModal(dayId, exId, reps, sets, isSuperset) {
 
   document.getElementById('quickEditExReps').value = reps || ex.defaultReps || '3 × 8–12';
   document.getElementById('quickEditExSets').value = String(sets || 3);
+
+  // Toggle Superset UI boxes
+  const notSsBox = document.getElementById('quickEditNotSupersetBox');
+  const isSsBox = document.getElementById('quickEditIsSupersetBox');
+  if (notSsBox && isSsBox) {
+    notSsBox.style.display = isSuperset ? 'none' : 'block';
+    isSsBox.style.display = isSuperset ? 'block' : 'none';
+  }
+
   document.getElementById('quickEditExModal').classList.add('open');
+}
+
+function startSupersetFromQuickEdit() {
+  const { dayId, exId } = currentQuickEditTarget;
+  const prof = getActiveProfile();
+  const dIdx = prof.days.findIndex(d => d.id === dayId);
+  if (dIdx < 0) return;
+  const day = prof.days[dIdx];
+  const sIdx = day.singles ? day.singles.findIndex(s => s.exId === exId) : -1;
+  if (sIdx < 0) return;
+
+  closeQuickEditExModal();
+  openConvertToSupersetModal(dIdx, sIdx);
+}
+
+function splitSupersetFromQuickEdit() {
+  const { dayId, exId } = currentQuickEditTarget;
+  const prof = getActiveProfile();
+  const day = prof.days.find(d => d.id === dayId);
+  if (!day || !day.supersets) return;
+
+  let foundItem = null;
+  for (const ss of day.supersets) {
+    const idx = ss.exercises.findIndex(e => e.exId === exId);
+    if (idx >= 0) {
+      foundItem = ss.exercises.splice(idx, 1)[0];
+      break;
+    }
+  }
+
+  // Remove any empty supersets
+  day.supersets = day.supersets.filter(ss => ss.exercises.length > 0);
+
+  if (foundItem) {
+    if (!day.singles) day.singles = [];
+    day.singles.push(foundItem);
+    saveProfiles();
+    closeQuickEditExModal();
+    renderApp();
+    showToast(`✂️ حرکت "${findExerciseById(exId).fa}" از سوپرست تفکیک و به حرکت تکی تبدیل شد!`);
+  }
 }
 
 function closeQuickEditExModal() {
@@ -2479,6 +2529,45 @@ async function pullFromCloudStorage(silent = false) {
     if (!silent) console.error('Cloud pull error:', e);
   }
   return false;
+}
+
+async function forceSyncAndHardRefresh(btn) {
+  if (btn) {
+    btn.style.opacity = '0.5';
+    btn.innerHTML = '<span>🔄</span> <span>در حال دریافت...</span>';
+  }
+  showToast('🔄 در حال استعلام آخرین تغییرات از سرور ابری...');
+
+  // 1. Force update Service Worker cache if online
+  if ('serviceWorker' in navigator) {
+    try {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      for (const r of regs) {
+        await r.update();
+      }
+    } catch(e) {}
+  }
+
+  // 2. Pull latest from Cloud KV DB
+  try {
+    const success = await pullFromCloudStorage(true);
+    if (success) {
+      showToast('🎉 آخرین نسخه برنامه از سرور ابری دریافت و رفرش شد!');
+    } else {
+      loadAppData();
+      renderApp();
+      showToast('✅ صفحه با موفقیت به‌روزرسانی و رفرش شد!');
+    }
+  } catch(e) {
+    loadAppData();
+    renderApp();
+    showToast('✅ رفرش محلی انجام شد.');
+  }
+
+  if (btn) {
+    btn.style.opacity = '1';
+    btn.innerHTML = '<span>🔄</span> <span>به‌روزرسانی و رفرش</span>';
+  }
 }
 
 // --- Sync Modal UI Handlers ---

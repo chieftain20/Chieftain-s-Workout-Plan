@@ -546,6 +546,25 @@
       </div>
     </div>
 
+    <!-- Superset Conversion / Split Option in Quick Edit -->
+    <div id="quickEditSupersetSection" style="background:#152033; border:1px solid var(--border-color); border-radius:10px; padding:10px 12px; margin-top:12px;">
+      <div id="quickEditNotSupersetBox">
+        <div style="font-size:12px; font-weight:800; color:#00f2fe; margin-bottom:4px;">⚡ ترکیب و سوپرست کردن این حرکت</div>
+        <p style="font-size:11px; color:#94a3b8; margin-bottom:8px;">می‌توانید این حرکت را با یک حرکت دیگر از بانک حرکات جفت و سوپرست کنید:</p>
+        <button class="btn-header-action btn-action-primary" style="width:100%; justify-content:center; padding:8px; font-size:12px; font-weight:800;" onclick="startSupersetFromQuickEdit()">
+          ⚡ تبدیل به سوپرست دوتایی
+        </button>
+      </div>
+
+      <div id="quickEditIsSupersetBox" style="display:none;">
+        <div style="font-size:12px; font-weight:800; color:#fcd34d; margin-bottom:4px;">⚡ این حرکت در حال حاضر درون یک سوپرست است</div>
+        <p style="font-size:11px; color:#94a3b8; margin-bottom:8px;">می‌توانید این حرکت را از سوپرست جدا کرده و به عنوان یک حرکت تکی مستقل ذخیره کنید:</p>
+        <button class="btn-header-action" style="width:100%; justify-content:center; padding:8px; font-size:12px; font-weight:800; border-color:#fcd34d88; color:#fcd34d;" onclick="splitSupersetFromQuickEdit()">
+          ✂️ تفکیک و تبدیل به حرکت تکی مستقل
+        </button>
+      </div>
+    </div>
+
     <div style="display:flex; gap:8px; margin-top:14px;">
       <button class="btn-header-action btn-action-success" style="flex:2; justify-content:center; padding:11px; font-weight:800;" onclick="saveQuickEditExercise()">
         💾 اعمال و ذخیره تغییرات
