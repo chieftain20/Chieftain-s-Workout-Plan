@@ -39,7 +39,7 @@
           "sets": 3
         },
         {
-          "exId": "seated_leg_curl_machine",
+          "exId": "leg_curl",
           "reps": "3 × 12–15",
           "sets": 3
         },
@@ -49,7 +49,7 @@
           "sets": 2
         },
         {
-          "exId": "standing_calf_raise_machine",
+          "exId": "standing_calf_raise_hack",
           "reps": "3 × 12–20",
           "sets": 3
         },
@@ -59,7 +59,7 @@
           "sets": 3
         },
         {
-          "exId": "onhand_plank_knee_in",
+          "exId": "straight_arm_bear_plank_knee_extension",
           "reps": "2 × 10–14 هر طرف",
           "sets": 2
         }
@@ -75,7 +75,7 @@
       "supersets": [],
       "singles": [
         {
-          "exId": "clamshell_dumbbell",
+          "exId": "clamshell_band",
           "reps": "2 × 15–20 هر طرف",
           "sets": 2
         },
@@ -111,7 +111,7 @@
       "supersets": [],
       "singles": [
         {
-          "exId": "dumbbell_rdl",
+          "exId": "rdl",
           "reps": "3 × 8–12",
           "sets": 3
         },
@@ -121,8 +121,8 @@
           "sets": 3
         },
         {
-          "exId": "single_leg_cable_hamstring_curl",
-          "reps": "3 × 12–15 هر پا",
+          "exId": "leg_curl",
+          "reps": "3 × 12–15",
           "sets": 3
         },
         {
@@ -136,7 +136,7 @@
           "sets": 2
         },
         {
-          "exId": "neutral_lat_pulldown",
+          "exId": "lat_pulldown",
           "reps": "2 × 10–14",
           "sets": 2
         },
@@ -146,7 +146,7 @@
           "sets": 2
         },
         {
-          "exId": "standing_calf_raise_machine",
+          "exId": "standing_calf_raise_hack",
           "reps": "3 × 12–20",
           "sets": 3
         },
@@ -223,12 +223,12 @@
           "sets": 3
         },
         {
-          "exId": "seated_leg_curl_machine",
+          "exId": "leg_curl",
           "reps": "3 × 12–15",
           "sets": 3
         },
         {
-          "exId": "kettlebell_side_lunge",
+          "exId": "cossack_squat",
           "reps": "2 × 10–12 هر طرف",
           "sets": 2
         },
@@ -238,7 +238,7 @@
           "sets": 2
         },
         {
-          "exId": "standing_calf_raise_machine",
+          "exId": "standing_calf_raise_hack",
           "reps": "3 × 12–20",
           "sets": 3
         },
@@ -269,7 +269,7 @@
       "supersets": [],
       "singles": [
         {
-          "exId": "clamshell_bodyweight",
+          "exId": "clamshell_band",
           "reps": "2 × 15–20 هر طرف",
           "sets": 2
         },

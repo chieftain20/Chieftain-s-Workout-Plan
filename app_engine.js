@@ -219,17 +219,28 @@ function renderVideoButtons(videos) {
     return `<span class="video-missing">آموزش متنی / بزودی</span>`;
   }
 
-  if (videos.length === 1) {
-    return `<a href="${videos[0].url}" target="_blank" rel="noopener" class="video-btn">
-      <span>▶</span> <span>ویدیو آموزش</span>
-    </a>`;
-  }
+  return videos.map((v, i) => {
+    if (v.isImage || (v.url && v.url.startsWith('data:image'))) {
+      return `<button class="video-btn" onclick="openImageModal('${v.url}')" style="background:rgba(234,179,8,0.15); color:#facc15; border-color:rgba(234,179,8,0.35); cursor:pointer;">
+        <span>🖼️</span> <span>${v.title || 'تصویر آموزش فرم'}</span>
+      </button>`;
+    }
+    return `
+      <a href="${v.url}" target="_blank" rel="noopener" class="video-btn">
+        <span>▶</span> <span>${v.title || (videos.length === 1 ? 'ویدیو آموزش' : ('ویدیو ' + (i+1)))}</span>
+      </a>
+    `;
+  }).join('');
+}
 
-  return videos.map((v, i) => `
-    <a href="${v.url}" target="_blank" rel="noopener" class="video-btn">
-      <span>▶</span> <span>${v.title || ('ویدیو ' + (i+1))}</span>
-    </a>
-  `).join('');
+function openImageModal(imgSrc) {
+  const imgEl = document.getElementById('imageModalImg');
+  if (imgEl) imgEl.src = imgSrc;
+  document.getElementById('imageModal')?.classList.add('open');
+}
+
+function closeImageModal() {
+  document.getElementById('imageModal')?.classList.remove('open');
 }
 
 function renderExerciseCard(item, dayId, isSuperset = false) {
