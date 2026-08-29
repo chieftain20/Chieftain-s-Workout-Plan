@@ -870,5 +870,255 @@
         "url": "https://www.youtube.com/shorts/XkDcRxS9slI"
       }
     ]
+  },
+  {
+    "id": "clamshell_dumbbell",
+    "fa": "پوسته صدف با دمبل روی ران",
+    "en": "Clamshell with Dumbbell",
+    "muscles": "سرینی میانی و کوچک (خارج باسن)",
+    "category": "home",
+    "defaultReps": "2 × 15–20 هر طرف",
+    "defaultSets": 2,
+    "videos": []
+  },
+  {
+    "id": "side_lying_hip_abduction",
+    "fa": "ابداکشن خوابیده به پهلو",
+    "en": "Side Lying Hip Abduction",
+    "muscles": "سرینی میانی، خارج ران",
+    "category": "home",
+    "defaultReps": "2 × 15–20 هر طرف",
+    "defaultSets": 2,
+    "videos": []
+  },
+  {
+    "id": "glute_bridge_knees_out",
+    "fa": "پل باسن با زانوهای باز + مکث",
+    "en": "Glute Bridge with Knees Out",
+    "muscles": "سرینی بزرگ و میانی",
+    "category": "home",
+    "defaultReps": "2 × 15–20",
+    "defaultSets": 2,
+    "videos": []
+  },
+  {
+    "id": "dumbbell_rdl",
+    "fa": "ددلیفت رومانیایی با دمبل",
+    "en": "Dumbbell Romanian Deadlift (RDL)",
+    "muscles": "همسترینگ، باسن، فیله",
+    "category": "gym",
+    "defaultReps": "3 × 8–12",
+    "defaultSets": 3,
+    "videos": []
+  },
+  {
+    "id": "single_leg_cable_hamstring_curl",
+    "fa": "پشت پا سیم‌کش تک‌پا روی استپ",
+    "en": "Single-Leg Cable Hamstring Curl on Step",
+    "muscles": "همسترینگ",
+    "category": "gym",
+    "defaultReps": "3 × 12–15 هر پا",
+    "defaultSets": 3,
+    "videos": []
+  },
+  {
+    "id": "machine_hip_abduction",
+    "fa": "ابداکشن دستگاه",
+    "en": "Machine Hip Abduction",
+    "muscles": "سرینی میانی و خارج ران",
+    "category": "gym",
+    "defaultReps": "2 × 15–20",
+    "defaultSets": 2,
+    "videos": []
+  },
+  {
+    "id": "neutral_lat_pulldown",
+    "fa": "لت سیم‌کش دست خنثی",
+    "en": "Neutral Grip Lat Pulldown",
+    "muscles": "زیر بغل / لت",
+    "category": "gym",
+    "defaultReps": "2 × 10–14",
+    "defaultSets": 2,
+    "videos": []
+  },
+  {
+    "id": "clamshell_plate",
+    "fa": "پوسته صدف با صفحه",
+    "en": "Clamshell with Plate",
+    "muscles": "سرینی میانی",
+    "category": "gym",
+    "defaultReps": "2 × 15–20 هر طرف",
+    "defaultSets": 2,
+    "videos": []
+  },
+  {
+    "id": "standing_calf_raise_machine",
+    "fa": "ساق دستگاه",
+    "en": "Machine Calf Raise",
+    "muscles": "ساق پا",
+    "category": "gym",
+    "defaultReps": "3 × 12–20",
+    "defaultSets": 3,
+    "videos": []
+  },
+  {
+    "id": "dumbbell_incline_row_low_back",
+    "fa": "فیله کمر قایقی با دو دمبل",
+    "en": "Chest-Supported Dumbbell Row for Low Back/Erectors",
+    "muscles": "فیله کمر، پشت میانی",
+    "category": "gym",
+    "defaultReps": "3 × 12–15",
+    "defaultSets": 3,
+    "videos": []
+  },
+  {
+    "id": "captains_chair_leg_raise_oblique",
+    "fa": "زیرشکم رومی + پهلو کرانچ",
+    "en": "Captain Chair Leg Raise + Oblique Crunch",
+    "muscles": "شکم، مورب شکمی",
+    "category": "gym",
+    "defaultReps": "2 × 10–14",
+    "defaultSets": 2,
+    "videos": []
+  },
+  {
+    "id": "single_leg_glute_bridge",
+    "fa": "پل باسن تک‌پا",
+    "en": "Single-Leg Glute Bridge",
+    "muscles": "سرینی بزرگ، همسترینگ",
+    "category": "home",
+    "defaultReps": "2 × 12–15 هر پا",
+    "defaultSets": 2,
+    "videos": []
+  },
+  {
+    "id": "single_leg_dumbbell_rdl",
+    "fa": "ددلیفت رومانیایی تک‌پا با دمبل",
+    "en": "Single-Leg Dumbbell RDL",
+    "muscles": "همسترینگ، باسن، تعادل",
+    "category": "home",
+    "defaultReps": "2 × 12–15 هر پا",
+    "defaultSets": 2,
+    "videos": []
+  },
+  {
+    "id": "slider_hamstring_curl",
+    "fa": "پشت‌پا خوابیده با سر دادن پاشنه روی زمین",
+    "en": "Lying Slider / Towel Leg Curl",
+    "muscles": "همسترینگ",
+    "category": "home",
+    "defaultReps": "2 × 12–15",
+    "defaultSets": 2,
+    "videos": []
+  },
+  {
+    "id": "quadruped_glute_kickback",
+    "fa": "کیک‌بک چهار دست‌وپا",
+    "en": "Quadruped Glute Kickback",
+    "muscles": "سرینی بزرگ",
+    "category": "home",
+    "defaultReps": "2 × 15–20 هر پا",
+    "defaultSets": 2,
+    "videos": []
+  },
+  {
+    "id": "plank_hold",
+    "fa": "پلانک",
+    "en": "Plank",
+    "muscles": "عضلات مرکزی و شکم (Core)",
+    "category": "home",
+    "defaultReps": "2 × 30–45 ثانیه",
+    "defaultSets": 2,
+    "videos": []
+  },
+  {
+    "id": "dumbbell_squat",
+    "fa": "اسکوات دمبل",
+    "en": "Dumbbell Squat / Goblet Squat",
+    "muscles": "چهارسر، باسن",
+    "category": "gym",
+    "defaultReps": "3 × 10–14",
+    "defaultSets": 3,
+    "videos": []
+  },
+  {
+    "id": "seated_leg_curl_machine",
+    "fa": "پشت ران نشسته دستگاه",
+    "en": "Seated Leg Curl Machine",
+    "muscles": "همسترینگ",
+    "category": "gym",
+    "defaultReps": "3 × 12–15",
+    "defaultSets": 3,
+    "videos": []
+  },
+  {
+    "id": "kettlebell_side_lunge",
+    "fa": "ساید لانج با کتل‌بل",
+    "en": "Kettlebell Side Lunge",
+    "muscles": "چهارسر، داخل ران، باسن",
+    "category": "gym",
+    "defaultReps": "2 × 10–12 هر طرف",
+    "defaultSets": 2,
+    "videos": []
+  },
+  {
+    "id": "cable_glute_kickback",
+    "fa": "کیک‌بک باسن سیم‌کش",
+    "en": "Cable Glute Kickback",
+    "muscles": "سرینی بزرگ",
+    "category": "gym",
+    "defaultReps": "2 × 12–15 هر پا",
+    "defaultSets": 2,
+    "videos": []
+  },
+  {
+    "id": "seated_calf_raise",
+    "fa": "ساق نشسته",
+    "en": "Seated Calf Raise",
+    "muscles": "ساق پا (نعلی)",
+    "category": "gym",
+    "defaultReps": "2 × 15–20",
+    "defaultSets": 2,
+    "videos": []
+  },
+  {
+    "id": "pike_plank_kickback",
+    "fa": "پلانک پایک با کیک‌بک پا صاف",
+    "en": "Pike Plank with Straight Leg Kickback",
+    "muscles": "شکم، سرینی، شانه",
+    "category": "gym",
+    "defaultReps": "2 × 8–12 هر پا",
+    "defaultSets": 2,
+    "videos": []
+  },
+  {
+    "id": "bench_reverse_crunch",
+    "fa": "کرانچ معکوس روی میز",
+    "en": "Incline Bench Reverse Crunch",
+    "muscles": "زیر شکم",
+    "category": "gym",
+    "defaultReps": "2 × 12–15",
+    "defaultSets": 2,
+    "videos": []
+  },
+  {
+    "id": "clamshell_bodyweight",
+    "fa": "پوسته صدف",
+    "en": "Bodyweight Clamshell",
+    "muscles": "سرینی میانی",
+    "category": "home",
+    "defaultReps": "2 × 15–20 هر طرف",
+    "defaultSets": 2,
+    "videos": []
+  },
+  {
+    "id": "fire_hydrant",
+    "fa": "فایر هایدرانت",
+    "en": "Fire Hydrant",
+    "muscles": "سرینی میانی و چرخاننده‌های لگن",
+    "category": "home",
+    "defaultReps": "2 × 15–20 هر طرف",
+    "defaultSets": 2,
+    "videos": []
   }
 ]

@@ -66,17 +66,105 @@
   </div>
 </div>
 
+<!-- Workout Logger Modal (Weight / Reps / RIR) -->
+<div id="logModal" class="modal-overlay">
+  <div class="modal-dialog" style="max-width: 480px;">
+    <button class="modal-close-btn" onclick="closeLogModal()">✕</button>
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+      <span style="font-size:22px;">📝</span>
+      <h3 id="logModalTitle" style="margin:0;">ثبت لاگ وزنه و تکرار</h3>
+    </div>
+    <p id="logModalSubtitle" style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
+      ثبت دقیق وزنه و RIR برای اعمال اضافه بار تدریجی (Progressive Overload)
+    </p>
+
+    <div id="logSetsContainer" style="margin-bottom:14px;"></div>
+
+    <div class="form-group">
+      <label class="form-label">یادداشت این جلسه (اختیاری)</label>
+      <input type="text" id="logNoteInput" class="form-input" placeholder="مثلاً: فرم عالی بود، جلسه بعد ۲.۵ کیلو اضافه شود">
+    </div>
+
+    <div style="display:flex; gap:8px;">
+      <button class="btn-header-action btn-action-success" style="flex:1; justify-content:center; padding:11px; font-weight:800;" onclick="saveExerciseLog()">
+        💾 ذخیره لاگ جلسه
+      </button>
+      <button class="btn-header-action" onclick="openOverloadChartFromLog()" style="padding:11px 14px; color:#c084fc; border-color:#c084fc55;">
+        📈 مشاهده نمودار
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Progressive Overload Chart & History Modal -->
+<div id="overloadChartModal" class="modal-overlay">
+  <div class="modal-dialog" style="max-width: 650px;">
+    <button class="modal-close-btn" onclick="closeOverloadChartModal()">✕</button>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px;">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="font-size:24px;">📈</span>
+        <h3 id="chartModalTitle" style="margin:0;">نمودار پیشرفت و اضافه بار تدریجی</h3>
+      </div>
+      <button class="btn-header-action btn-action-primary" onclick="openLogModalFromChart()" style="padding:4px 9px; font-size:11.5px;">+ ثبت جلسه جدید</button>
+    </div>
+    <p id="chartModalSubtitle" style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
+      روند افزایش قدرت، رکورد وزنه و حجم تمرینی نسبت به جلسه اول
+    </p>
+
+    <!-- Stats Row -->
+    <div class="overload-stats-row">
+      <div class="overload-stat-card">
+        <div class="overload-stat-label">🏆 بیشترین وزنه</div>
+        <div id="statMaxWeight" class="overload-stat-num">۰ kg</div>
+      </div>
+      <div class="overload-stat-card">
+        <div class="overload-stat-label">🚀 رشد نسبت به جلسه اول</div>
+        <div id="statOverloadPct" class="overload-stat-num" style="color:#10b981;">۰٪</div>
+      </div>
+      <div class="overload-stat-card">
+        <div class="overload-stat-label">📊 حجم کل آخرین جلسه</div>
+        <div id="statLastVolume" class="overload-stat-num" style="color:#c084fc;">۰ kg</div>
+      </div>
+    </div>
+
+    <!-- Interactive SVG Chart -->
+    <div class="chart-svg-container" id="chartSvgWrapper">
+      <div id="chartEmptyNotice" style="text-align:center; padding:30px 10px; color:var(--text-muted); font-size:12.5px;">
+        هنوز لاگی برای این حرکت ثبت نشده است. با زدن «ثبت جلسه جدید» اولین وزنه و تکرار خود را ثبت کنید تا نمودار هوشمند فعال شود!
+      </div>
+      <svg id="overloadSvg" viewBox="0 0 500 180" style="width:100%; height:180px; display:none;"></svg>
+    </div>
+
+    <!-- History Table -->
+    <div style="font-size:13px; font-weight:800; color:#cbd5e1; margin-bottom:6px;">📋 تاریخچه جلسات ثبت‌شده:</div>
+    <div class="table-container" style="max-height: 180px; overflow-y: auto;">
+      <table id="logHistoryTable">
+        <thead>
+          <tr>
+            <th>تاریخ</th>
+            <th>ست‌ها (وزنه × تکرار)</th>
+            <th>RIR</th>
+            <th>حجم کل</th>
+            <th>یادداشت</th>
+          </tr>
+        </thead>
+        <tbody id="logHistoryTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 <!-- Master Exercise Library Explorer Modal -->
 <div id="libraryModal" class="modal-overlay">
   <div class="modal-dialog">
     <button class="modal-close-btn" onclick="closeLibraryModal()">✕</button>
     <h3>📚 بانک جامع حرکات ورزشی (با تمام ویدیوها)</h3>
     <p style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 12px;">
-      مرجع کامل تمام ۵۰+ حرکت تمرینی به همراه ویدیوهای آموزشی یوتیوب
+      مرجع کامل تمام ۷۵+ حرکت تمرینی به همراه ویدیوهای آموزشی یوتیوب
     </p>
 
     <div style="display:flex; gap:8px; margin-bottom:12px;">
-      <input type="text" id="librarySearchInput" class="form-input" placeholder="جستجو در بانک حرکات (مثلاً: اسکوات، پرس، لت)..." oninput="filterLibrary(this.value)">
+      <input type="text" id="librarySearchInput" class="form-input" placeholder="جستجو در بانک حرکات (مثلاً: اسکوات، پرس، لت، صدف)..." oninput="filterLibrary(this.value)">
       <button class="btn-header-action btn-action-primary" onclick="openCustomExerciseModal()">+ حرکت دلخواه</button>
     </div>
 
@@ -85,7 +173,7 @@
       <button class="btn-header-action" onclick="filterLibraryCat('gym')" style="padding:4px 9px; font-size:11.5px">🏋️ باشگاه</button>
       <button class="btn-header-action" onclick="filterLibraryCat('home')" style="padding:4px 9px; font-size:11.5px">🏠 خانه / Core</button>
       <button class="btn-header-action" onclick="filterLibraryCat('سینه')" style="padding:4px 9px; font-size:11.5px">سینه</button>
-      <button class="btn-header-action" onclick="filterLibraryCat('پا')" style="padding:4px 9px; font-size:11.5px">پا</button>
+      <button class="btn-header-action" onclick="filterLibraryCat('پا')" style="padding:4px 9px; font-size:11.5px">پا / باسن</button>
       <button class="btn-header-action" onclick="filterLibraryCat('پشت')" style="padding:4px 9px; font-size:11.5px">پشت / زیر بغل</button>
       <button class="btn-header-action" onclick="filterLibraryCat('سرشانه')" style="padding:4px 9px; font-size:11.5px">سرشانه</button>
     </div>
@@ -124,7 +212,7 @@
     <div style="background:#152033; border:1px solid var(--border-color); border-radius:12px; padding:12px; margin-bottom:14px;">
       <label class="form-label">🔍 جستجوی نام حرکت برای دریافت فوری ویدیو و آموزش:</label>
       <div style="margin-bottom:8px;">
-        <input type="text" id="mwSearchQuery" class="form-input" placeholder="نام فارسی یا انگلیسی حرکت (مثلاً: اسکوات قزاقی، Cossack Squat)..." style="direction:rtl">
+        <input type="text" id="mwSearchQuery" class="form-input" placeholder="نام فارسی یا انگلیسی حرکت (مثلاً: هیپ تراست، Hip Thrust)..." style="direction:rtl">
       </div>
       <div style="display:flex; gap:6px;">
         <button class="btn-header-action btn-action-primary" onclick="searchYouTubeDirect()" style="flex:1; justify-content:center;">
@@ -134,12 +222,6 @@
           <span>🌐</span> <span>سرچ MuscleWiki</span>
         </button>
       </div>
-    </div>
-
-    <!-- Muscle Anatomy Shortcuts -->
-    <div style="font-size:12.5px; font-weight:700; color:#cbd5e1; margin-bottom:8px;">💡 راهنمای انتخاب عضله در MuscleWiki:</div>
-    <div style="font-size:12px; color:var(--text-muted); line-height:1.7; background:rgba(30,41,59,0.4); padding:10px 12px; border-radius:10px; border:1px solid var(--border-color); margin-bottom:14px;">
-      در سایت <bdi>MuscleWiki</bdi>، کافیست روی هر عضله از بدن (سینه، جلو بازو، چهارسر ران، زیر بغل، شکم) کلیک کنید تا تمام حرکات با دمبل، هالتر، دستگاه یا وزن بدن به همراه ویدیوهای متحرک نمایش داده شوند.
     </div>
 
     <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-color); padding-top:12px;">
@@ -208,24 +290,25 @@
     <button class="modal-close-btn" onclick="closeNewProfileModal()">✕</button>
     <h3>👤 ایجاد کاربر یا برنامه تمرینی جدید</h3>
     <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
-      یک پروفایل مجزا بسازید تا برنامه، ست‌ها و روزهای شخصی خود را داشته باشید.
+      یک پروفایل مجزا بسازید تا برنامه، ست‌ها، لاگ‌ها و روزهای شخصی خود را داشته باشید.
     </p>
 
     <div class="form-group">
       <label class="form-label">نام کاربر یا عنوان برنامه *</label>
-      <input type="text" id="newProfileName" class="form-input" placeholder="مثلاً: برنامه اختصاصی ببرعلی، برنامه حجم ۴ روزه">
+      <input type="text" id="newProfileName" class="form-input" placeholder="مثلاً: برنامه اختصاصی مروارید، برنامه حجم ۴ روزه">
     </div>
 
     <div class="form-group">
       <label class="form-label">قالب اولیه برنامه</label>
       <select id="newProfileTemplate" class="form-select">
-        <option value="clone">کپی از برنامه Hossein Chieftain (شروع سریع با امکان ویرایش)</option>
+        <option value="clone">کپی از برنامه Hossein Chieftain</option>
+        <option value="morvarid">کپی از برنامه تخصصی مروارید (باشگاه + خانه)</option>
         <option value="empty">شروع از برنامه خالی (صفحه سفید)</option>
       </select>
     </div>
 
     <div class="form-group">
-      <label class="form-label">رمز عبور برای قفل برنامه و ثبت ست‌ها (اختیاری)</label>
+      <label class="form-label">رمز عبور برای قفل برنامه و لاگ‌ها (اختیاری)</label>
       <input type="password" id="newProfilePin" class="form-input" placeholder="مثلاً: 1234 یا رمز دلخواه">
     </div>
 
@@ -247,12 +330,12 @@
       </div>
     </div>
     <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
-      امکان تغییر حرکت، تفکیک/ساخت سوپرست، ویرایش تعداد ست و تکرار در اختیار شماست:
+      امکان تغییر حرکت با جستجو، تفکیک/ساخت سوپرست، ویرایش تعداد ست و تکرار در اختیار شماست:
     </p>
 
     <!-- Change PIN Box -->
     <div style="background:#152033; border:1px solid var(--border-color); border-radius:12px; padding:10px 14px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-      <div style="font-size:12px; color:#cbd5e1;">🔒 رمز عبور ویرایش و ثبت برنامه:</div>
+      <div style="font-size:12px; color:#cbd5e1;">🔒 رمز عبور ویرایش و لاگ‌های این برنامه:</div>
       <div style="display:flex; gap:6px;">
         <input type="text" id="editProfilePinInput" class="form-input" style="width:110px; padding:6px 10px; font-size:12px;" placeholder="رمز جدید...">
         <button class="btn-header-action" onclick="updateProfilePin()" style="padding:6px 10px; font-size:11.5px;">ذخیره رمز</button>
@@ -283,9 +366,9 @@
   </div>
 </div>
 
-<!-- Add Exercise or Superset to Day Modal -->
+<!-- Add Exercise or Superset to Day Modal with Search Picker -->
 <div id="addExToDayModal" class="modal-overlay">
-  <div class="modal-dialog" style="max-width: 480px;">
+  <div class="modal-dialog" style="max-width: 500px;">
     <button class="modal-close-btn" onclick="closeAddExToDayModal()">✕</button>
     <h3 id="addExModalTitle">➕ افزودن حرکت به روز تمرین</h3>
 
@@ -297,9 +380,15 @@
       </select>
     </div>
 
+    <!-- Searchable Picker 1 -->
     <div class="form-group">
-      <label class="form-label">انتخاب حرکت اول *</label>
-      <select id="addExSelect1" class="form-select"></select>
+      <label class="form-label">🔍 جستجو و انتخاب حرکت اول *</label>
+      <div class="search-picker-box">
+        <input type="text" id="pickerSearch1" class="form-input" placeholder="تایپ نام حرکت برای جستجوی سریع..." oninput="filterPickerOptions(1, this.value)">
+        <div id="pickerList1" class="search-picker-list"></div>
+      </div>
+      <input type="hidden" id="addExSelect1Val">
+      <div id="pickerSelectedDisplay1" style="font-size:12px; color:#38bdf8; font-weight:700; margin-top:4px;">انتخاب شده: ددلیفت رومانیایی</div>
     </div>
 
     <div style="display:flex; gap:8px;">
@@ -325,9 +414,15 @@
         <input type="text" id="addSupersetTitle" class="form-input" placeholder="مثلاً: A1 + A2 · پرس پا + ریورس پک‌دک">
       </div>
 
+      <!-- Searchable Picker 2 -->
       <div class="form-group">
-        <label class="form-label">انتخاب حرکت دوم *</label>
-        <select id="addExSelect2" class="form-select"></select>
+        <label class="form-label">🔍 جستجو و انتخاب حرکت دوم *</label>
+        <div class="search-picker-box">
+          <input type="text" id="pickerSearch2" class="form-input" placeholder="تایپ نام حرکت دوم..." oninput="filterPickerOptions(2, this.value)">
+          <div id="pickerList2" class="search-picker-list"></div>
+        </div>
+        <input type="hidden" id="addExSelect2Val">
+        <div id="pickerSelectedDisplay2" style="font-size:12px; color:#38bdf8; font-weight:700; margin-top:4px;">انتخاب شده: -</div>
       </div>
 
       <div style="display:flex; gap:8px;">
@@ -354,9 +449,9 @@
   </div>
 </div>
 
-<!-- Convert Single Exercise to Superset Modal -->
+<!-- Convert Single Exercise to Superset Modal with Search Picker -->
 <div id="convertSingleModal" class="modal-overlay">
-  <div class="modal-dialog" style="max-width: 460px;">
+  <div class="modal-dialog" style="max-width: 480px;">
     <button class="modal-close-btn" onclick="closeConvertSingleModal()">✕</button>
     <h3>⚡ تبدیل حرکت تکی به سوپرست</h3>
     <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
@@ -368,9 +463,15 @@
       <input type="text" id="convertSingleName1" class="form-input" readonly style="opacity:0.8; font-weight:700;">
     </div>
 
+    <!-- Searchable Picker Convert -->
     <div class="form-group">
-      <label class="form-label">انتخاب حرکت دوم برای جفت شدن *</label>
-      <select id="convertSingleSelect2" class="form-select"></select>
+      <label class="form-label">🔍 جستجو و انتخاب حرکت دوم برای جفت شدن *</label>
+      <div class="search-picker-box">
+        <input type="text" id="pickerSearchConvert" class="form-input" placeholder="تایپ نام حرکت دوم..." oninput="filterPickerOptions('Convert', this.value)">
+        <div id="pickerListConvert" class="search-picker-list"></div>
+      </div>
+      <input type="hidden" id="convertSingleSelect2Val">
+      <div id="pickerSelectedDisplayConvert" style="font-size:12px; color:#38bdf8; font-weight:700; margin-top:4px;">انتخاب شده: -</div>
     </div>
 
     <div style="display:flex; gap:8px;">
@@ -397,44 +498,6 @@
     <button class="btn-header-action btn-action-primary" style="width:100%; justify-content:center; padding:11px;" onclick="confirmConvertSingleToSuperset()">
       ⚡ ساخت سوپرست دوتایی
     </button>
-  </div>
-</div>
-
-<!-- PWA Install Guide Modal (for iOS & Android Guide) -->
-<div id="installGuideModal" class="modal-overlay">
-  <div class="modal-dialog" style="max-width: 440px;">
-    <button class="modal-close-btn" onclick="closeInstallGuide()">✕</button>
-    <h3>📲 نحوه نصب برنامه روی گوشی</h3>
-
-    <div id="iosGuideContent">
-      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">
-        برای نصب این صفحه به شکل اپلیکیشن اختصاصی روی آیفون (iOS Safari):
-      </p>
-      
-      <div style="display:flex; align-items:flex-start; gap:12px; margin-bottom:14px; background:rgba(30,41,59,0.5); border:1px solid var(--border-color); border-radius:10px; padding:12px;">
-        <div style="width:28px; height:28px; border-radius:50%; background:#38bdf8; color:#090d16; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:13px;">۱</div>
-        <div style="font-size:13px; color:#e2e8f0; line-height:1.6;">در نوار ابزار پایین یا بالای مرورگر Safari، دکمه <strong>اشتراک‌گذاری (Share ⎋)</strong> را تپ کنید.</div>
-      </div>
-
-      <div style="display:flex; align-items:flex-start; gap:12px; margin-bottom:14px; background:rgba(30,41,59,0.5); border:1px solid var(--border-color); border-radius:10px; padding:12px;">
-        <div style="width:28px; height:28px; border-radius:50%; background:#38bdf8; color:#090d16; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:13px;">۲</div>
-        <div style="font-size:13px; color:#e2e8f0; line-height:1.6;">در منوی باز شده به پایین اسکرول کرده و گزینه <strong>Add to Home Screen (افزودن به صفحه اصلی ➕)</strong> را انتخاب نمایید.</div>
-      </div>
-
-      <div style="display:flex; align-items:flex-start; gap:12px; margin-bottom:14px; background:rgba(30,41,59,0.5); border:1px solid var(--border-color); border-radius:10px; padding:12px;">
-        <div style="width:28px; height:28px; border-radius:50%; background:#38bdf8; color:#090d16; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:13px;">۳</div>
-        <div style="font-size:13px; color:#e2e8f0; line-height:1.6;">در گوشه بالای صفحه روی دکمه <strong>Add (افزودن)</strong> بزنید. آیکون برنامه در صفحه اصلی گوشی ذخیره می‌شود!</div>
-      </div>
-    </div>
-
-    <div id="androidGuideContent" style="display:none;">
-      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">
-        روی دکمه زیر تپ کنید تا برنامه مستقیماً روی دستگاه اندرویدی شما نصب شود:
-      </p>
-      <button id="triggerNativeInstall" class="btn-header-action btn-action-primary" style="width:100%; justify-content:center; font-weight:800; padding:12px;">
-        📲 نصب سریع برنامه روی گوشی
-      </button>
-    </div>
   </div>
 </div>
 

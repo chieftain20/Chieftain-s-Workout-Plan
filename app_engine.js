@@ -7,6 +7,9 @@ let convertTargetDayIdx = null;
 let convertTargetSingleIdx = null;
 let pendingActionAfterPin = null;
 
+// Currently active log target
+let currentLogTarget = { exId: '', exFa: '', dayId: '', setsCount: 3 };
+
 const WEEK_DAYS = ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'روز تمرینی ۱', 'روز تمرینی ۲', 'روز تمرینی ۳', 'روز تمرینی ۴'];
 
 function loadAppData() {
@@ -16,61 +19,50 @@ function loadAppData() {
   } catch(e) { customExercises = []; }
 
   try {
-    const rawProfiles = localStorage.getItem('chieftain_profiles_v5');
+    const rawProfiles = localStorage.getItem('chieftain_profiles_v6');
     if (rawProfiles) {
       allProfiles = JSON.parse(rawProfiles);
     } else {
-      const defaultProf = JSON.parse(JSON.stringify(HOSSEIN_PROFILE));
-      defaultProf.pin = 'gym';
-      allProfiles = [defaultProf];
-      localStorage.setItem('chieftain_profiles_v5', JSON.stringify(allProfiles));
+      const hProf = JSON.parse(JSON.stringify(HOSSEIN_PROFILE));
+      hProf.pin = 'gym';
+      const mProf = JSON.parse(JSON.stringify(MORVARID_PROFILE));
+      mProf.pin = 'inci';
+      allProfiles = [hProf, mProf];
+      localStorage.setItem('chieftain_profiles_v6', JSON.stringify(allProfiles));
     }
 
-    // Auto-heal check: ensure Hossein profile has updated Thursday, 3-set RDL, and 7 days
-    const hProf = allProfiles.find(p => p.id === 'hossein_chieftain');
-    if (hProf) {
+    // Ensure built-in profiles Hossein and Morvarid always exist and have proper PINs
+    let hProf = allProfiles.find(p => p.id === 'hossein_chieftain');
+    if (!hProf) {
+      hProf = JSON.parse(JSON.stringify(HOSSEIN_PROFILE));
+      hProf.pin = 'gym';
+      allProfiles.unshift(hProf);
+    } else {
       if (!hProf.pin) hProf.pin = 'gym';
       if (!hProf.days || hProf.days.length < 7 || !hProf.days.some(d => d.id === 'd1' || d.title === 'شنبه')) {
         hProf.days = JSON.parse(JSON.stringify(HOSSEIN_PROFILE.days));
       }
-      // Ensure Thursday has cossack_squat, standing_plate_hip_abduction, and 3-set RDL
-      const thurDay = hProf.days.find(d => d.id === 'd6' || d.title === 'پنجشنبه');
-      if (thurDay) {
-        thurDay.supersets.forEach(ss => {
-          ss.exercises.forEach(item => {
-            if (item.exId === 'rdl') {
-              item.sets = 3;
-              item.reps = '3 × 8–12';
-            }
-            if (item.exId === 'cable_hip_abduction') {
-              item.exId = 'standing_plate_hip_abduction';
-              item.reps = '3 × 12–15 هر طرف';
-              item.sets = 3;
-            }
-            if (item.exId === 'cable_hip_adduction') {
-              item.exId = 'cossack_squat';
-              item.reps = '3 × 8–12 هر طرف';
-              item.sets = 3;
-            }
-          });
-          if (ss.title.includes('ابداکشن کابل')) {
-            ss.title = 'D1 + D2 · ددلیفت رومانیایی + ابداکشن ایستاده با صفحه';
-          }
-          if (ss.title.includes('اداکشن کابل')) {
-            ss.title = 'E1 + E2 · فلای بالا سینه دستگاه + اسکوات قزاقی';
-          }
-        });
-      }
-    } else {
-      const defaultProf = JSON.parse(JSON.stringify(HOSSEIN_PROFILE));
-      defaultProf.pin = 'gym';
-      allProfiles.unshift(defaultProf);
     }
+
+    let mProf = allProfiles.find(p => p.id === 'morvarid');
+    if (!mProf) {
+      mProf = JSON.parse(JSON.stringify(MORVARID_PROFILE));
+      mProf.pin = 'inci';
+      allProfiles.push(mProf);
+    } else {
+      if (!mProf.pin) mProf.pin = 'inci';
+      if (!mProf.days || mProf.days.length < 7) {
+        mProf.days = JSON.parse(JSON.stringify(MORVARID_PROFILE.days));
+      }
+    }
+
     saveProfiles();
   } catch(e) {
-    const defaultProf = JSON.parse(JSON.stringify(HOSSEIN_PROFILE));
-    defaultProf.pin = 'gym';
-    allProfiles = [defaultProf];
+    const hProf = JSON.parse(JSON.stringify(HOSSEIN_PROFILE));
+    hProf.pin = 'gym';
+    const mProf = JSON.parse(JSON.stringify(MORVARID_PROFILE));
+    mProf.pin = 'inci';
+    allProfiles = [hProf, mProf];
   }
 
   const savedActiveId = localStorage.getItem('chieftain_active_profile_id');
@@ -82,7 +74,7 @@ function loadAppData() {
 }
 
 function saveProfiles() {
-  localStorage.setItem('chieftain_profiles_v5', JSON.stringify(allProfiles));
+  localStorage.setItem('chieftain_profiles_v6', JSON.stringify(allProfiles));
 }
 
 function saveCustomExercises() {
@@ -150,15 +142,25 @@ function renderProfileSelect() {
 function renderHeader() {
   const prof = getActiveProfile();
   const titleEl = document.getElementById('appTitle');
-  if (prof.id === 'hossein_chieftain') {
-    titleEl.innerText = 'برنامه تمرینی Hossein Chieftain';
-  } else {
-    titleEl.innerText = 'برنامه تمرینی ' + prof.name;
-  }
+  titleEl.innerText = 'برنامه تمرینی ' + prof.name;
 
   const deleteBtn = document.getElementById('deleteProfileBtn');
   if (deleteBtn) {
     deleteBtn.style.display = prof.isDefault ? 'none' : 'inline-flex';
+  }
+
+  // Dynamic Badges in Header
+  const badgesEl = document.getElementById('headerBadges');
+  if (badgesEl) {
+    const gymDays = prof.days.filter(d => d.type === 'gym').map(d => d.title).join('، ');
+    const homeDays = prof.days.filter(d => d.type === 'home').map(d => d.title).join('، ');
+    const restDays = prof.days.filter(d => d.type === 'rest').map(d => d.title).join('، ');
+
+    let html = '';
+    if (gymDays) html += `<div class="header-badge">🏋️ ${gymDays}: باشگاه</div>`;
+    if (homeDays) html += `<div class="header-badge">🏠 ${homeDays}: خانه</div>`;
+    if (restDays) html += `<div class="header-badge">🛌 ${restDays}: استراحت</div>`;
+    badgesEl.innerHTML = html;
   }
 
   updateGreetingText();
@@ -258,6 +260,15 @@ function renderExerciseCard(item, dayId, isSuperset = false) {
     `;
   }
 
+  const logBtnHtml = `
+    <button class="log-btn" onclick="openLogModal('${ex.id}', '${ex.fa}', '${dayId}', ${setsCount})" title="ثبت وزنه، تکرار و RIR برای اضافه بار تدریجی">
+      <span>📝</span> <span>لاگ / وزنه</span>
+    </button>
+    <button class="chart-btn" onclick="openOverloadChart('${ex.id}', '${ex.fa}')" title="نمودار پیشرفت و افزایش وزنه نسبت به جلسه اول">
+      <span>📈</span> <span>نمودار</span>
+    </button>
+  `;
+
   return `
     <article class="exercise-card" data-ex-id="${dayId}_${ex.id}">
       <div class="exercise-header">
@@ -270,6 +281,7 @@ function renderExerciseCard(item, dayId, isSuperset = false) {
       <div class="muscles-row">
         <span class="muscle-tag">عضلات هدف: ${ex.muscles || 'عمومی'}</span>
         ${isoBtnHtml}
+        ${logBtnHtml}
       </div>
       <div class="card-footer">
         <div class="video-links-group">
@@ -280,6 +292,98 @@ function renderExerciseCard(item, dayId, isSuperset = false) {
         </div>
       </div>
     </article>
+  `;
+}
+
+// --- Dynamic Weekly Muscle Volume Engine ---
+function renderDynamicWeeklySummary(prof) {
+  // Muscle taxonomy
+  const muscleGroups = [
+    { key: 'سینه', label: 'سینه (Chest)', keywords: ['سینه', 'chest', 'pec'] },
+    { key: 'چهارسر', label: 'چهارسر ران (Quads)', keywords: ['چهارسر', 'اسکوات', 'پرس پا', 'جلو پا', 'جلو ران', 'squat', 'leg press', 'leg extension', 'hack'] },
+    { key: 'همسترینگ', label: 'همسترینگ (Hamstrings)', keywords: ['همسترینگ', 'پشت پا', 'پشت ران', 'ددلیفت', 'rdl', 'deadlift', 'leg curl'] },
+    { key: 'باسن', label: 'سرینی و باسن (Glutes)', keywords: ['باسن', 'سرینی', 'هیپ تراست', 'کیک‌بک', 'پل باسن', 'glute', 'hip thrust', 'kickback', 'bridge', 'فایر'] },
+    { key: 'خارج ران', label: 'خارج ران / سرینی میانی (Abductors)', keywords: ['خارج ران', 'ابداکشن', 'پوسته صدف', 'abduction', 'clamshell', 'medius', 'هایدرانت'] },
+    { key: 'داخل ران', label: 'داخل ران (Adductors)', keywords: ['داخل ران', 'اداکشن', 'قزاقی', 'adduction', 'cossack'] },
+    { key: 'ساق', label: 'ساق پا (Calves)', keywords: ['ساق', 'calf', 'calves'] },
+    { key: 'فیله', label: 'فیله و راست‌کننده ستون فقرات (Lower Back)', keywords: ['فیله', 'کمر', 'back extension', 'erector'] },
+    { key: 'پشت', label: 'زیر بغل و پشت میانی (Lats & Back)', keywords: ['زیر بغل', 'لت', 'پشت میانی', 'قایقی', 'یوفو', 'lat', 'row', 'pulldown'] },
+    { key: 'سرشانه', label: 'سرشانه و دلتوئید (Shoulders)', keywords: ['سرشانه', 'شانه', 'نشر', 'پک‌دک معکوس', 'ریورس', 'دلتوئید', 'shoulder', 'lateral raise', 'face pull', 'press'] },
+    { key: 'جلو بازو', label: 'جلو بازو (Biceps)', keywords: ['جلو بازو', 'لاری', 'کرل', 'bicep', 'curl'] },
+    { key: 'پشت بازو', label: 'پشت بازو (Triceps)', keywords: ['پشت بازو', 'طناب', 'tricep', 'pushdown', 'extension'] },
+    { key: 'شکم', label: 'عضلات مرکزی و شکم (Core & Abs)', keywords: ['شکم', 'مورب', 'کرانچ', 'پلانک', 'دیدباگ', 'برد داگ', 'زیرشکم', 'core', 'abs', 'plank', 'bug', 'crunch'] }
+  ];
+
+  const stats = {};
+  muscleGroups.forEach(m => {
+    stats[m.key] = { label: m.label, sets: 0, days: new Set(), exercises: new Set() };
+  });
+
+  prof.days.forEach(day => {
+    if (day.type === 'rest') return;
+
+    const dayItems = [];
+    if (day.singles) day.singles.forEach(s => dayItems.push(s));
+    if (day.supersets) day.supersets.forEach(ss => ss.exercises.forEach(s => dayItems.push(s)));
+
+    dayItems.forEach(item => {
+      const ex = findExerciseById(item.exId);
+      const sets = parseSetsFromReps(item.reps, item.sets);
+      const searchTxt = (ex.fa + ' ' + (ex.en || '') + ' ' + (ex.muscles || '')).toLowerCase();
+
+      muscleGroups.forEach(m => {
+        if (m.keywords.some(kw => searchTxt.includes(kw.toLowerCase()))) {
+          stats[m.key].sets += sets;
+          stats[m.key].days.add(day.title);
+          stats[m.key].exercises.add(ex.fa);
+        }
+      });
+    });
+  });
+
+  const activeRows = muscleGroups.filter(m => stats[m.key].sets > 0).map(m => {
+    const s = stats[m.key];
+    const daysList = Array.from(s.days).join('، ');
+    const exList = Array.from(s.exercises).slice(0, 4).join('، ') + (s.exercises.size > 4 ? ' و...' : '');
+    return `
+      <tr>
+        <td><b>${s.label}</b></td>
+        <td><span class="set-highlight">${s.sets} ست</span></td>
+        <td>${s.days.size} جلسه (${daysList})</td>
+        <td style="font-size:11.5px; color:#94a3b8;">${exList}</td>
+      </tr>
+    `;
+  }).join('');
+
+  return `
+    <section id="weekly-summary" class="summary-card">
+      <div class="day-header">
+        <div class="day-title-wrap">
+          <h2 class="day-title">📊 جمع‌بندی هوشمند حجم هفتگی (${prof.name})</h2>
+          <span class="day-location-badge badge-gym">محاسبه پویا</span>
+        </div>
+      </div>
+
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">
+        این جدول به صورت کاملاً پویا بر اساس حرکات و ست‌های برنامه اختصاصی <b>${prof.name}</b> محاسبه شده است.
+      </p>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>گروه عضلانی</th>
+              <th>مجموع ست مستقیم در هفته</th>
+              <th>تعداد جلسات تمرین</th>
+              <th>نمونه حرکات برنامه</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${activeRows || '<tr><td colspan="4" style="text-align:center; padding:16px;">هنوز حرکتی برای محاسبه حجم در این برنامه ثبت نشده است.</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </section>
   `;
 }
 
@@ -363,57 +467,11 @@ function renderWorkoutDays() {
     `;
   }).join('');
 
-  const summaryCardHtml = `
-    <section id="weekly-summary" class="summary-card">
-      <div class="day-header">
-        <div class="day-title-wrap">
-          <h2 class="day-title">📊 جمع‌بندی حجم هفتگی عضلات</h2>
-          <span class="day-location-badge badge-gym">ست مستقیم</span>
-        </div>
-      </div>
-
-      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">
-        ست‌های مستقیم برنامه جدا از تحریک غیرمستقیم حرکات مرکب نمایش داده شده‌اند.
-      </p>
-
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>عضله</th>
-              <th>ست مستقیم / هفته</th>
-              <th>دفعات در هفته</th>
-              <th>یادداشت و حرکات</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td><b>سینه</b></td><td><span class="set-highlight">12 ست</span></td><td>۳ بار</td><td>حجم هدف اصلی (اسمیت بالا سینه، پرس سینه دستگاه، فلای)</td></tr>
-            <tr><td><b>چهارسر</b></td><td><span class="set-highlight">9 ست</span></td><td>۲–۳ بار</td><td>هک اسکوات، پرس پا، جلوپا دستگاه</td></tr>
-            <tr><td><b>همسترینگ</b></td><td><span class="set-highlight">12 ست</span></td><td>۳ بار</td><td>پشت‌پا دستگاه + ددلیفت رومانیایی (RDL)</td></tr>
-            <tr><td><b>ساق پا</b></td><td><span class="set-highlight">9 ست</span></td><td>۳ بار</td><td>ساق روی هک اسکوات</td></tr>
-            <tr><td><b>داخل ران</b></td><td><span class="set-highlight">6 ست</span></td><td>۲ بار</td><td>اسکوات قزاقی (Cossack Squat) + اداکشن</td></tr>
-            <tr><td><b>خارج ران</b></td><td><span class="set-highlight">6 ست</span></td><td>۲ بار</td><td>ابداکشن ایستاده با صفحه + ابداکشن کابل</td></tr>
-            <tr><td><b>فیله / کمر</b></td><td><span class="set-highlight">9 ست</span></td><td>۳ بار</td><td>بک اکستنشن (Back Extension)</td></tr>
-            <tr><td><b>شکم</b></td><td><span class="set-highlight">6 ست</span></td><td>۲ بار</td><td>کرانچ ایستاده کابل + کرانچ نیمکت</td></tr>
-            <tr><td><b>مورب شکمی</b></td><td><span class="set-highlight">تمرین خانه</span></td><td>۳ بار</td><td>ساید پلانک ایزومتریک</td></tr>
-            <tr><td><b>زیر بغل / لت</b></td><td><span class="set-highlight">6 ست</span></td><td>۲ بار</td><td>لت سیم‌کش + یوفو زیر بغل</td></tr>
-            <tr><td><b>پشت میانی</b></td><td><span class="set-highlight">6 ست</span></td><td>۲ بار</td><td>یوفو زیر بغل + قایقی سیم‌کش</td></tr>
-            <tr><td><b>پشت سرشانه</b></td><td><span class="set-highlight">9 ست</span></td><td>۳ بار</td><td>ریورس پک‌دک (Reverse Pec Deck)</td></tr>
-            <tr><td><b>سرشانه میانی</b></td><td><span class="set-highlight">6 ست</span></td><td>۲ بار</td><td>نشر جانب دستگاه (Lateral Raise)</td></tr>
-            <tr><td><b>جلو بازو</b></td><td><span class="set-highlight">6 ست</span></td><td>۲ بار</td><td>لاری دستگاه + همر کرل لاری</td></tr>
-            <tr><td><b>پشت بازو</b></td><td><span class="set-highlight">6 ست</span></td><td>۲ بار</td><td>پشت بازو طناب + پشت بازو بالای سر</td></tr>
-            <tr><td><b>کول فوقانی</b></td><td><span class="set-highlight">3 ست</span></td><td>۱ بار</td><td>شراگ دمبل + تحریک روئینگ</td></tr>
-            <tr><td><b>ساعد</b></td><td><span>غیرمستقیم</span></td><td>—</td><td>درگیری در Grip و حرکات روئینگ / کرل</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-  `;
-
-  container.innerHTML = daysHtml + summaryCardHtml;
+  const dynamicSummaryHtml = renderDynamicWeeklySummary(prof);
+  container.innerHTML = daysHtml + dynamicSummaryHtml;
 }
 
-// --- PIN & Access Control (for editing AND set recording) ---
+// --- PIN & Access Control ---
 function isProfileUnlocked() {
   const prof = getActiveProfile();
   if (!prof.pin) return true;
@@ -530,6 +588,8 @@ function saveNewProfile() {
   let newDays = [];
   if (template === 'clone') {
     newDays = JSON.parse(JSON.stringify(HOSSEIN_PROFILE.days));
+  } else if (template === 'morvarid') {
+    newDays = JSON.parse(JSON.stringify(MORVARID_PROFILE.days));
   } else {
     newDays = [
       { id: 'd1', title: 'شنبه', type: 'gym', badge: '🏋️ باشگاه', note: '', treadmill: false, supersets: [], singles: [] }
@@ -550,13 +610,13 @@ function saveNewProfile() {
   localStorage.setItem('chieftain_active_profile_id', newId);
   closeNewProfileModal();
   renderApp();
-  showToast(`✨ برنامه شخصی "${name}" با موفقیت ایجاد شد.`);
+  showToast(`✨ برنامه شخصی "${name}" با موفقیت ایجاد و ذخیره شد.`);
 }
 
 function deleteActiveProfile() {
   const prof = getActiveProfile();
   if (prof.isDefault) {
-    alert('برنامه اصلی Hossein Chieftain قابل حذف نیست.');
+    alert('برنامه‌های پیش‌فرض اصلی قابل حذف نیستند.');
     return;
   }
 
@@ -573,13 +633,18 @@ function deleteActiveProfile() {
 
 function factoryResetActiveProfile() {
   const prof = getActiveProfile();
-  if (confirm(`آیا می‌خواهید تمام روزهای اصلی (شنبه تا جمعه با تمام حرکات جدید) برای "${prof.name}" بازیابی شوند؟`)) {
-    prof.days = JSON.parse(JSON.stringify(HOSSEIN_PROFILE.days));
-    if (prof.isDefault) prof.pin = 'gym';
+  if (confirm(`آیا می‌خواهید تمام روزهای اصلی برای "${prof.name}" بازیابی شوند؟`)) {
+    if (prof.id === 'morvarid') {
+      prof.days = JSON.parse(JSON.stringify(MORVARID_PROFILE.days));
+      prof.pin = 'inci';
+    } else {
+      prof.days = JSON.parse(JSON.stringify(HOSSEIN_PROFILE.days));
+      if (prof.id === 'hossein_chieftain') prof.pin = 'gym';
+    }
     saveProfiles();
     renderEditPlanDaysList();
     renderApp();
-    showToast('برنامه ۷ روزه اصلی با موفقیت بازنشانی شد! ⚡');
+    showToast('برنامه با موفقیت بازنشانی شد! ⚡');
   }
 }
 
@@ -608,6 +673,37 @@ function exportActiveProfile() {
   document.body.appendChild(downloadAnchor);
   downloadAnchor.click();
   downloadAnchor.remove();
+}
+
+// --- Searchable Picker Engine ---
+function filterPickerOptions(slot, term) {
+  term = (term || '').toLowerCase().trim();
+  const all = getAllExercises();
+  const listEl = document.getElementById('pickerList' + slot);
+  if (!listEl) return;
+
+  const filtered = !term ? all.slice(0, 15) : all.filter(e => 
+    e.fa.toLowerCase().includes(term) || (e.en && e.en.toLowerCase().includes(term)) || (e.muscles && e.muscles.toLowerCase().includes(term))
+  );
+
+  listEl.innerHTML = filtered.map(e => `
+    <div class="search-picker-item" onclick="selectPickerOption('${slot}', '${e.id}', '${e.fa.replace(/'/g, "\\'")}')">
+      <div>
+        <span style="font-weight:700;">${e.fa}</span>
+        ${e.en ? `<span style="font-size:10.5px; color:#38bdf8; margin-right:4px;">(${e.en})</span>` : ''}
+      </div>
+      <span style="font-size:10px; color:#94a3b8;">${e.muscles || ''}</span>
+    </div>
+  `).join('');
+}
+
+function selectPickerOption(slot, exId, exFa) {
+  const inputVal = document.getElementById(slot === 'Convert' ? 'convertSingleSelect2Val' : 'addExSelect' + slot + 'Val');
+  const display = document.getElementById('pickerSelectedDisplay' + slot);
+  if (inputVal) inputVal.value = exId;
+  if (display) display.innerText = 'انتخاب شده: ' + exFa;
+  const searchBox = document.getElementById('pickerSearch' + slot);
+  if (searchBox) searchBox.value = exFa;
 }
 
 // --- Rich Routine & Granular Exercise Editor ---
@@ -784,7 +880,6 @@ function updateSingleExSets(dIdx, sIdx, setsVal) {
   const prof = getActiveProfile();
   const setsNum = parseInt(setsVal) || 3;
   prof.days[dIdx].singles[sIdx].sets = setsNum;
-  // Update reps string prefix if applicable
   const oldReps = prof.days[dIdx].singles[sIdx].reps || '3 × 8–12';
   prof.days[dIdx].singles[sIdx].reps = oldReps.replace(/^\d+/, setsNum);
   saveProfiles();
@@ -835,9 +930,11 @@ function openConvertToSupersetModal(dIdx, sIdx) {
   document.getElementById('convertSingleName1').value = `${ex1.fa} (${targetSingle.reps || '3 × 8–12'})`;
   
   const allEx = getAllExercises();
-  document.getElementById('convertSingleSelect2').innerHTML = allEx.map(e => 
-    `<option value="${e.id}">${e.fa} ${e.en ? `(${e.en})` : ''} - ${e.muscles || ''}</option>`
-  ).join('');
+  const defaultEx2 = allEx[0] || ex1;
+  document.getElementById('convertSingleSelect2Val').value = defaultEx2.id;
+  document.getElementById('pickerSelectedDisplayConvert').innerText = 'انتخاب شده: ' + defaultEx2.fa;
+  document.getElementById('pickerSearchConvert').value = defaultEx2.fa;
+  filterPickerOptions('Convert', '');
 
   document.getElementById('convertSingleReps2').value = '3 × 10–15';
   document.getElementById('convertSingleSets2').value = '3';
@@ -856,7 +953,7 @@ function confirmConvertSingleToSuperset() {
   const single = day.singles[convertTargetSingleIdx];
   const ex1 = findExerciseById(single.exId);
 
-  const exId2 = document.getElementById('convertSingleSelect2').value;
+  const exId2 = document.getElementById('convertSingleSelect2Val').value || getAllExercises()[0].id;
   const reps2 = document.getElementById('convertSingleReps2').value.trim() || '3 × 10–15';
   const sets2 = parseInt(document.getElementById('convertSingleSets2').value) || 3;
   const ex2 = findExerciseById(exId2);
@@ -980,17 +1077,23 @@ function addNewDayToActiveProfile() {
   showToast('روز تمرینی جدید اضافه شد.');
 }
 
-// --- Add Exercise to Day Modal ---
+// --- Add Exercise to Day Modal with Search Picker ---
 function openAddExToDayModal(dayId) {
   activeDayForAdding = dayId;
   const exercises = getAllExercises();
-  
-  const optionsHtml = exercises.map(e => 
-    `<option value="${e.id}">${e.fa} ${e.en ? `(${e.en})` : ''} - ${e.muscles || ''}</option>`
-  ).join('');
+  const firstEx = exercises[0] || { id: 'leg_curl', fa: 'حرکت ۱' };
+  const secondEx = exercises[1] || exercises[0];
 
-  document.getElementById('addExSelect1').innerHTML = optionsHtml;
-  document.getElementById('addExSelect2').innerHTML = optionsHtml;
+  document.getElementById('addExSelect1Val').value = firstEx.id;
+  document.getElementById('pickerSelectedDisplay1').innerText = 'انتخاب شده: ' + firstEx.fa;
+  document.getElementById('pickerSearch1').value = firstEx.fa;
+  filterPickerOptions(1, '');
+
+  document.getElementById('addExSelect2Val').value = secondEx.id;
+  document.getElementById('pickerSelectedDisplay2').innerText = 'انتخاب شده: ' + secondEx.fa;
+  document.getElementById('pickerSearch2').value = secondEx.fa;
+  filterPickerOptions(2, '');
+
   document.getElementById('addExType').value = 'single';
   document.getElementById('supersetSecondExGroup').style.display = 'none';
 
@@ -1011,7 +1114,7 @@ function confirmAddExerciseToDay() {
   if (!day) return;
 
   const type = document.getElementById('addExType').value;
-  const exId1 = document.getElementById('addExSelect1').value;
+  const exId1 = document.getElementById('addExSelect1Val').value || getAllExercises()[0].id;
   const reps1 = document.getElementById('addExReps1').value.trim() || '3 × 8–12';
   const sets1 = parseInt(document.getElementById('addExSets1').value) || 3;
 
@@ -1023,7 +1126,7 @@ function confirmAddExerciseToDay() {
       sets: sets1
     });
   } else {
-    const exId2 = document.getElementById('addExSelect2').value;
+    const exId2 = document.getElementById('addExSelect2Val').value || getAllExercises()[1].id;
     const reps2 = document.getElementById('addExReps2').value.trim() || '3 × 12–20';
     const sets2 = parseInt(document.getElementById('addExSets2').value) || 3;
     const ex1Obj = findExerciseById(exId1);
@@ -1045,6 +1148,225 @@ function confirmAddExerciseToDay() {
   renderEditPlanDaysList();
   renderApp();
   showToast('حرکت با موفقیت به برنامه اضافه شد.');
+}
+
+// --- Workout Logger & Progressive Overload Tracking ---
+function getExerciseLogs(exId) {
+  try {
+    const raw = localStorage.getItem('chieftain_logs_' + activeProfileId + '_' + exId);
+    return raw ? JSON.parse(raw) : [];
+  } catch(e) { return []; }
+}
+
+function saveExerciseLogsList(exId, logs) {
+  localStorage.setItem('chieftain_logs_' + activeProfileId + '_' + exId, JSON.stringify(logs));
+}
+
+function openLogModal(exId, exFa, dayId, setsCount) {
+  if (!isProfileUnlocked()) {
+    pendingActionAfterPin = () => openLogModal(exId, exFa, dayId, setsCount);
+    document.getElementById('pinModalTitle').innerText = 'ثبت لاگ و وزنه';
+    document.getElementById('pinModalDesc').innerText = 'برای ثبت لاگ و پیشرفت این برنامه، لطفاً رمز عبور را وارد کنید:';
+    document.getElementById('profilePinInput').value = '';
+    document.getElementById('pinErrorMsg').style.display = 'none';
+    document.getElementById('pinModal').classList.add('open');
+    setTimeout(() => document.getElementById('profilePinInput').focus(), 200);
+    return;
+  }
+
+  currentLogTarget = { exId, exFa, dayId, setsCount: setsCount || 3 };
+  document.getElementById('logModalTitle').innerText = `📝 ثبت لاگ: ${exFa}`;
+  
+  // Render set rows
+  const container = document.getElementById('logSetsContainer');
+  const pastLogs = getExerciseLogs(exId);
+  const lastLog = pastLogs[pastLogs.length - 1];
+
+  let rowsHtml = `
+    <div class="log-row-grid" style="font-size:11.5px; font-weight:800; color:#38bdf8; padding-bottom:4px; border-bottom:1px solid var(--border-color);">
+      <span>ست</span>
+      <span>وزنه (kg)</span>
+      <span>تعداد تکرار</span>
+      <span>RIR (ذخیره)</span>
+    </div>
+  `;
+
+  for (let i = 1; i <= currentLogTarget.setsCount; i++) {
+    const lastSet = lastLog?.sets?.[i - 1] || {};
+    rowsHtml += `
+      <div class="log-row-grid" style="margin-top:6px;">
+        <span style="font-weight:800; color:#cbd5e1; font-size:12px;">ست ${i}</span>
+        <input type="number" step="0.5" id="logWeight_${i}" class="form-input" placeholder="${lastSet.weight ? 'قبلی: ' + lastSet.weight : 'مثلاً ۵۰'}" value="${lastSet.weight || ''}" style="text-align:center; font-weight:700; padding:6px;">
+        <input type="number" id="logReps_${i}" class="form-input" placeholder="${lastSet.reps ? 'قبلی: ' + lastSet.reps : 'مثلاً ۱۰'}" value="${lastSet.reps || ''}" style="text-align:center; font-weight:700; padding:6px;">
+        <select id="logRir_${i}" class="form-select" style="padding:6px; font-size:12px;">
+          <option value="0" ${lastSet.rir==='0'?'selected':''}>0 (ناتوانی کامل)</option>
+          <option value="1" ${lastSet.rir==='1'?'selected':''}>1 تکرار ذخیره</option>
+          <option value="2" ${(!lastSet.rir || lastSet.rir==='2')?'selected':''}>2 تکرار ذخیره (ایده‌آل)</option>
+          <option value="3" ${lastSet.rir==='3'?'selected':''}>3 تکرار ذخیره</option>
+          <option value="4" ${lastSet.rir==='4'?'selected':''}>4+ (بسیار سبک)</option>
+        </select>
+      </div>
+    `;
+  }
+
+  container.innerHTML = rowsHtml;
+  document.getElementById('logNoteInput').value = '';
+  document.getElementById('logModal').classList.add('open');
+}
+
+function closeLogModal() {
+  document.getElementById('logModal').classList.remove('open');
+}
+
+function saveExerciseLog() {
+  const { exId, exFa, setsCount } = currentLogTarget;
+  const sets = [];
+  let totalVolume = 0;
+
+  for (let i = 1; i <= setsCount; i++) {
+    const w = parseFloat(document.getElementById(`logWeight_${i}`)?.value) || 0;
+    const r = parseInt(document.getElementById(`logReps_${i}`)?.value) || 0;
+    const rir = document.getElementById(`logRir_${i}`)?.value || '2';
+    sets.push({ setNum: i, weight: w, reps: r, rir: rir });
+    totalVolume += (w * r);
+  }
+
+  const note = document.getElementById('logNoteInput').value.trim();
+  const dateStr = new Intl.DateTimeFormat('fa-IR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date());
+
+  const logs = getExerciseLogs(exId);
+  logs.push({
+    timestamp: Date.now(),
+    date: dateStr,
+    sets: sets,
+    totalVolume: totalVolume,
+    note: note
+  });
+
+  saveExerciseLogsList(exId, logs);
+  closeLogModal();
+  showToast(`✅ لاگ تمرین برای "${exFa}" ثبت شد! (حجم کل: ${totalVolume} kg)`);
+}
+
+function openOverloadChartFromLog() {
+  closeLogModal();
+  openOverloadChart(currentLogTarget.exId, currentLogTarget.exFa);
+}
+
+function openLogModalFromChart() {
+  closeOverloadChartModal();
+  openLogModal(currentLogTarget.exId, currentLogTarget.exFa, currentLogTarget.dayId, currentLogTarget.setsCount);
+}
+
+function openOverloadChart(exId, exFa) {
+  currentLogTarget.exId = exId;
+  currentLogTarget.exFa = exFa;
+  document.getElementById('chartModalTitle').innerText = `📈 نمودار پیشرفت: ${exFa}`;
+  
+  const logs = getExerciseLogs(exId);
+  const tableBody = document.getElementById('logHistoryTableBody');
+  const svg = document.getElementById('overloadSvg');
+  const emptyNotice = document.getElementById('chartEmptyNotice');
+
+  if (logs.length === 0) {
+    emptyNotice.style.display = 'block';
+    svg.style.display = 'none';
+    tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:12px;">هنوز لاگی ثبت نشده است.</td></tr>`;
+    document.getElementById('statMaxWeight').innerText = '۰ kg';
+    document.getElementById('statOverloadPct').innerText = '۰٪';
+    document.getElementById('statLastVolume').innerText = '۰ kg';
+  } else {
+    emptyNotice.style.display = 'none';
+    svg.style.display = 'block';
+
+    // Calculate max weight and progressive overload percentage
+    let maxWeight = 0;
+    logs.forEach(l => l.sets.forEach(s => { if (s.weight > maxWeight) maxWeight = s.weight; }));
+    
+    const firstWeight = logs[0].sets[0]?.weight || 1;
+    const lastWeight = logs[logs.length - 1].sets[0]?.weight || firstWeight;
+    const overloadPct = firstWeight > 0 ? Math.round(((lastWeight - firstWeight) / firstWeight) * 100) : 0;
+    const lastVol = logs[logs.length - 1].totalVolume || 0;
+
+    document.getElementById('statMaxWeight').innerText = `${maxWeight} kg`;
+    document.getElementById('statOverloadPct').innerText = `${overloadPct >= 0 ? '+' : ''}${overloadPct}٪`;
+    document.getElementById('statLastVolume').innerText = `${lastVol} kg`;
+
+    // Render Table
+    tableBody.innerHTML = logs.slice().reverse().map(l => {
+      const setsStr = l.sets.map(s => `${s.weight}kg × ${s.reps}`).join(' | ');
+      const rirStr = l.sets.map(s => s.rir).join('، ');
+      return `
+        <tr>
+          <td>${l.date}</td>
+          <td style="direction:ltr; text-align:right;">${setsStr}</td>
+          <td>${rirStr}</td>
+          <td><b>${l.totalVolume} kg</b></td>
+          <td style="font-size:11px; color:#94a3b8;">${l.note || '—'}</td>
+        </tr>
+      `;
+    }).join('');
+
+    // Draw SVG Chart
+    renderSvgLineChart(logs, svg);
+  }
+
+  document.getElementById('overloadChartModal').classList.add('open');
+}
+
+function closeOverloadChartModal() {
+  document.getElementById('overloadChartModal').classList.remove('open');
+}
+
+function renderSvgLineChart(logs, svgEl) {
+  const points = logs.map((l, i) => {
+    const maxSetWeight = Math.max(...l.sets.map(s => s.weight || 0), 0);
+    return { x: i, y: maxSetWeight, date: l.date };
+  });
+
+  const width = 480;
+  const height = 160;
+  const padding = 30;
+
+  const maxY = Math.max(...points.map(p => p.y), 10) * 1.15;
+  const minY = Math.min(...points.map(p => p.y), 0);
+
+  const getSvgX = (i) => points.length === 1 ? width / 2 : padding + (i / (points.length - 1)) * (width - 2 * padding);
+  const getSvgY = (val) => height - padding - ((val - minY) / (maxY - minY || 1)) * (height - 2 * padding);
+
+  let pathD = '';
+  let dotsHtml = '';
+
+  points.forEach((p, idx) => {
+    const cx = getSvgX(idx);
+    const cy = getSvgY(p.y);
+    if (idx === 0) pathD += `M ${cx} ${cy}`;
+    else pathD += ` L ${cx} ${cy}`;
+
+    dotsHtml += `
+      <circle cx="${cx}" cy="${cy}" r="5" fill="#00f2fe" stroke="#090d16" stroke-width="2"/>
+      <text x="${cx}" y="${cy - 9}" fill="#38bdf8" font-size="10" font-weight="bold" text-anchor="middle">${p.y}kg</text>
+    `;
+  });
+
+  svgEl.innerHTML = `
+    <!-- Grid Lines -->
+    <line x1="${padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding}" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+    <line x1="${padding}" y1="${padding}" x2="${width - padding}" y2="${padding}" stroke="rgba(255,255,255,0.06)" stroke-width="1" stroke-dasharray="3,3"/>
+    
+    <!-- Path Line -->
+    <path d="${pathD}" fill="none" stroke="url(#lineGradient)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <!-- Gradients -->
+    <defs>
+      <linearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#00f2fe"/>
+        <stop offset="100%" stop-color="#00e599"/>
+      </linearGradient>
+    </defs>
+
+    ${dotsHtml}
+  `;
 }
 
 // --- Exercise Library Explorer ---
@@ -1552,16 +1874,12 @@ document.getElementById('searchInput')?.addEventListener('input', (e) => {
   });
 });
 
-// PWA Install Handlers (Clean, non-intrusive)
+// PWA Install Handlers
 let deferredPrompt = null;
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
 
 const headerInstallBtn = document.getElementById('headerInstallBtn');
-const installModal = document.getElementById('installGuideModal');
-const iosGuide = document.getElementById('iosGuideContent');
-const androidGuide = document.getElementById('androidGuideContent');
-const nativeTriggerBtn = document.getElementById('triggerNativeInstall');
 
 if (isStandalone) {
   if (headerInstallBtn) {
@@ -1582,31 +1900,11 @@ function showInstallFlow() {
       deferredPrompt = null;
     });
   } else {
-    if (isIOS) {
-      if (iosGuide) iosGuide.style.display = 'block';
-      if (androidGuide) androidGuide.style.display = 'none';
-    } else {
-      if (iosGuide) iosGuide.style.display = 'none';
-      if (androidGuide) androidGuide.style.display = 'block';
-    }
-    if (installModal) installModal.classList.add('open');
+    alert('برای نصب روی آیفون: دکمه Share مرورگر و سپس Add to Home Screen را بزنید.\nبرای اندروید: از منوی سه نقطه مرورگر، گزینه Install app را انتخاب کنید.');
   }
 }
 
 headerInstallBtn?.addEventListener('click', showInstallFlow);
-
-nativeTriggerBtn?.addEventListener('click', () => {
-  if (deferredPrompt) {
-    deferredPrompt.prompt();
-    closeInstallGuide();
-  } else {
-    alert('در مرورگر کروم گوشی، روی ۳ نقطه بالای صفحه بزنید و گزینه "Install app" یا "Add to Home Screen" را انتخاب نمایید.');
-  }
-});
-
-function closeInstallGuide() {
-  if (installModal) installModal.classList.remove('open');
-}
 
 window.addEventListener('appinstalled', () => {
   if (headerInstallBtn) {

@@ -33,6 +33,9 @@ with open('master_exercises.json', 'r', encoding='utf-8') as f:
 with open('hossein_profile.json', 'r', encoding='utf-8') as f:
     hossein_prof_json = f.read()
 
+with open('morvarid_profile.json', 'r', encoding='utf-8') as f:
+    morvarid_prof_json = f.read()
+
 with open('app_engine.js', 'r', encoding='utf-8') as f:
     app_engine_code = f.read()
 
@@ -43,6 +46,7 @@ final_html = f"""{head_html}
 <script>
 const MASTER_EXERCISES = {master_ex_json};
 const HOSSEIN_PROFILE = {hossein_prof_json};
+const MORVARID_PROFILE = {morvarid_prof_json};
 
 {app_engine_code}
 </script>

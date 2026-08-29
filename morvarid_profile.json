@@ -1,0 +1,263 @@
+{
+  "id": "morvarid",
+  "name": "مروارید",
+  "isDefault": true,
+  "pin": "inci",
+  "days": [
+    {
+      "id": "m_d1",
+      "title": "شنبه",
+      "type": "rest",
+      "badge": "🛌 استراحت",
+      "note": "آماده‌سازی و ریکاوری برای شروع پرقدرت هفته تمرینی",
+      "treadmill": false,
+      "supersets": [],
+      "singles": []
+    },
+    {
+      "id": "m_d2",
+      "title": "یکشنبه",
+      "type": "home",
+      "badge": "🏠 خانه",
+      "note": "سرینی میانی/کوچک؛ Core؛ سبک تا متوسط (با دو دمبل ۱.۵ kg)",
+      "treadmill": false,
+      "supersets": [],
+      "singles": [
+        {
+          "exId": "clamshell_dumbbell",
+          "reps": "2 × 15–20 هر طرف",
+          "sets": 2
+        },
+        {
+          "exId": "side_lying_hip_abduction",
+          "reps": "2 × 15–20 هر طرف",
+          "sets": 2
+        },
+        {
+          "exId": "glute_bridge_knees_out",
+          "reps": "2 × 15–20",
+          "sets": 2
+        },
+        {
+          "exId": "side_plank_iso",
+          "reps": "2 × 30–45 ثانیه هر طرف",
+          "sets": 2
+        },
+        {
+          "exId": "dead_bug",
+          "reps": "2 × 10–12 هر طرف",
+          "sets": 2
+        }
+      ]
+    },
+    {
+      "id": "m_d3",
+      "title": "دوشنبه",
+      "type": "gym",
+      "badge": "🏋️ باشگاه",
+      "note": "همسترینگ + باسن + سینه + فیله",
+      "treadmill": false,
+      "supersets": [],
+      "singles": [
+        {
+          "exId": "dumbbell_rdl",
+          "reps": "3 × 8–12",
+          "sets": 3
+        },
+        {
+          "exId": "seated_chest_press_machine",
+          "reps": "3 × 10–14",
+          "sets": 3
+        },
+        {
+          "exId": "single_leg_cable_hamstring_curl",
+          "reps": "3 × 12–15 هر پا",
+          "sets": 3
+        },
+        {
+          "exId": "hip_thrust",
+          "reps": "3 × 10–12",
+          "sets": 3
+        },
+        {
+          "exId": "machine_hip_abduction",
+          "reps": "2 × 15–20",
+          "sets": 2
+        },
+        {
+          "exId": "neutral_lat_pulldown",
+          "reps": "2 × 10–14",
+          "sets": 2
+        },
+        {
+          "exId": "clamshell_plate",
+          "reps": "2 × 15–20 هر طرف",
+          "sets": 2
+        },
+        {
+          "exId": "standing_calf_raise_machine",
+          "reps": "3 × 12–20",
+          "sets": 3
+        },
+        {
+          "exId": "dumbbell_incline_row_low_back",
+          "reps": "3 × 12–15",
+          "sets": 3
+        },
+        {
+          "exId": "captains_chair_leg_raise_oblique",
+          "reps": "2 × 10–14",
+          "sets": 2
+        }
+      ]
+    },
+    {
+      "id": "m_d4",
+      "title": "سه‌شنبه",
+      "type": "home",
+      "badge": "🏠 خانه",
+      "note": "سرینی بزرگ + همسترینگ؛ متوسط (تک‌پا و تمپو؛ ۳ ثانیه پایین رفتن در ددلیفت)",
+      "treadmill": false,
+      "supersets": [],
+      "singles": [
+        {
+          "exId": "single_leg_glute_bridge",
+          "reps": "2 × 12–15 هر پا",
+          "sets": 2
+        },
+        {
+          "exId": "single_leg_dumbbell_rdl",
+          "reps": "2 × 12–15 هر پا",
+          "sets": 2
+        },
+        {
+          "exId": "slider_hamstring_curl",
+          "reps": "2 × 12–15",
+          "sets": 2
+        },
+        {
+          "exId": "quadruped_glute_kickback",
+          "reps": "2 × 15–20 هر پا",
+          "sets": 2
+        },
+        {
+          "exId": "plank_hold",
+          "reps": "2 × 30–45 ثانیه",
+          "sets": 2
+        }
+      ]
+    },
+    {
+      "id": "m_d5",
+      "title": "چهارشنبه",
+      "type": "gym",
+      "badge": "🏋️ باشگاه",
+      "note": "چهارسر + باسن + همسترینگ + ساق",
+      "treadmill": false,
+      "supersets": [],
+      "singles": [
+        {
+          "exId": "dumbbell_squat",
+          "reps": "3 × 10–14",
+          "sets": 3
+        },
+        {
+          "exId": "machine_hip_abduction",
+          "reps": "3 × 15–20",
+          "sets": 3
+        },
+        {
+          "exId": "leg_extension",
+          "reps": "3 × 12–15",
+          "sets": 3
+        },
+        {
+          "exId": "seated_leg_curl_machine",
+          "reps": "3 × 12–15",
+          "sets": 3
+        },
+        {
+          "exId": "kettlebell_side_lunge",
+          "reps": "2 × 10–12 هر طرف",
+          "sets": 2
+        },
+        {
+          "exId": "cable_glute_kickback",
+          "reps": "2 × 12–15 هر پا",
+          "sets": 2
+        },
+        {
+          "exId": "standing_calf_raise_machine",
+          "reps": "3 × 12–20",
+          "sets": 3
+        },
+        {
+          "exId": "seated_calf_raise",
+          "reps": "2 × 15–20",
+          "sets": 2
+        },
+        {
+          "exId": "pike_plank_kickback",
+          "reps": "2 × 8–12 هر پا",
+          "sets": 2
+        },
+        {
+          "exId": "bench_reverse_crunch",
+          "reps": "2 × 12–15",
+          "sets": 2
+        }
+      ]
+    },
+    {
+      "id": "m_d6",
+      "title": "پنجشنبه",
+      "type": "home",
+      "badge": "🏠 خانه",
+      "note": "سرینی میانی/کوچک؛ ریکاوری‌محور + Core",
+      "treadmill": false,
+      "supersets": [],
+      "singles": [
+        {
+          "exId": "clamshell_bodyweight",
+          "reps": "2 × 15–20 هر طرف",
+          "sets": 2
+        },
+        {
+          "exId": "side_lying_hip_abduction",
+          "reps": "2 × 15–20 هر طرف",
+          "sets": 2
+        },
+        {
+          "exId": "fire_hydrant",
+          "reps": "2 × 15–20 هر طرف",
+          "sets": 2
+        },
+        {
+          "exId": "side_plank_iso",
+          "reps": "2 × 30–45 ثانیه هر طرف",
+          "sets": 2
+        },
+        {
+          "exId": "bird_dog",
+          "reps": "2 × 10–12 هر طرف",
+          "sets": 2
+        },
+        {
+          "exId": "dead_bug",
+          "reps": "2 × 10–12 هر طرف",
+          "sets": 2
+        }
+      ]
+    },
+    {
+      "id": "m_d7",
+      "title": "جمعه",
+      "type": "rest",
+      "badge": "🛌 استراحت",
+      "note": "استراحت کامل و بازسازی بافت‌های عضلانی",
+      "treadmill": false,
+      "supersets": [],
+      "singles": []
+    }
+  ]
+}
