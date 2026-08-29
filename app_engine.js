@@ -51,7 +51,7 @@ function loadAppData() {
       allProfiles.push(mProf);
     } else {
       if (!mProf.pin) mProf.pin = 'inci';
-      if (!mProf.days || mProf.days.length < 7) {
+      if (!mProf.days || mProf.days.length < 7 || mProf.days[0].type !== 'gym') {
         mProf.days = JSON.parse(JSON.stringify(MORVARID_PROFILE.days));
       }
     }

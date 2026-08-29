@@ -1775,6 +1775,36 @@ const MASTER_EXERCISES = [
     "defaultReps": "2 × 15–20 هر طرف",
     "defaultSets": 2,
     "videos": []
+  },
+  {
+    "id": "smith_squat_mini_ball",
+    "fa": "اسمیت اسکوات با توپ مینی بین زانوها",
+    "en": "Smith Machine Squat with Mini Ball Between Knees",
+    "muscles": "چهارسر، ادکتور (داخل ران)، باسن",
+    "category": "gym",
+    "defaultReps": "3 × 10–12",
+    "defaultSets": 3,
+    "videos": []
+  },
+  {
+    "id": "forearm_plank",
+    "fa": "پلانک آرنج",
+    "en": "Forearm Plank",
+    "muscles": "عضلات مرکزی و شکم (Core)",
+    "category": "gym",
+    "defaultReps": "3 × 30–45 ثانیه",
+    "defaultSets": 3,
+    "videos": []
+  },
+  {
+    "id": "onhand_plank_knee_in",
+    "fa": "پلانک آن‌هند، زانو خم به داخل",
+    "en": "Straight-Arm Plank Knee Drive / Knee In",
+    "muscles": "شکم، ثبات کمربند شانه‌ای",
+    "category": "gym",
+    "defaultReps": "2 × 10–14 هر طرف",
+    "defaultSets": 2,
+    "videos": []
   }
 ];
 const HOSSEIN_PROFILE = {
@@ -2233,12 +2263,63 @@ const MORVARID_PROFILE = {
     {
       "id": "m_d1",
       "title": "شنبه",
-      "type": "rest",
-      "badge": "🛌 استراحت",
-      "note": "آماده‌سازی و ریکاوری برای شروع پرقدرت هفته تمرینی",
+      "type": "gym",
+      "badge": "🏋️ باشگاه",
+      "note": "چهارسر + سینه + Core",
       "treadmill": false,
       "supersets": [],
-      "singles": []
+      "singles": [
+        {
+          "exId": "hip_thrust",
+          "reps": "3 × 10–12",
+          "sets": 3
+        },
+        {
+          "exId": "peck_deck_fly",
+          "reps": "3 × 10–14",
+          "sets": 3
+        },
+        {
+          "exId": "smith_squat_mini_ball",
+          "reps": "3 × 10–12",
+          "sets": 3
+        },
+        {
+          "exId": "machine_hip_abduction",
+          "reps": "3 × 15–20",
+          "sets": 3
+        },
+        {
+          "exId": "leg_extension",
+          "reps": "3 × 12–15",
+          "sets": 3
+        },
+        {
+          "exId": "seated_leg_curl_machine",
+          "reps": "3 × 12–15",
+          "sets": 3
+        },
+        {
+          "exId": "cable_glute_kickback",
+          "reps": "2 × 12–15 هر پا",
+          "sets": 2
+        },
+        {
+          "exId": "standing_calf_raise_machine",
+          "reps": "3 × 12–20",
+          "sets": 3
+        },
+        {
+          "exId": "forearm_plank",
+          "reps": "3 × 30–45 ثانیه",
+          "sets": 3
+        },
+        {
+          "exId": "onhand_plank_knee_in",
+          "reps": "2 × 10–14 هر طرف",
+          "sets": 2
+        }
+      ]
     },
     {
       "id": "m_d2",
@@ -2486,8 +2567,7 @@ const MORVARID_PROFILE = {
       "singles": []
     }
   ]
-}
-;
+};
 
 // --- Application State Management ---
 let customExercises = [];
@@ -2542,7 +2622,7 @@ function loadAppData() {
       allProfiles.push(mProf);
     } else {
       if (!mProf.pin) mProf.pin = 'inci';
-      if (!mProf.days || mProf.days.length < 7) {
+      if (!mProf.days || mProf.days.length < 7 || mProf.days[0].type !== 'gym') {
         mProf.days = JSON.parse(JSON.stringify(MORVARID_PROFILE.days));
       }
     }

@@ -1120,5 +1120,35 @@
     "defaultReps": "2 × 15–20 هر طرف",
     "defaultSets": 2,
     "videos": []
+  },
+  {
+    "id": "smith_squat_mini_ball",
+    "fa": "اسمیت اسکوات با توپ مینی بین زانوها",
+    "en": "Smith Machine Squat with Mini Ball Between Knees",
+    "muscles": "چهارسر، ادکتور (داخل ران)، باسن",
+    "category": "gym",
+    "defaultReps": "3 × 10–12",
+    "defaultSets": 3,
+    "videos": []
+  },
+  {
+    "id": "forearm_plank",
+    "fa": "پلانک آرنج",
+    "en": "Forearm Plank",
+    "muscles": "عضلات مرکزی و شکم (Core)",
+    "category": "gym",
+    "defaultReps": "3 × 30–45 ثانیه",
+    "defaultSets": 3,
+    "videos": []
+  },
+  {
+    "id": "onhand_plank_knee_in",
+    "fa": "پلانک آن‌هند، زانو خم به داخل",
+    "en": "Straight-Arm Plank Knee Drive / Knee In",
+    "muscles": "شکم، ثبات کمربند شانه‌ای",
+    "category": "gym",
+    "defaultReps": "2 × 10–14 هر طرف",
+    "defaultSets": 2,
+    "videos": []
   }
 ]
