@@ -334,7 +334,7 @@ nav::-webkit-scrollbar { display: none; }
 }
 .quick-iso-btn:hover { background: rgba(16, 185, 129, 0.25); box-shadow: 0 0 10px rgba(16, 185, 129, 0.3); }
 
-.log-btn, .chart-btn {
+.log-btn, .chart-btn, .edit-card-btn {
   display: inline-flex; align-items: center; gap: 4px;
   padding: 4px 8px; font-size: 11px; font-weight: 700; border-radius: 6px;
   cursor: pointer; text-decoration: none; transition: all 0.2s; font-family: inherit;
@@ -349,6 +349,11 @@ nav::-webkit-scrollbar { display: none; }
   background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.35);
 }
 .chart-btn:hover { background: rgba(168, 85, 247, 0.25); box-shadow: 0 0 10px rgba(168, 85, 247, 0.3); }
+
+.edit-card-btn {
+  background: rgba(14, 165, 233, 0.12); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3);
+}
+.edit-card-btn:hover { background: rgba(14, 165, 233, 0.25); box-shadow: 0 0 10px rgba(56, 189, 248, 0.3); color: #fff; }
 
 /* Sets Tracker Checkboxes */
 .sets-tracker { display: flex; gap: 4px; align-items: center; }
@@ -610,11 +615,40 @@ tr:nth-child(even) { background: rgba(255, 255, 255, 0.02); }
   border: 1px solid rgba(0, 242, 254, 0.25); white-space: nowrap;
 }
 
-@media (max-width: 600px) {
+/* Mobile-Friendly Summary Cards (Zero horizontal scroll on phone) */
+.summary-mobile-grid {
+  display: none; grid-template-columns: 1fr; gap: 10px; margin-top: 12px;
+}
+
+.summary-mobile-card {
+  background: #152033; border: 1px solid var(--border-color);
+  border-radius: 12px; padding: 12px 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+}
+
+.summary-mobile-top {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;
+}
+
+.summary-mobile-title { font-size: 14px; font-weight: 800; color: #fff; }
+
+.summary-mobile-freq {
+  font-size: 11.5px; color: #38bdf8; margin-bottom: 8px; display: flex; align-items: center; gap: 4px;
+}
+
+.summary-mobile-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+
+.summary-mobile-chip {
+  font-size: 11px; color: #cbd5e1; background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08); padding: 2px 7px; border-radius: 6px;
+}
+
+@media (max-width: 650px) {
   .container { padding: 10px 8px; }
   header { padding: 16px 14px; border-radius: 16px; }
   h1 { font-size: 18px; }
   .day-section, .summary-card { padding: 14px 12px; border-radius: 16px; }
   .timer-fab { bottom: 14px; left: 12px; padding: 10px 14px; font-size: 12.5px; }
   .modal-dialog { padding: 18px 14px; }
+  .table-container { display: none; }
+  .summary-mobile-grid { display: grid; }
 }
