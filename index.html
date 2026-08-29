@@ -3227,23 +3227,155 @@ function deleteQuickEditExercise() {
   }
 }
 
-// --- Dynamic Weekly Muscle Volume Engine ---
+// --- Definitive Scientific Muscle Taxonomy & Mapping ---
+const EXERCISE_MUSCLE_MAPPING = {
+  // Chest (سینه)
+  'chest_press_machine': ['سینه'],
+  'seated_chest_press_machine': ['سینه'],
+  'incline_smith_press': ['سینه'],
+  'smith_incline_bench_press': ['سینه'],
+  'iso_lateral_incline_bench_press': ['سینه'],
+  'peck_deck_fly': ['سینه'],
+  'incline_fly_machine': ['سینه'],
+  'iso_lateral_incline_pec_fly_machine': ['سینه'],
+  'incline_chest_fly': ['سینه'],
+  'seated_cable_pec_fly': ['سینه'],
+  'cable_fly': ['سینه'],
+
+  // Lats & Back (زیر بغل و پشت)
+  'lat_pulldown': ['پشت'],
+  'neutral_lat_pulldown': ['پشت'],
+  'cable_seated_row': ['پشت'],
+  'cable_row': ['پشت'],
+  'iso_lateral_row': ['پشت'],
+  'ufo_lat_pulldown': ['پشت'],
+  'ufo_linear_row_machine': ['پشت'],
+  'dumbbell_row': ['پشت'],
+  'lat_pulldown_underhand': ['پشت'],
+
+  // Shoulders (سرشانه و دلتوئید)
+  'machine_lateral_raise': ['سرشانه'],
+  'standing_lateral_raise_machine': ['سرشانه'],
+  'dumbbell_lateral_raise': ['سرشانه'],
+  'plate_loaded_shoulder_press': ['سرشانه'],
+  'dumbbell_shoulder_press': ['سرشانه'],
+  'cable_lateral_raise': ['سرشانه'],
+  'reverse_peck_deck': ['سرشانه'],
+  'reverse_peck_deck_fly': ['سرشانه'],
+  'cable_face_pull': ['سرشانه'],
+  'face_pull': ['سرشانه'],
+  'prone_itwy': ['سرشانه'],
+  'wall_slide': ['سرشانه'],
+  'dumbbell_shrugs': ['سرشانه'],
+  'chest_supported_dumbbell_shrug': ['سرشانه', 'پشت'],
+
+  // Biceps (جلو بازو)
+  'ez_bar_preacher_curl': ['جلو بازو'],
+  'preacher_curls': ['جلو بازو'],
+  'hammer_preacher_curl': ['جلو بازو'],
+  'preacher_hammer_curl': ['جلو بازو'],
+  'cable_bicep_curl': ['جلو بازو'],
+  'dumbbell_bicep_curl': ['جلو بازو'],
+  'incline_dumbbell_curl': ['جلو بازو'],
+
+  // Triceps (پشت بازو)
+  'rope_tricep_pushdown': ['پشت بازو'],
+  'rope_triceps_pushdown': ['پشت بازو'],
+  'overhead_rope_tricep_extension': ['پشت بازو'],
+  'overhead_triceps_extension': ['پشت بازو'],
+  'cable_tricep_pushdown': ['پشت بازو'],
+  'cable_triceps_pushdown': ['پشت بازو'],
+  'skull_crusher': ['پشت بازو'],
+
+  // Quads (چهارسر ران)
+  'leg_extension': ['چهارسر'],
+  'hack_squat': ['چهارسر', 'باسن'],
+  'leg_press': ['چهارسر', 'باسن'],
+  'smith_squat_mini_ball': ['چهارسر', 'داخل ران', 'باسن'],
+  'smith_machine_squat': ['چهارسر', 'باسن'],
+  'dumbbell_squat': ['چهارسر', 'باسن'],
+  'wall_sit': ['چهارسر'],
+  'cossack_squat': ['چهارسر', 'داخل ران', 'باسن'],
+  'kettlebell_side_lunge': ['چهارسر', 'داخل ران', 'باسن'],
+
+  // Hamstrings (همسترینگ)
+  'leg_curl': ['همسترینگ'],
+  'seated_leg_curl_machine': ['همسترینگ'],
+  'single_leg_cable_hamstring_curl': ['همسترینگ'],
+  'slider_hamstring_curl': ['همسترینگ'],
+  'rdl': ['همسترینگ', 'باسن', 'فیله'],
+  'dumbbell_rdl': ['همسترینگ', 'باسن', 'فیله'],
+  'single_leg_dumbbell_rdl': ['همسترینگ', 'باسن', 'فیله'],
+
+  // Glutes (سرینی و باسن)
+  'hip_thrust': ['باسن'],
+  'glute_bridge': ['باسن'],
+  'glute_bridge_iso': ['باسن'],
+  'glute_bridge_knees_out': ['باسن'],
+  'single_leg_glute_bridge': ['باسن', 'همسترینگ'],
+  'cable_glute_kickback': ['باسن'],
+  'quadruped_glute_kickback': ['باسن'],
+
+  // Abductors / Glute Medius (خارج ران و سرینی میانی)
+  'machine_hip_abduction': ['خارج ران'],
+  'cable_hip_abduction': ['خارج ران'],
+  'bent_knee_cable_hip_abduction': ['خارج ران'],
+  'standing_plate_hip_abduction': ['خارج ران'],
+  'lying_plate_hip_abduction': ['خارج ران'],
+  'side_lying_hip_abduction': ['خارج ران'],
+  'clamshell_plate': ['خارج ران'],
+  'clamshell_band': ['خارج ران'],
+  'clamshell_dumbbell': ['خارج ران'],
+  'clamshell_bodyweight': ['خارج ران'],
+  'fire_hydrant': ['خارج ران'],
+
+  // Adductors (داخل ران)
+  'cable_hip_adduction': ['داخل ران'],
+
+  // Calves (ساق پا)
+  'standing_calf_raise_hack': ['ساق'],
+  'standing_calf_raise_machine': ['ساق'],
+  'seated_calf_raise': ['ساق'],
+
+  // Lower Back (فیله و پایین کمر)
+  'back_extension': ['فیله', 'باسن'],
+  'dumbbell_incline_row_low_back': ['فیله', 'پشت'],
+
+  // Core & Abs (شکم و عضلات مرکزی)
+  'standing_cable_crunch': ['شکم'],
+  'cable_oblique_crunch': ['شکم'],
+  'bench_crunch': ['شکم'],
+  'bench_reverse_crunch': ['شکم'],
+  'captains_chair_leg_raise_oblique': ['شکم'],
+  'dead_bug': ['شکم'],
+  'dead_bug_iso': ['شکم'],
+  'bird_dog': ['شکم'],
+  'iso_bird_dog': ['شکم'],
+  'side_plank_iso': ['شکم'],
+  'side_plank_dips': ['شکم'],
+  'plank_hold': ['شکم'],
+  'forearm_plank': ['شکم'],
+  'onhand_plank_knee_in': ['شکم'],
+  'straight_arm_bear_plank_knee_extension': ['شکم'],
+  'pike_plank_kickback': ['شکم'],
+  'push_up_plus': ['شکم']
+};
+
 function renderDynamicWeeklySummary(prof) {
-  // Muscle taxonomy
   const muscleGroups = [
-    { key: 'سینه', label: 'سینه (Chest)', keywords: ['سینه', 'chest', 'pec'] },
-    { key: 'چهارسر', label: 'چهارسر ران (Quads)', keywords: ['چهارسر', 'اسکوات', 'پرس پا', 'جلو پا', 'جلو ران', 'squat', 'leg press', 'leg extension', 'hack'] },
-    { key: 'همسترینگ', label: 'همسترینگ (Hamstrings)', keywords: ['همسترینگ', 'پشت پا', 'پشت ران', 'ددلیفت', 'rdl', 'deadlift', 'leg curl'] },
-    { key: 'باسن', label: 'سرینی و باسن (Glutes)', keywords: ['باسن', 'سرینی', 'هیپ تراست', 'کیک‌بک', 'پل باسن', 'glute', 'hip thrust', 'kickback', 'bridge', 'فایر'] },
-    { key: 'خارج ران', label: 'خارج ران / سرینی میانی (Abductors)', keywords: ['خارج ران', 'ابداکشن', 'پوسته صدف', 'abduction', 'clamshell', 'medius', 'هایدرانت'] },
-    { key: 'داخل ران', label: 'داخل ران (Adductors)', keywords: ['داخل ران', 'اداکشن', 'قزاقی', 'adduction', 'cossack'] },
-    { key: 'ساق', label: 'ساق پا (Calves)', keywords: ['ساق', 'calf', 'calves'] },
-    { key: 'فیله', label: 'فیله و راست‌کننده ستون فقرات (Lower Back)', keywords: ['فیله', 'کمر', 'back extension', 'erector'] },
-    { key: 'پشت', label: 'زیر بغل و پشت میانی (Lats & Back)', keywords: ['زیر بغل', 'لت', 'پشت میانی', 'قایقی', 'یوفو', 'lat', 'row', 'pulldown'] },
-    { key: 'سرشانه', label: 'سرشانه و دلتوئید (Shoulders)', keywords: ['سرشانه', 'شانه', 'نشر', 'پک‌دک معکوس', 'ریورس', 'دلتوئید', 'shoulder', 'lateral raise', 'face pull', 'press'] },
-    { key: 'جلو بازو', label: 'جلو بازو (Biceps)', keywords: ['جلو بازو', 'لاری', 'کرل', 'bicep', 'curl'] },
-    { key: 'پشت بازو', label: 'پشت بازو (Triceps)', keywords: ['پشت بازو', 'طناب', 'tricep', 'pushdown', 'extension'] },
-    { key: 'شکم', label: 'عضلات مرکزی و شکم (Core & Abs)', keywords: ['شکم', 'مورب', 'کرانچ', 'پلانک', 'دیدباگ', 'برد داگ', 'زیرشکم', 'core', 'abs', 'plank', 'bug', 'crunch'] }
+    { key: 'سینه', label: 'سینه (Chest)' },
+    { key: 'پشت', label: 'زیر بغل و پشت (Lats & Back)' },
+    { key: 'سرشانه', label: 'سرشانه و دلتوئید (Shoulders)' },
+    { key: 'جلو بازو', label: 'جلو بازو (Biceps)' },
+    { key: 'پشت بازو', label: 'پشت بازو (Triceps)' },
+    { key: 'چهارسر', label: 'چهارسر ران (Quads)' },
+    { key: 'همسترینگ', label: 'همسترینگ (Hamstrings)' },
+    { key: 'باسن', label: 'سرینی و باسن (Glutes)' },
+    { key: 'خارج ران', label: 'خارج ران و سرینی میانی (Abductors)' },
+    { key: 'داخل ران', label: 'داخل ران (Adductors)' },
+    { key: 'ساق', label: 'ساق پا (Calves)' },
+    { key: 'فیله', label: 'فیله و پایین کمر (Lower Back)' },
+    { key: 'شکم', label: 'عضلات مرکزی و شکم (Core & Abs)' }
   ];
 
   const stats = {};
@@ -3261,13 +3393,13 @@ function renderDynamicWeeklySummary(prof) {
     dayItems.forEach(item => {
       const ex = findExerciseById(item.exId);
       const sets = parseSetsFromReps(item.reps, item.sets);
-      const searchTxt = (ex.fa + ' ' + (ex.en || '') + ' ' + (ex.muscles || '')).toLowerCase();
+      const assignedMuscles = EXERCISE_MUSCLE_MAPPING[item.exId] || [];
 
-      muscleGroups.forEach(m => {
-        if (m.keywords.some(kw => searchTxt.includes(kw.toLowerCase()))) {
-          stats[m.key].sets += sets;
-          stats[m.key].days.add(day.title);
-          stats[m.key].exercises.add(ex.fa);
+      assignedMuscles.forEach(mKey => {
+        if (stats[mKey]) {
+          stats[mKey].sets += sets;
+          stats[mKey].days.add(day.title);
+          stats[mKey].exercises.add(ex.fa);
         }
       });
     });
