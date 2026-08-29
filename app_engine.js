@@ -828,12 +828,25 @@ function filterPickerOptions(slot, term) {
 }
 
 function selectPickerOption(slot, exId, exFa) {
-  const inputVal = document.getElementById(slot === 'Convert' ? 'convertSingleSelect2Val' : 'addExSelect' + slot + 'Val');
+  let inputVal = null;
+  if (slot === 'Convert') {
+    inputVal = document.getElementById('convertSingleSelect2Val');
+  } else if (slot === 'QuickEdit') {
+    inputVal = document.getElementById('quickEditExSelectVal');
+  } else {
+    inputVal = document.getElementById('addExSelect' + slot + 'Val');
+  }
+
   const display = document.getElementById('pickerSelectedDisplay' + slot);
   if (inputVal) inputVal.value = exId;
-  if (display) display.innerText = 'انتخاب شده: ' + exFa;
+  if (display) display.innerText = 'حرکت انتخابی: ' + exFa;
   const searchBox = document.getElementById('pickerSearch' + slot);
   if (searchBox) searchBox.value = exFa;
+}
+
+function closeAllModals() {
+  document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('open'));
+  pendingActionAfterPin = null;
 }
 
 // --- Rich Routine & Granular Exercise Editor ---
@@ -2040,5 +2053,18 @@ window.addEventListener('appinstalled', () => {
   if (headerInstallBtn) {
     headerInstallBtn.innerHTML = '<span>✓</span> <span>اپ نصب شده</span>';
     headerInstallBtn.style.opacity = '0.7';
+  }
+});
+
+// Universal Modal Dismiss Handlers
+document.addEventListener('click', (e) => {
+  if (e.target.classList && e.target.classList.contains('modal-overlay')) {
+    closeAllModals();
+  }
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeAllModals();
   }
 });
