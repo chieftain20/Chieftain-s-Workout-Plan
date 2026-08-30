@@ -259,14 +259,16 @@ function renderExerciseCard(item, dayId, isSuperset = false, singleIdx = -1, tot
   const isExcluded = lowerFa.includes('خرسی') || lowerFa.includes('پایک') || lowerFa.includes('کیک') || lowerEn.includes('bear') || lowerEn.includes('pike') || lowerEn.includes('kickback');
   const isIso = !isExcluded && (ex.isIsometric === true || ((lowerFa.includes('ایزومتریک') || lowerFa.includes('پلانک آرنج') || lowerFa.includes('ساید پلانک') || lowerFa.includes('وال سیت') || lowerEn.includes('wall sit') || reps.includes('ثانیه')) && !reps.includes('تکرار')));
 
-  if (isIso) {
-    let defaultSeconds = 30;
-    if (reps.includes('20') || reps.includes('۲۰')) defaultSeconds = 20;
-    if (reps.includes('40') || reps.includes('۴۰') || reps.includes('45') || reps.includes('۴۵')) defaultSeconds = 45;
-    if (reps.includes('60') || reps.includes('۶۰')) defaultSeconds = 60;
+  if (isIso || item.isoDuration) {
+    let defaultSeconds = item.isoDuration || 30;
+    if (!item.isoDuration) {
+      if (reps.includes('20') || reps.includes('۲۰')) defaultSeconds = 20;
+      if (reps.includes('40') || reps.includes('۴۰') || reps.includes('45') || reps.includes('۴۵')) defaultSeconds = 45;
+      if (reps.includes('60') || reps.includes('۶۰')) defaultSeconds = 60;
+    }
     
     isoBtnHtml = `
-      <button class="quick-iso-btn" onclick="quickStartIsoTimer(${defaultSeconds}, '${ex.fa}')" title="شروع تایمر ایزومتریک ${defaultSeconds} ثانیه">
+      <button class="quick-iso-btn" onclick="quickStartIsoTimer(${defaultSeconds}, '${ex.fa}')" title="باز کردن تایمر ${defaultSeconds} ثانیه">
         <span>⏱️</span> <span>تایمر ${defaultSeconds}ث</span>
       </button>
     `;
@@ -387,6 +389,19 @@ function openQuickEditForCard(btn) {
 function openQuickEditExModal(dayId, exId, reps, sets, isSuperset) {
   currentQuickEditTarget = { dayId, exId, isSuperset };
   const ex = findExerciseById(exId);
+  const prof = getActiveProfile();
+  const day = prof.days.find(d => d.id === dayId);
+
+  let currentItem = null;
+  if (!isSuperset && day?.singles) {
+    currentItem = day.singles.find(s => s.exId === exId);
+  } else if (isSuperset && day?.supersets) {
+    for (const ss of day.supersets) {
+      currentItem = ss.exercises.find(e => e.exId === exId);
+      if (currentItem) break;
+    }
+  }
+
   document.getElementById('quickEditExModalTitle').innerText = `✏️ ویرایش: ${ex.fa}`;
   document.getElementById('quickEditExSelectVal').value = exId;
   document.getElementById('pickerSelectedDisplayQuickEdit').innerText = 'حرکت انتخابی: ' + ex.fa;
@@ -395,6 +410,11 @@ function openQuickEditExModal(dayId, exId, reps, sets, isSuperset) {
 
   document.getElementById('quickEditExReps').value = reps || ex.defaultReps || '3 × 8–12';
   document.getElementById('quickEditExSets').value = String(sets || 3);
+
+  const isoInput = document.getElementById('quickEditExIsoDuration');
+  if (isoInput) {
+    isoInput.value = currentItem?.isoDuration || '';
+  }
 
   // Toggle Superset UI boxes
   const notSsBox = document.getElementById('quickEditNotSupersetBox');
@@ -461,6 +481,7 @@ function saveQuickEditExercise() {
   const newExId = document.getElementById('quickEditExSelectVal').value || exId;
   const newReps = document.getElementById('quickEditExReps').value.trim() || '3 × 8–12';
   const newSets = parseInt(document.getElementById('quickEditExSets').value) || 3;
+  const isoDurationVal = parseInt(document.getElementById('quickEditExIsoDuration')?.value) || 0;
 
   if (!isSuperset && day.singles) {
     const item = day.singles.find(s => s.exId === exId);
@@ -468,6 +489,8 @@ function saveQuickEditExercise() {
       item.exId = newExId;
       item.reps = newReps;
       item.sets = newSets;
+      if (isoDurationVal > 0) item.isoDuration = isoDurationVal;
+      else delete item.isoDuration;
     }
   } else if (isSuperset && day.supersets) {
     for (const ss of day.supersets) {
@@ -476,6 +499,8 @@ function saveQuickEditExercise() {
         item.exId = newExId;
         item.reps = newReps;
         item.sets = newSets;
+        if (isoDurationVal > 0) item.isoDuration = isoDurationVal;
+        else delete item.isoDuration;
         break;
       }
     }
@@ -2276,7 +2301,6 @@ function quickStartIsoTimer(seconds, exName) {
   setTimerDuration(seconds);
   modalTitle.innerText = `🧘‍♂️ تایمر ایزومتریک: ${exName}`;
   openTimerModal();
-  toggleTimer();
 }
 
 function toggleTimer() {
@@ -2315,7 +2339,6 @@ function quickTimer(seconds) {
   switchTimerMode('rest');
   setTimerDuration(seconds);
   openTimerModal();
-  toggleTimer();
 }
 
 function triggerTimerEndAlarm() {
