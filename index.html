@@ -1448,6 +1448,13 @@ input:checked + .slider:before {
       </div>
     </div>
 
+    <!-- Custom Display Name -->
+    <div class="form-group" style="margin-top:6px;">
+      <label class="form-label">🏷️ نام نمایشی اختصاصی برای این حرکت (اختیاری):</label>
+      <input type="text" id="quickEditExCustomName" class="form-input" placeholder="مثلاً: جلوبازو لاری هالتر EZ یا نام دلخواه شما...">
+      <div style="font-size:10.5px; color:#94a3b8; margin-top:2px;">اگر در باشگاه یا برنامه‌تان این حرکت را با نام دیگری صدا می‌زنید، اینجا بنویسید تا در کارت حرکت نمایش یابد.</div>
+    </div>
+
     <!-- Custom Default Timer Duration -->
     <div class="form-group" style="margin-top:6px;">
       <label class="form-label">⏱️ زمان پیش‌فرض تایمر برای این حرکت (ثانیه):</label>
@@ -1459,7 +1466,7 @@ input:checked + .slider:before {
     <div id="quickEditSupersetSection" style="background:#152033; border:1px solid var(--border-color); border-radius:10px; padding:10px 12px; margin-top:12px;">
       <div id="quickEditNotSupersetBox">
         <div style="font-size:12px; font-weight:800; color:#00f2fe; margin-bottom:4px;">⚡ ترکیب و سوپرست کردن این حرکت</div>
-        <p style="font-size:11px; color:#94a3b8; margin-bottom:8px;">می‌توانید این حرکت را با یک حرکت دیگر از بانک حرکات جفت و سوپرست کنید:</p>
+        <p style="font-size:11px; color:#94a3b8; margin-bottom:8px;">می‌توانید این حرکت را با یک یا چند حرکت دیگر از بانک حرکات جفت و سوپرست کنید:</p>
         <button class="btn-header-action btn-action-primary" style="width:100%; justify-content:center; padding:8px; font-size:12px; font-weight:800;" onclick="startSupersetFromQuickEdit()">
           ⚡ تبدیل به سوپرست دوتایی
         </button>
@@ -1467,10 +1474,15 @@ input:checked + .slider:before {
 
       <div id="quickEditIsSupersetBox" style="display:none;">
         <div style="font-size:12px; font-weight:800; color:#fcd34d; margin-bottom:4px;">⚡ این حرکت در حال حاضر درون یک سوپرست است</div>
-        <p style="font-size:11px; color:#94a3b8; margin-bottom:8px;">می‌توانید این حرکت را از سوپرست جدا کرده و به عنوان یک حرکت تکی مستقل ذخیره کنید:</p>
-        <button class="btn-header-action" style="width:100%; justify-content:center; padding:8px; font-size:12px; font-weight:800; border-color:#fcd34d88; color:#fcd34d;" onclick="splitSupersetFromQuickEdit()">
-          ✂️ تفکیک و تبدیل به حرکت تکی مستقل
-        </button>
+        <p style="font-size:11px; color:#94a3b8; margin-bottom:8px;">می‌توانید حرکت دیگری به این سوپرست اضافه کنید (ساخت تری‌ست یا جاینت‌ست) یا آن را تفکیک کنید:</p>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          <button class="btn-header-action btn-action-primary" style="flex:1; justify-content:center; padding:8px; font-size:11.5px; font-weight:800;" onclick="addExerciseToThisSupersetFromQuickEdit()">
+            ➕ افزودن حرکت دیگر به این سوپرست
+          </button>
+          <button class="btn-header-action" style="flex:1; justify-content:center; padding:8px; font-size:11.5px; font-weight:800; border-color:#fcd34d88; color:#fcd34d;" onclick="splitSupersetFromQuickEdit()">
+            ✂️ تفکیک به حرکت تکی
+          </button>
+        </div>
       </div>
     </div>
 
@@ -1482,6 +1494,57 @@ input:checked + .slider:before {
         🗑️ حذف حرکت
       </button>
     </div>
+  </div>
+</div>
+
+<!-- Add Exercise to Existing Superset Modal (Tri-Set & Giant-Set Support) -->
+<div id="addExToSupersetModal" class="modal-overlay">
+  <div class="modal-dialog" style="max-width: 480px;">
+    <button class="modal-close-btn" onclick="closeAddExToSupersetModal()">✕</button>
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+      <span style="font-size:22px;">⚡</span>
+      <h3 id="addExToSupersetTitle" style="margin:0;">افزودن حرکت به سوپرست</h3>
+    </div>
+    <p id="addExToSupersetSubtitle" style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
+      افزودن حرکت ۳، ۴ یا بیشتر برای ایجاد تری‌ست (Tri-Set) یا جاینت‌ست (Giant Set)
+    </p>
+
+    <!-- Searchable Picker -->
+    <div class="form-group">
+      <label class="form-label">🔍 انتخاب حرکت جدید برای اضافه شدن به این سوپرست *</label>
+      <div class="search-picker-box">
+        <input type="text" id="pickerSearchAddToSS" class="form-input" placeholder="تایپ نام حرکت..." oninput="filterPickerOptions('AddToSS', this.value)">
+        <div id="pickerListAddToSS" class="search-picker-list"></div>
+      </div>
+      <input type="hidden" id="addExToSSSelectVal">
+      <div id="pickerSelectedDisplayAddToSS" style="font-size:12px; color:#38bdf8; font-weight:700; margin-top:4px;">انتخاب شده: -</div>
+    </div>
+
+    <div style="display:flex; gap:8px;">
+      <div class="form-group" style="flex:2;">
+        <label class="form-label">ست و تکرار حرکت</label>
+        <input type="text" id="addExToSSReps" class="form-input" value="3 × 10–15" style="direction:ltr">
+      </div>
+      <div class="form-group" style="flex:1;">
+        <label class="form-label">تعداد ست</label>
+        <select id="addExToSSSets" class="form-select">
+          <option value="1">۱ ست</option>
+          <option value="2">۲ ست</option>
+          <option value="3" selected>۳ ست</option>
+          <option value="4">۴ ست</option>
+          <option value="5">۵ ست</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">نام نمایشی اختصاصی (اختیاری)</label>
+      <input type="text" id="addExToSSCustomName" class="form-input" placeholder="مثلاً: نام دلخواه حرکت...">
+    </div>
+
+    <button class="btn-header-action btn-action-primary" style="width:100%; justify-content:center; padding:11px; margin-top:8px;" onclick="confirmAddExerciseToSuperset()">
+      ⚡ اضافه کردن به این سوپرست
+    </button>
   </div>
 </div>
 
@@ -2941,6 +3004,22 @@ const MASTER_EXERCISES = [
         "url": "https://www.youtube.com/shorts/6rWe6tLc_KM"
       }
     ]
+  },
+  {
+    "id": "ab_crunch_machine",
+    "fa": "کرانچ شکم با دستگاه",
+    "en": "Ab crunch machine",
+    "muscles": "شکم / راست شکمی",
+    "category": "gym",
+    "defaultReps": "3 × 10–15",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/2lSf2F7RUAU"
+      }
+    ],
+    "isIsometric": false
   }
 ];
 const HOSSEIN_PROFILE = {
@@ -3863,7 +3942,8 @@ function showToast(message) {
 }
 
 // --- UI Rendering Engine ---
-function renderApp() {
+function renderApp(preserveScroll = true) {
+  const scrollY = preserveScroll ? (window.scrollY || document.documentElement.scrollTop) : 0;
   renderProfileSelect();
   renderHeader();
   renderDayNav();
@@ -3871,6 +3951,12 @@ function renderApp() {
   loadSavedSets();
   updateAllProgressBars();
   setupSectionObserver();
+  if (preserveScroll && scrollY > 0) {
+    window.scrollTo({ top: scrollY, behavior: 'instant' });
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: scrollY, behavior: 'instant' });
+    });
+  }
 }
 
 function renderProfileSelect() {
@@ -3987,10 +4073,14 @@ function closeImageModal() {
   document.getElementById('imageModal')?.classList.remove('open');
 }
 
-function renderExerciseCard(item, dayId, isSuperset = false, singleIdx = -1, totalSingles = 0) {
+function renderExerciseCard(item, dayId, isSuperset = false, singleIdx = -1, totalSingles = 0, ssIdx = -1, exIdx = -1, totalSSExercises = 0) {
   const ex = findExerciseById(item.exId);
   const reps = item.reps || ex.defaultReps || '3 × 8–12';
   const setsCount = parseSetsFromReps(reps, item.sets);
+  const displayNameFa = item.customName ? item.customName : ex.fa;
+  const originalSubtext = item.customName && item.customName !== ex.fa 
+    ? `<div class="exercise-name-en" style="color:#94a3b8; font-size:11px;">حرکت پایه: ${ex.fa}</div>` 
+    : (ex.en ? `<div class="exercise-name-en">${ex.en}</div>` : '');
 
   const setBtns = Array.from({length: setsCount}, (_, i) => 
     `<button class="set-btn" onclick="handleSetClick(this)">${i+1}</button>`
@@ -4012,7 +4102,7 @@ function renderExerciseCard(item, dayId, isSuperset = false, singleIdx = -1, tot
     }
     
     isoBtnHtml = `
-      <button class="quick-iso-btn" onclick="quickStartIsoTimer(${defaultSeconds}, '${ex.fa}')" title="باز کردن تایمر ${defaultSeconds} ثانیه">
+      <button class="quick-iso-btn" onclick="quickStartIsoTimer(${defaultSeconds}, '${displayNameFa}')" title="باز کردن تایمر ${defaultSeconds} ثانیه">
         <span>⏱️</span> <span>تایمر ${defaultSeconds}ث</span>
       </button>
     `;
@@ -4039,14 +4129,22 @@ function renderExerciseCard(item, dayId, isSuperset = false, singleIdx = -1, tot
         <button class="btn-move-action" style="color:#fcd34d; border-color:rgba(252,211,77,0.3);" onclick="openMoveDayModal('single', '${dayId}', -1, ${singleIdx})" title="انتقال این حرکت به روز دیگر">📅 تغییر روز</button>
       </div>
     `;
+  } else if (isSuperset && ssIdx >= 0 && totalSSExercises > 1) {
+    moveBtnsHtml = `
+      <div class="card-reorder-toolbar">
+        ${exIdx > 0 ? `<button class="btn-move-action" onclick="moveSupersetExercise('${dayId}', ${ssIdx}, ${exIdx}, -1)" title="انتقال حرکت در سوپرست به بالا">⬆️ بالا</button>` : ''}
+        ${exIdx < totalSSExercises - 1 ? `<button class="btn-move-action" onclick="moveSupersetExercise('${dayId}', ${ssIdx}, ${exIdx}, 1)" title="انتقال حرکت در سوپرست به پایین">⬇️ پایین</button>` : ''}
+        <button class="btn-move-action" style="color:#fcd34d; border-color:rgba(252,211,77,0.3);" onclick="splitSingleExerciseFromSuperset('${dayId}', ${ssIdx}, ${exIdx})" title="تفکیک این حرکت از سوپرست به عنوان حرکت مستقل">✂️ تفکیک به تکی</button>
+      </div>
+    `;
   }
 
   return `
     <article class="exercise-card" data-ex-id="${dayId}_${ex.id}">
       <div class="exercise-header">
         <div>
-          <div class="exercise-name-fa">${ex.fa}</div>
-          ${ex.en ? `<div class="exercise-name-en">${ex.en}</div>` : ''}
+          <div class="exercise-name-fa">${displayNameFa}</div>
+          ${originalSubtext}
         </div>
         <div class="reps-badge">${reps}</div>
       </div>
@@ -4155,6 +4253,11 @@ function openQuickEditExModal(dayId, exId, reps, sets, isSuperset) {
   document.getElementById('quickEditExReps').value = reps || ex.defaultReps || '3 × 8–12';
   document.getElementById('quickEditExSets').value = String(sets || 3);
 
+  const customNameInput = document.getElementById('quickEditExCustomName');
+  if (customNameInput) {
+    customNameInput.value = currentItem?.customName || '';
+  }
+
   const isoInput = document.getElementById('quickEditExIsoDuration');
   if (isoInput) {
     isoInput.value = currentItem?.isoDuration || '';
@@ -4169,6 +4272,19 @@ function openQuickEditExModal(dayId, exId, reps, sets, isSuperset) {
   }
 
   document.getElementById('quickEditExModal').classList.add('open');
+}
+
+function addExerciseToThisSupersetFromQuickEdit() {
+  const { dayId, exId } = currentQuickEditTarget;
+  const prof = getActiveProfile();
+  const day = prof.days.find(d => d.id === dayId);
+  if (!day || !day.supersets) return;
+
+  const ssIdx = day.supersets.findIndex(ss => ss.exercises.some(e => e.exId === exId));
+  if (ssIdx < 0) return;
+
+  closeQuickEditExModal();
+  openAddExerciseToSupersetModal(dayId, ssIdx);
 }
 
 function startSupersetFromQuickEdit() {
@@ -4207,7 +4323,7 @@ function splitSupersetFromQuickEdit() {
     day.singles.push(foundItem);
     saveProfiles();
     closeQuickEditExModal();
-    renderApp();
+    renderApp(true);
     showToast(`✂️ حرکت "${findExerciseById(exId).fa}" از سوپرست تفکیک و به حرکت تکی تبدیل شد!`);
   }
 }
@@ -4225,6 +4341,7 @@ function saveQuickEditExercise() {
   const newExId = document.getElementById('quickEditExSelectVal').value || exId;
   const newReps = document.getElementById('quickEditExReps').value.trim() || '3 × 8–12';
   const newSets = parseInt(document.getElementById('quickEditExSets').value) || 3;
+  const customNameVal = document.getElementById('quickEditExCustomName')?.value.trim() || '';
   const isoDurationVal = parseInt(document.getElementById('quickEditExIsoDuration')?.value) || 0;
 
   if (!isSuperset && day.singles) {
@@ -4233,6 +4350,8 @@ function saveQuickEditExercise() {
       item.exId = newExId;
       item.reps = newReps;
       item.sets = newSets;
+      if (customNameVal) item.customName = customNameVal;
+      else delete item.customName;
       if (isoDurationVal > 0) item.isoDuration = isoDurationVal;
       else delete item.isoDuration;
     }
@@ -4243,6 +4362,8 @@ function saveQuickEditExercise() {
         item.exId = newExId;
         item.reps = newReps;
         item.sets = newSets;
+        if (customNameVal) item.customName = customNameVal;
+        else delete item.customName;
         if (isoDurationVal > 0) item.isoDuration = isoDurationVal;
         else delete item.isoDuration;
         break;
@@ -4252,7 +4373,7 @@ function saveQuickEditExercise() {
 
   saveProfiles();
   closeQuickEditExModal();
-  renderApp();
+  renderApp(true);
   showToast('✅ تغییرات حرکت با موفقیت ذخیره و اعمال شد!');
 }
 
@@ -4589,14 +4710,18 @@ function renderWorkoutDays() {
       supersetsHtml = day.supersets.map((ss, ssIdx) => `
         <div class="superset-block">
           <div class="superset-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
-            <span>⚡ ${ss.title}</span>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span>⚡ ${ss.title}</span>
+              <span style="font-size:10.5px; background:rgba(0,242,254,0.15); color:#00f2fe; padding:2px 8px; border-radius:10px; border:1px solid rgba(0,242,254,0.3); font-weight:700;">${ss.exercises.length} حرکت</span>
+            </div>
             <div class="card-reorder-toolbar" style="margin-top:0;">
-              ${ssIdx > 0 ? `<button class="btn-move-action" onclick="moveSupersetItem('${day.id}', ${ssIdx}, -1)" title="انتقال سوپرست به بالا">⬆️ بالا</button>` : ''}
-              ${ssIdx < totalSS - 1 ? `<button class="btn-move-action" onclick="moveSupersetItem('${day.id}', ${ssIdx}, 1)" title="انتقال سوپرست به پایین">⬇️ پایین</button>` : ''}
-              <button class="btn-move-action" style="color:#fcd34d; border-color:rgba(252,211,77,0.3);" onclick="openMoveDayModal('superset', '${day.id}', ${ssIdx})" title="انتقال این سوپرست به روز دیگر">📅 انتقال به روز دیگر</button>
+              <button class="btn-move-action" style="color:#38bdf8; border-color:rgba(56,189,248,0.4);" onclick="openAddExerciseToSupersetModal('${day.id}', ${ssIdx})" title="افزودن حرکت دیگر به این سوپرست (ساخت تری‌ست یا جاینت‌ست)">+ حرکت به سوپرست</button>
+              ${ssIdx > 0 ? `<button class="btn-move-action" onclick="moveSupersetItem('${day.id}', ${ssIdx}, -1)" title="انتقال کل سوپرست به بالا">⬆️ بالا</button>` : ''}
+              ${ssIdx < totalSS - 1 ? `<button class="btn-move-action" onclick="moveSupersetItem('${day.id}', ${ssIdx}, 1)" title="انتقال کل سوپرست به پایین">⬇️ پایین</button>` : ''}
+              <button class="btn-move-action" style="color:#fcd34d; border-color:rgba(252,211,77,0.3);" onclick="openMoveDayModal('superset', '${day.id}', ${ssIdx})" title="انتقال کل سوپرست به روز دیگر">📅 انتقال به روز دیگر</button>
             </div>
           </div>
-          ${ss.exercises.map(item => renderExerciseCard(item, day.id, true)).join('')}
+          ${ss.exercises.map((item, exIdx) => renderExerciseCard(item, day.id, true, -1, 0, ssIdx, exIdx, ss.exercises.length)).join('')}
         </div>
       `).join('');
     }
@@ -6548,7 +6673,7 @@ function moveSupersetItem(dayId, ssIdx, direction) {
     day.supersets[newIdx] = temp;
 
     saveProfiles();
-    renderApp();
+    renderApp(true);
     showToast('⚡ ترتیب سوپرست با موفقیت تغییر کرد و ذخیره شد!');
   });
 }
@@ -6567,8 +6692,102 @@ function moveSingleItem(dayId, singleIdx, direction) {
     day.singles[newIdx] = temp;
 
     saveProfiles();
-    renderApp();
+    renderApp(true);
     showToast('⚡ ترتیب حرکت با موفقیت تغییر کرد و ذخیره شد!');
+  });
+}
+
+// --- Multi-Exercise SuperSet / Tri-Set / Giant-Set Engine ---
+let currentAddToSSTarget = { dayId: '', ssIdx: -1 };
+
+function openAddExerciseToSupersetModal(dayId, ssIdx) {
+  verifyEditPIN(() => {
+    currentAddToSSTarget = { dayId, ssIdx };
+    const prof = getActiveProfile();
+    const day = prof.days.find(d => d.id === dayId);
+    if (!day || !day.supersets || !day.supersets[ssIdx]) return;
+    const ss = day.supersets[ssIdx];
+
+    document.getElementById('addExToSupersetTitle').innerText = `⚡ افزودن حرکت به: ${ss.title}`;
+    document.getElementById('addExToSupersetSubtitle').innerText = `این سوپرست در حال حاضر شامل ${ss.exercises.length} حرکت است. حرکت جدید را انتخاب کنید:`;
+
+    const allEx = getAllExercises();
+    const defaultEx = allEx[0];
+    document.getElementById('addExToSSSelectVal').value = defaultEx.id;
+    document.getElementById('pickerSelectedDisplayAddToSS').innerText = 'انتخاب شده: ' + defaultEx.fa;
+    document.getElementById('pickerSearchAddToSS').value = defaultEx.fa;
+    filterPickerOptions('AddToSS', '');
+
+    document.getElementById('addExToSSReps').value = '3 × 10–15';
+    document.getElementById('addExToSSSets').value = '3';
+    document.getElementById('addExToSSCustomName').value = '';
+
+    document.getElementById('addExToSupersetModal')?.classList.add('open');
+  });
+}
+
+function closeAddExToSupersetModal() {
+  document.getElementById('addExToSupersetModal')?.classList.remove('open');
+}
+
+function confirmAddExerciseToSuperset() {
+  const { dayId, ssIdx } = currentAddToSSTarget;
+  const prof = getActiveProfile();
+  const day = prof.days.find(d => d.id === dayId);
+  if (!day || !day.supersets || !day.supersets[ssIdx]) return;
+
+  const exId = document.getElementById('addExToSSSelectVal')?.value || getAllExercises()[0].id;
+  const reps = document.getElementById('addExToSSReps')?.value.trim() || '3 × 10–15';
+  const sets = parseInt(document.getElementById('addExToSSSets')?.value) || 3;
+  const customName = document.getElementById('addExToSSCustomName')?.value.trim();
+
+  const newItem = { exId, reps, sets };
+  if (customName) newItem.customName = customName;
+
+  day.supersets[ssIdx].exercises.push(newItem);
+
+  saveProfiles();
+  closeAddExToSupersetModal();
+  renderApp(true);
+  showToast(`⚡ حرکت "${findExerciseById(exId).fa}" با موفقیت به سوپرست اضافه شد! (مجموع: ${day.supersets[ssIdx].exercises.length} حرکت)`);
+}
+
+function moveSupersetExercise(dayId, ssIdx, exIdx, direction) {
+  verifyEditPIN(() => {
+    const prof = getActiveProfile();
+    const day = prof.days.find(d => d.id === dayId);
+    if (!day || !day.supersets || !day.supersets[ssIdx]) return;
+
+    const list = day.supersets[ssIdx].exercises;
+    const newIdx = exIdx + direction;
+    if (newIdx < 0 || newIdx >= list.length) return;
+
+    const temp = list[exIdx];
+    list[exIdx] = list[newIdx];
+    list[newIdx] = temp;
+
+    saveProfiles();
+    renderApp(true);
+    showToast('⚡ ترتیب حرکت درون سوپرست تغییر کرد!');
+  });
+}
+
+function splitSingleExerciseFromSuperset(dayId, ssIdx, exIdx) {
+  verifyEditPIN(() => {
+    const prof = getActiveProfile();
+    const day = prof.days.find(d => d.id === dayId);
+    if (!day || !day.supersets || !day.supersets[ssIdx]) return;
+
+    const item = day.supersets[ssIdx].exercises.splice(exIdx, 1)[0];
+    if (day.supersets[ssIdx].exercises.length === 0) {
+      day.supersets.splice(ssIdx, 1);
+    }
+    if (!day.singles) day.singles = [];
+    day.singles.push(item);
+
+    saveProfiles();
+    renderApp(true);
+    showToast('✂️ حرکت از سوپرست جدا و به عنوان حرکت تکی ذخیره شد!');
   });
 }
 
@@ -6633,7 +6852,7 @@ function executeMoveDay() {
 
   saveProfiles();
   closeMoveDayModal();
-  renderApp();
+  renderApp(true);
 }
 
 function handleRestoreFile(input) {
