@@ -551,6 +551,13 @@
       </div>
     </div>
 
+    <!-- Custom Display Name -->
+    <div class="form-group" style="margin-top:6px;">
+      <label class="form-label">🏷️ نام نمایشی اختصاصی برای این حرکت (اختیاری):</label>
+      <input type="text" id="quickEditExCustomName" class="form-input" placeholder="مثلاً: جلوبازو لاری هالتر EZ یا نام دلخواه شما...">
+      <div style="font-size:10.5px; color:#94a3b8; margin-top:2px;">اگر در باشگاه یا برنامه‌تان این حرکت را با نام دیگری صدا می‌زنید، اینجا بنویسید تا در کارت حرکت نمایش یابد.</div>
+    </div>
+
     <!-- Custom Default Timer Duration -->
     <div class="form-group" style="margin-top:6px;">
       <label class="form-label">⏱️ زمان پیش‌فرض تایمر برای این حرکت (ثانیه):</label>
@@ -562,7 +569,7 @@
     <div id="quickEditSupersetSection" style="background:#152033; border:1px solid var(--border-color); border-radius:10px; padding:10px 12px; margin-top:12px;">
       <div id="quickEditNotSupersetBox">
         <div style="font-size:12px; font-weight:800; color:#00f2fe; margin-bottom:4px;">⚡ ترکیب و سوپرست کردن این حرکت</div>
-        <p style="font-size:11px; color:#94a3b8; margin-bottom:8px;">می‌توانید این حرکت را با یک حرکت دیگر از بانک حرکات جفت و سوپرست کنید:</p>
+        <p style="font-size:11px; color:#94a3b8; margin-bottom:8px;">می‌توانید این حرکت را با یک یا چند حرکت دیگر از بانک حرکات جفت و سوپرست کنید:</p>
         <button class="btn-header-action btn-action-primary" style="width:100%; justify-content:center; padding:8px; font-size:12px; font-weight:800;" onclick="startSupersetFromQuickEdit()">
           ⚡ تبدیل به سوپرست دوتایی
         </button>
@@ -570,10 +577,15 @@
 
       <div id="quickEditIsSupersetBox" style="display:none;">
         <div style="font-size:12px; font-weight:800; color:#fcd34d; margin-bottom:4px;">⚡ این حرکت در حال حاضر درون یک سوپرست است</div>
-        <p style="font-size:11px; color:#94a3b8; margin-bottom:8px;">می‌توانید این حرکت را از سوپرست جدا کرده و به عنوان یک حرکت تکی مستقل ذخیره کنید:</p>
-        <button class="btn-header-action" style="width:100%; justify-content:center; padding:8px; font-size:12px; font-weight:800; border-color:#fcd34d88; color:#fcd34d;" onclick="splitSupersetFromQuickEdit()">
-          ✂️ تفکیک و تبدیل به حرکت تکی مستقل
-        </button>
+        <p style="font-size:11px; color:#94a3b8; margin-bottom:8px;">می‌توانید حرکت دیگری به این سوپرست اضافه کنید (ساخت تری‌ست یا جاینت‌ست) یا آن را تفکیک کنید:</p>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          <button class="btn-header-action btn-action-primary" style="flex:1; justify-content:center; padding:8px; font-size:11.5px; font-weight:800;" onclick="addExerciseToThisSupersetFromQuickEdit()">
+            ➕ افزودن حرکت دیگر به این سوپرست
+          </button>
+          <button class="btn-header-action" style="flex:1; justify-content:center; padding:8px; font-size:11.5px; font-weight:800; border-color:#fcd34d88; color:#fcd34d;" onclick="splitSupersetFromQuickEdit()">
+            ✂️ تفکیک به حرکت تکی
+          </button>
+        </div>
       </div>
     </div>
 
@@ -585,6 +597,57 @@
         🗑️ حذف حرکت
       </button>
     </div>
+  </div>
+</div>
+
+<!-- Add Exercise to Existing Superset Modal (Tri-Set & Giant-Set Support) -->
+<div id="addExToSupersetModal" class="modal-overlay">
+  <div class="modal-dialog" style="max-width: 480px;">
+    <button class="modal-close-btn" onclick="closeAddExToSupersetModal()">✕</button>
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+      <span style="font-size:22px;">⚡</span>
+      <h3 id="addExToSupersetTitle" style="margin:0;">افزودن حرکت به سوپرست</h3>
+    </div>
+    <p id="addExToSupersetSubtitle" style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
+      افزودن حرکت ۳، ۴ یا بیشتر برای ایجاد تری‌ست (Tri-Set) یا جاینت‌ست (Giant Set)
+    </p>
+
+    <!-- Searchable Picker -->
+    <div class="form-group">
+      <label class="form-label">🔍 انتخاب حرکت جدید برای اضافه شدن به این سوپرست *</label>
+      <div class="search-picker-box">
+        <input type="text" id="pickerSearchAddToSS" class="form-input" placeholder="تایپ نام حرکت..." oninput="filterPickerOptions('AddToSS', this.value)">
+        <div id="pickerListAddToSS" class="search-picker-list"></div>
+      </div>
+      <input type="hidden" id="addExToSSSelectVal">
+      <div id="pickerSelectedDisplayAddToSS" style="font-size:12px; color:#38bdf8; font-weight:700; margin-top:4px;">انتخاب شده: -</div>
+    </div>
+
+    <div style="display:flex; gap:8px;">
+      <div class="form-group" style="flex:2;">
+        <label class="form-label">ست و تکرار حرکت</label>
+        <input type="text" id="addExToSSReps" class="form-input" value="3 × 10–15" style="direction:ltr">
+      </div>
+      <div class="form-group" style="flex:1;">
+        <label class="form-label">تعداد ست</label>
+        <select id="addExToSSSets" class="form-select">
+          <option value="1">۱ ست</option>
+          <option value="2">۲ ست</option>
+          <option value="3" selected>۳ ست</option>
+          <option value="4">۴ ست</option>
+          <option value="5">۵ ست</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">نام نمایشی اختصاصی (اختیاری)</label>
+      <input type="text" id="addExToSSCustomName" class="form-input" placeholder="مثلاً: نام دلخواه حرکت...">
+    </div>
+
+    <button class="btn-header-action btn-action-primary" style="width:100%; justify-content:center; padding:11px; margin-top:8px;" onclick="confirmAddExerciseToSuperset()">
+      ⚡ اضافه کردن به این سوپرست
+    </button>
   </div>
 </div>
 
