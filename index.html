@@ -4418,30 +4418,21 @@ function saveQuickEditExercise() {
   saveProfiles();
   closeQuickEditExModal();
 
-  const daySec = document.getElementById(dayId);
-  if (daySec && targetItem) {
-    if (!isSuperset && targetSIdx >= 0) {
-      const singleCards = Array.from(daySec.children).filter(el => el.classList.contains('exercise-card'));
-      const card = singleCards[targetSIdx];
-      if (card) {
-        card.outerHTML = renderExerciseCard(targetItem, day.id, false, targetSIdx, day.singles.length);
-        loadSavedSets();
-        showToast('✅ تغییرات حرکت با موفقیت ذخیره و اعمال شد!');
-        return;
-      }
-    } else if (isSuperset && targetSSIdx >= 0 && targetExIdx >= 0) {
-      const ssBlocks = Array.from(daySec.children).filter(el => el.classList.contains('superset-block'));
-      const ssBlock = ssBlocks[targetSSIdx];
-      if (ssBlock) {
-        const cards = Array.from(ssBlock.children).filter(el => el.classList.contains('exercise-card'));
-        const card = cards[targetExIdx];
-        if (card) {
-          card.outerHTML = renderExerciseCard(targetItem, day.id, true, -1, 0, targetSSIdx, targetExIdx, day.supersets[targetSSIdx].exercises.length);
-          loadSavedSets();
-          showToast('✅ تغییرات حرکت با موفقیت ذخیره و اعمال شد!');
-          return;
-        }
-      }
+  if (!isSuperset) {
+    const singlesWrap = document.getElementById('singles_' + dayId);
+    if (singlesWrap) {
+      singlesWrap.innerHTML = renderDaySinglesHTML(day);
+      loadSavedSets();
+      showToast('✅ تغییرات حرکت با موفقیت ذخیره و اعمال شد!');
+      return;
+    }
+  } else {
+    const ssWrap = document.getElementById('supersets_' + dayId);
+    if (ssWrap) {
+      ssWrap.innerHTML = renderDaySupersetsHTML(day);
+      loadSavedSets();
+      showToast('✅ تغییرات حرکت با موفقیت ذخیره و اعمال شد!');
+      return;
     }
   }
 
@@ -4765,6 +4756,34 @@ function renderDynamicWeeklySummary(prof) {
   `;
 }
 
+function renderDaySupersetsHTML(day) {
+  if (!day.supersets || day.supersets.length === 0) return '';
+  const totalSS = day.supersets.length;
+  return day.supersets.map((ss, ssIdx) => `
+    <div class="superset-block" id="ss_${day.id}_${ssIdx}">
+      <div class="superset-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span>⚡ ${ss.title}</span>
+          <span style="font-size:10.5px; background:rgba(0,242,254,0.15); color:#00f2fe; padding:2px 8px; border-radius:10px; border:1px solid rgba(0,242,254,0.3); font-weight:700;">${ss.exercises.length} حرکت</span>
+        </div>
+        <div class="card-reorder-toolbar" style="margin-top:0;">
+          <button class="btn-move-action" style="color:#38bdf8; border-color:rgba(56,189,248,0.4);" onclick="openAddExerciseToSupersetModal('${day.id}', ${ssIdx})" title="افزودن حرکت دیگر به این سوپرست (ساخت تری‌ست یا جاینت‌ست)">+ حرکت به سوپرست</button>
+          ${ssIdx > 0 ? `<button class="btn-move-action" onclick="moveSupersetItem('${day.id}', ${ssIdx}, -1)" title="انتقال کل سوپرست به بالا">⬆️ بالا</button>` : ''}
+          ${ssIdx < totalSS - 1 ? `<button class="btn-move-action" onclick="moveSupersetItem('${day.id}', ${ssIdx}, 1)" title="انتقال کل سوپرست به پایین">⬇️ پایین</button>` : ''}
+          <button class="btn-move-action" style="color:#fcd34d; border-color:rgba(252,211,77,0.3);" onclick="openMoveDayModal('superset', '${day.id}', ${ssIdx})" title="انتقال کل سوپرست به روز دیگر">📅 انتقال به روز دیگر</button>
+        </div>
+      </div>
+      ${ss.exercises.map((item, exIdx) => renderExerciseCard(item, day.id, true, -1, 0, ssIdx, exIdx, ss.exercises.length)).join('')}
+    </div>
+  `).join('');
+}
+
+function renderDaySinglesHTML(day) {
+  if (!day.singles || day.singles.length === 0) return '';
+  const totalSingles = day.singles.length;
+  return day.singles.map((item, sIdx) => renderExerciseCard(item, day.id, false, sIdx, totalSingles)).join('');
+}
+
 function renderWorkoutDays() {
   const prof = getActiveProfile();
   const container = document.getElementById('workoutContent');
@@ -4782,33 +4801,8 @@ function renderWorkoutDays() {
       'rest': '<span class="day-location-badge badge-rest">🛌 استراحت کامل</span>'
     }[day.type] || '';
 
-    let supersetsHtml = '';
-    if (day.supersets && day.supersets.length > 0) {
-      const totalSS = day.supersets.length;
-      supersetsHtml = day.supersets.map((ss, ssIdx) => `
-        <div class="superset-block">
-          <div class="superset-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
-            <div style="display:flex; align-items:center; gap:8px;">
-              <span>⚡ ${ss.title}</span>
-              <span style="font-size:10.5px; background:rgba(0,242,254,0.15); color:#00f2fe; padding:2px 8px; border-radius:10px; border:1px solid rgba(0,242,254,0.3); font-weight:700;">${ss.exercises.length} حرکت</span>
-            </div>
-            <div class="card-reorder-toolbar" style="margin-top:0;">
-              <button class="btn-move-action" style="color:#38bdf8; border-color:rgba(56,189,248,0.4);" onclick="openAddExerciseToSupersetModal('${day.id}', ${ssIdx})" title="افزودن حرکت دیگر به این سوپرست (ساخت تری‌ست یا جاینت‌ست)">+ حرکت به سوپرست</button>
-              ${ssIdx > 0 ? `<button class="btn-move-action" onclick="moveSupersetItem('${day.id}', ${ssIdx}, -1)" title="انتقال کل سوپرست به بالا">⬆️ بالا</button>` : ''}
-              ${ssIdx < totalSS - 1 ? `<button class="btn-move-action" onclick="moveSupersetItem('${day.id}', ${ssIdx}, 1)" title="انتقال کل سوپرست به پایین">⬇️ پایین</button>` : ''}
-              <button class="btn-move-action" style="color:#fcd34d; border-color:rgba(252,211,77,0.3);" onclick="openMoveDayModal('superset', '${day.id}', ${ssIdx})" title="انتقال کل سوپرست به روز دیگر">📅 انتقال به روز دیگر</button>
-            </div>
-          </div>
-          ${ss.exercises.map((item, exIdx) => renderExerciseCard(item, day.id, true, -1, 0, ssIdx, exIdx, ss.exercises.length)).join('')}
-        </div>
-      `).join('');
-    }
-
-    let singlesHtml = '';
-    if (day.singles && day.singles.length > 0) {
-      const totalSingles = day.singles.length;
-      singlesHtml = day.singles.map((item, sIdx) => renderExerciseCard(item, day.id, false, sIdx, totalSingles)).join('');
-    }
+    const supersetsHtml = renderDaySupersetsHTML(day);
+    const singlesHtml = renderDaySinglesHTML(day);
 
     let restHtml = '';
     if (day.type === 'rest') {
@@ -4856,8 +4850,8 @@ function renderWorkoutDays() {
           </div>
         ` : ''}
 
-        ${supersetsHtml}
-        ${singlesHtml}
+        <div id="supersets_${day.id}" class="day-supersets-wrap">${supersetsHtml}</div>
+        <div id="singles_${day.id}" class="day-singles-wrap">${singlesHtml}</div>
         ${restHtml}
         ${treadmillHtml}
       </section>
@@ -6766,42 +6760,12 @@ function moveSupersetItem(dayId, ssIdx, direction) {
     day.supersets[newIdx] = temp;
     saveProfiles();
 
-    const daySec = document.getElementById(dayId);
-    if (daySec) {
-      const ssBlocks = Array.from(daySec.children).filter(el => el.classList.contains('superset-block'));
-      const blockA = ssBlocks[ssIdx];
-      const blockB = ssBlocks[newIdx];
-      if (blockA && blockB) {
-        const renderSS = (ss, index) => {
-          const totalSS = day.supersets.length;
-          return `
-            <div class="superset-block">
-              <div class="superset-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
-                <div style="display:flex; align-items:center; gap:8px;">
-                  <span>⚡ ${ss.title}</span>
-                  <span style="font-size:10.5px; background:rgba(0,242,254,0.15); color:#00f2fe; padding:2px 8px; border-radius:10px; border:1px solid rgba(0,242,254,0.3); font-weight:700;">${ss.exercises.length} حرکت</span>
-                </div>
-                <div class="card-reorder-toolbar" style="margin-top:0;">
-                  <button class="btn-move-action" style="color:#38bdf8; border-color:rgba(56,189,248,0.4);" onclick="openAddExerciseToSupersetModal('${day.id}', ${index})" title="افزودن حرکت دیگر به این سوپرست (ساخت تری‌ست یا جاینت‌ست)">+ حرکت به سوپرست</button>
-                  ${index > 0 ? `<button class="btn-move-action" onclick="moveSupersetItem('${day.id}', ${index}, -1)" title="انتقال کل سوپرست به بالا">⬆️ بالا</button>` : ''}
-                  ${index < totalSS - 1 ? `<button class="btn-move-action" onclick="moveSupersetItem('${day.id}', ${index}, 1)" title="انتقال کل سوپرست به پایین">⬇️ پایین</button>` : ''}
-                  <button class="btn-move-action" style="color:#fcd34d; border-color:rgba(252,211,77,0.3);" onclick="openMoveDayModal('superset', '${day.id}', ${index})" title="انتقال کل سوپرست به روز دیگر">📅 انتقال به روز دیگر</button>
-                </div>
-              </div>
-              ${ss.exercises.map((item, exIdx) => renderExerciseCard(item, day.id, true, -1, 0, index, exIdx, ss.exercises.length)).join('')}
-            </div>
-          `;
-        };
-        const htmlA = renderSS(day.supersets[ssIdx], ssIdx);
-        const htmlB = renderSS(day.supersets[newIdx], newIdx);
-        
-        blockA.outerHTML = (direction === -1) ? htmlA : htmlB;
-        blockB.outerHTML = (direction === -1) ? htmlB : htmlA;
-        
-        loadSavedSets();
-        showToast('⚡ ترتیب سوپرست با موفقیت تغییر کرد و ذخیره شد!');
-        return;
-      }
+    const ssWrap = document.getElementById('supersets_' + dayId);
+    if (ssWrap) {
+      ssWrap.innerHTML = renderDaySupersetsHTML(day);
+      loadSavedSets();
+      showToast('⚡ ترتیب سوپرست با موفقیت تغییر کرد و ذخیره شد!');
+      return;
     }
 
     renderApp(true);
@@ -6821,26 +6785,14 @@ function moveSingleItem(dayId, singleIdx, direction) {
     const temp = day.singles[singleIdx];
     day.singles[singleIdx] = day.singles[newIdx];
     day.singles[newIdx] = temp;
-
     saveProfiles();
 
-    const daySec = document.getElementById(dayId);
-    if (daySec) {
-      const singleCards = Array.from(daySec.children).filter(el => el.classList.contains('exercise-card'));
-      const cardA = singleCards[singleIdx];
-      const cardB = singleCards[newIdx];
-      if (cardA && cardB) {
-        const totalSingles = day.singles.length;
-        const htmlA = renderExerciseCard(day.singles[singleIdx], day.id, false, singleIdx, totalSingles);
-        const htmlB = renderExerciseCard(day.singles[newIdx], day.id, false, newIdx, totalSingles);
-        
-        cardA.outerHTML = (direction === -1) ? htmlA : htmlB;
-        cardB.outerHTML = (direction === -1) ? htmlB : htmlA;
-        
-        loadSavedSets();
-        showToast('⚡ ترتیب حرکت با موفقیت تغییر کرد و ذخیره شد!');
-        return;
-      }
+    const singlesWrap = document.getElementById('singles_' + dayId);
+    if (singlesWrap) {
+      singlesWrap.innerHTML = renderDaySinglesHTML(day);
+      loadSavedSets();
+      showToast('⚡ ترتیب حرکت با موفقیت تغییر کرد و ذخیره شد!');
+      return;
     }
 
     renderApp(true);
@@ -6899,6 +6851,15 @@ function confirmAddExerciseToSuperset() {
 
   saveProfiles();
   closeAddExToSupersetModal();
+
+  const ssWrap = document.getElementById('supersets_' + dayId);
+  if (ssWrap) {
+    ssWrap.innerHTML = renderDaySupersetsHTML(day);
+    loadSavedSets();
+    showToast(`⚡ حرکت "${findExerciseById(exId).fa}" با موفقیت به سوپرست اضافه شد! (مجموع: ${day.supersets[ssIdx].exercises.length} حرکت)`);
+    return;
+  }
+
   renderApp(true);
   showToast(`⚡ حرکت "${findExerciseById(exId).fa}" با موفقیت به سوپرست اضافه شد! (مجموع: ${day.supersets[ssIdx].exercises.length} حرکت)`);
 }
@@ -6919,27 +6880,12 @@ function moveSupersetExercise(dayId, ssIdx, exIdx, direction) {
 
     saveProfiles();
 
-    const daySec = document.getElementById(dayId);
-    if (daySec) {
-      const ssBlocks = Array.from(daySec.children).filter(el => el.classList.contains('superset-block'));
-      const ssBlock = ssBlocks[ssIdx];
-      if (ssBlock) {
-        const cards = Array.from(ssBlock.children).filter(el => el.classList.contains('exercise-card'));
-        const cardA = cards[exIdx];
-        const cardB = cards[newIdx];
-        if (cardA && cardB) {
-          const totalEx = list.length;
-          const htmlA = renderExerciseCard(list[exIdx], day.id, true, -1, 0, ssIdx, exIdx, totalEx);
-          const htmlB = renderExerciseCard(list[newIdx], day.id, true, -1, 0, ssIdx, newIdx, totalEx);
-          
-          cardA.outerHTML = (direction === -1) ? htmlA : htmlB;
-          cardB.outerHTML = (direction === -1) ? htmlB : htmlA;
-          
-          loadSavedSets();
-          showToast('⚡ ترتیب حرکت درون سوپرست تغییر کرد!');
-          return;
-        }
-      }
+    const ssWrap = document.getElementById('supersets_' + dayId);
+    if (ssWrap) {
+      ssWrap.innerHTML = renderDaySupersetsHTML(day);
+      loadSavedSets();
+      showToast('⚡ ترتیب حرکت درون سوپرست تغییر کرد!');
+      return;
     }
 
     renderApp(true);
@@ -6961,7 +6907,18 @@ function splitSingleExerciseFromSuperset(dayId, ssIdx, exIdx) {
     day.singles.push(item);
 
     saveProfiles();
-    renderApp(true, `${dayId}_${item.exId}`);
+
+    const ssWrap = document.getElementById('supersets_' + dayId);
+    const singlesWrap = document.getElementById('singles_' + dayId);
+    if (ssWrap && singlesWrap) {
+      ssWrap.innerHTML = renderDaySupersetsHTML(day);
+      singlesWrap.innerHTML = renderDaySinglesHTML(day);
+      loadSavedSets();
+      showToast('✂️ حرکت از سوپرست جدا و به عنوان حرکت تکی ذخیره شد!');
+      return;
+    }
+
+    renderApp(true);
     showToast('✂️ حرکت از سوپرست جدا و به عنوان حرکت تکی ذخیره شد!');
   });
 }
