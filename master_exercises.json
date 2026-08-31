@@ -1291,5 +1291,21 @@
         "url": "https://www.youtube.com/shorts/6rWe6tLc_KM"
       }
     ]
+  },
+  {
+    "id": "ab_crunch_machine",
+    "fa": "کرانچ شکم با دستگاه",
+    "en": "Ab crunch machine",
+    "muscles": "شکم / راست شکمی",
+    "category": "gym",
+    "defaultReps": "3 × 10–15",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/2lSf2F7RUAU"
+      }
+    ],
+    "isIsometric": false
   }
 ]
