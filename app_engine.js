@@ -912,6 +912,12 @@ function renderDynamicWeeklySummary(prof) {
 function renderWorkoutDays() {
   const prof = getActiveProfile();
   const container = document.getElementById('workoutContent');
+  if (!container) return;
+
+  const currentHeight = container.offsetHeight;
+  if (currentHeight > 0) {
+    container.style.minHeight = currentHeight + 'px';
+  }
 
   const daysHtml = prof.days.map(day => {
     const typeBadge = {
@@ -1004,6 +1010,10 @@ function renderWorkoutDays() {
 
   const dynamicSummaryHtml = renderDynamicWeeklySummary(prof);
   container.innerHTML = daysHtml + dynamicSummaryHtml;
+
+  requestAnimationFrame(() => {
+    container.style.minHeight = '';
+  });
 }
 
 // --- Muscle Breakdown Detail Modal Handlers ---
@@ -1100,7 +1110,7 @@ function confirmProfilePin() {
   const prof = getActiveProfile();
   const enteredPin = document.getElementById('profilePinInput').value.trim();
 
-  if (enteredPin === prof.pin) {
+  if (enteredPin === (prof.pin || 'gym')) {
     sessionStorage.setItem('chieftain_unlocked_' + activeProfileId, 'true');
     const actionToRun = pendingActionAfterPin;
     pendingActionAfterPin = null;
@@ -2872,19 +2882,18 @@ function downloadBackupJson() {
 let moveDayState = { type: 'superset', dayId: '', ssIdx: -1, singleIdx: -1 };
 
 function verifyEditPIN(callback) {
-  const prof = getActiveProfile();
-  if (sessionStorage.getItem('chieftain_unlocked_' + prof.id) === 'true') {
+  if (isProfileUnlocked()) {
     callback();
     return;
   }
-  const entered = prompt(`برای جابجایی و ویرایش برنامه "${prof.name}" لطفاً رمز عبور را وارد کنید:`);
-  if (!entered) return;
-  if (entered.trim() === (prof.pin || 'gym')) {
-    sessionStorage.setItem('chieftain_unlocked_' + prof.id, 'true');
-    callback();
-  } else {
-    alert('❌ رمز عبور اشتباه است.');
-  }
+  pendingActionAfterPin = callback;
+  const prof = getActiveProfile();
+  document.getElementById('pinModalTitle').innerText = 'تایید دسترسی ویرایش';
+  document.getElementById('pinModalDesc').innerText = `برای ویرایش و جابجایی در برنامه «${prof.name}»، لطفاً رمز عبور را وارد کنید:`;
+  document.getElementById('profilePinInput').value = '';
+  document.getElementById('pinErrorMsg').style.display = 'none';
+  document.getElementById('pinModal').classList.add('open');
+  setTimeout(() => document.getElementById('profilePinInput').focus(), 200);
 }
 
 function moveSupersetItem(dayId, ssIdx, direction) {
@@ -2900,8 +2909,10 @@ function moveSupersetItem(dayId, ssIdx, direction) {
     day.supersets[ssIdx] = day.supersets[newIdx];
     day.supersets[newIdx] = temp;
 
+    const firstExId = temp.exercises?.[0]?.exId;
+
     saveProfiles();
-    renderApp(true);
+    renderApp(true, firstExId ? `${dayId}_${firstExId}` : null);
     showToast('⚡ ترتیب سوپرست با موفقیت تغییر کرد و ذخیره شد!');
   });
 }
@@ -2915,12 +2926,13 @@ function moveSingleItem(dayId, singleIdx, direction) {
     const newIdx = singleIdx + direction;
     if (newIdx < 0 || newIdx >= day.singles.length) return;
 
+    const movedExId = day.singles[singleIdx].exId;
     const temp = day.singles[singleIdx];
     day.singles[singleIdx] = day.singles[newIdx];
     day.singles[newIdx] = temp;
 
     saveProfiles();
-    renderApp(true);
+    renderApp(true, `${dayId}_${movedExId}`);
     showToast('⚡ ترتیب حرکت با موفقیت تغییر کرد و ذخیره شد!');
   });
 }
@@ -2990,12 +3002,13 @@ function moveSupersetExercise(dayId, ssIdx, exIdx, direction) {
     const newIdx = exIdx + direction;
     if (newIdx < 0 || newIdx >= list.length) return;
 
+    const movedExId = list[exIdx].exId;
     const temp = list[exIdx];
     list[exIdx] = list[newIdx];
     list[newIdx] = temp;
 
     saveProfiles();
-    renderApp(true);
+    renderApp(true, `${dayId}_${movedExId}`);
     showToast('⚡ ترتیب حرکت درون سوپرست تغییر کرد!');
   });
 }
@@ -3014,7 +3027,7 @@ function splitSingleExerciseFromSuperset(dayId, ssIdx, exIdx) {
     day.singles.push(item);
 
     saveProfiles();
-    renderApp(true);
+    renderApp(true, `${dayId}_${item.exId}`);
     showToast('✂️ حرکت از سوپرست جدا و به عنوان حرکت تکی ذخیره شد!');
   });
 }
