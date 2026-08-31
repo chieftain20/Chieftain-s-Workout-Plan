@@ -3942,8 +3942,11 @@ function showToast(message) {
 }
 
 // --- UI Rendering Engine ---
-function renderApp(preserveScroll = true) {
-  const scrollY = preserveScroll ? (window.scrollY || document.documentElement.scrollTop) : 0;
+function renderApp(preserveScroll = true, targetCardExId = null) {
+  const scrollY = (typeof preserveScroll === 'number') 
+    ? preserveScroll 
+    : (preserveScroll ? (window.scrollY || document.documentElement.scrollTop) : 0);
+
   renderProfileSelect();
   renderHeader();
   renderDayNav();
@@ -3951,6 +3954,24 @@ function renderApp(preserveScroll = true) {
   loadSavedSets();
   updateAllProgressBars();
   setupSectionObserver();
+
+  // If a specific card was edited/moved, keep it precisely in view
+  if (targetCardExId) {
+    const card = document.querySelector(`[data-ex-id="${targetCardExId}"]`);
+    if (card) {
+      card.scrollIntoView({ behavior: 'instant', block: 'center' });
+      card.style.transition = 'box-shadow 0.3s ease, border-color 0.3s ease';
+      card.style.borderColor = '#00f2fe';
+      card.style.boxShadow = '0 0 20px rgba(0,242,254,0.4)';
+      setTimeout(() => {
+        card.style.borderColor = '';
+        card.style.boxShadow = '';
+      }, 1200);
+      return;
+    }
+  }
+
+  // Preserve exact scroll position
   if (preserveScroll && scrollY > 0) {
     window.scrollTo({ top: scrollY, behavior: 'instant' });
     requestAnimationFrame(() => {
@@ -4033,7 +4054,7 @@ function renderDayNav() {
   const tabsHtml = prof.days.map((d, idx) => {
     const typeLabel = d.type === 'gym' ? 'باشگاه' : (d.type === 'home' ? 'خانه' : 'استراحت');
     return `
-      <a href="#${d.id}" class="nav-tab" data-day="${idx}">
+      <a href="javascript:void(0)" onclick="navigateToDaySection(event, '${d.id}')" class="nav-tab" data-day="${idx}" data-target-id="${d.id}">
         <span>${d.title}</span>
         <span class="tab-badge">${typeLabel}</span>
         <span id="nav-pill-${d.id}" class="tab-prog-pill" style="display:none;">۰٪</span>
@@ -4041,7 +4062,25 @@ function renderDayNav() {
     `;
   }).join('');
 
-  nav.innerHTML = tabsHtml + `<a href="#weekly-summary" class="nav-tab" data-day="summary">📊 جمع‌بندی</a>`;
+  nav.innerHTML = tabsHtml + `<a href="javascript:void(0)" onclick="navigateToDaySection(event, 'weekly-summary')" class="nav-tab" data-day="summary" data-target-id="weekly-summary">📊 جمع‌بندی</a>`;
+}
+
+function navigateToDaySection(e, secId) {
+  if (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  const el = document.getElementById(secId);
+  if (el) {
+    const navBarHeight = 110;
+    const pos = el.getBoundingClientRect().top + (window.scrollY || document.documentElement.scrollTop) - navBarHeight;
+    window.scrollTo({ top: pos, behavior: 'smooth' });
+  }
+  if (window.location.hash && !window.location.hash.startsWith('#sync=')) {
+    try {
+      history.replaceState(null, null, window.location.pathname + window.location.search);
+    } catch(err) {}
+  }
 }
 
 function renderVideoButtons(videos) {
@@ -6267,7 +6306,14 @@ function getTodaySectionId() {
 document.addEventListener('DOMContentLoaded', () => {
   loadAppData();
   checkUrlSyncData();
-  renderApp();
+  
+  if (window.location.hash && !window.location.hash.startsWith('#sync=')) {
+    try {
+      history.replaceState(null, null, window.location.pathname + window.location.search);
+    } catch(err) {}
+  }
+
+  renderApp(false);
 
   // Background Auto-Sync from Cloud on startup
   if (navigator.onLine && isAutoCloudSyncEnabled()) {
@@ -6279,7 +6325,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (todaySec) todaySec.classList.add('today-highlight');
 
   document.querySelectorAll('.nav-tab').forEach(tab => {
-    if (tab.getAttribute('href') === '#' + todaySecId) {
+    if (tab.getAttribute('data-target-id') === todaySecId) {
       tab.classList.add('is-today', 'active');
     }
   });
@@ -6287,7 +6333,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 document.getElementById('todayJumpBtn')?.addEventListener('click', () => {
   const todaySecId = getTodaySectionId();
-  document.getElementById(todaySecId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const el = document.getElementById(todaySecId);
+  if (el) {
+    const navBarHeight = 110;
+    const pos = el.getBoundingClientRect().top + (window.scrollY || document.documentElement.scrollTop) - navBarHeight;
+    window.scrollTo({ top: pos, behavior: 'smooth' });
+  }
 });
 
 // Native Asynchronous IntersectionObserver (Zero layout thrashing, 120fps smooth scrolling)
@@ -6304,7 +6355,7 @@ function setupSectionObserver() {
         const secId = entry.target.getAttribute('id');
         if (secId) {
           document.querySelectorAll('.nav-tab').forEach(tab => {
-            const isCurrent = tab.getAttribute('href') === '#' + secId;
+            const isCurrent = tab.getAttribute('data-target-id') === secId;
             tab.classList.toggle('active', isCurrent);
           });
 
