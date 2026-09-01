@@ -3367,6 +3367,12 @@ function calculateAnthropometrics(m) {
     whtr = waist / height;
   }
 
+  const shoulders = parseFloat(m.shoulders) || 0;
+  let swr = null;
+  if (shoulders > 0 && waist > 0) {
+    swr = Number((shoulders / waist).toFixed(2));
+  }
+
   const armRight = parseFloat(m.armRight) || 0;
   const armLeft = parseFloat(m.armLeft) || 0;
   const armDiff = (armRight > 0 && armLeft > 0) ? Math.abs(armRight - armLeft) : null;
@@ -3381,6 +3387,8 @@ function calculateAnthropometrics(m) {
     leanMass: leanMass !== null ? Number(leanMass.toFixed(1)) : null,
     whr: whr !== null ? Number(whr.toFixed(2)) : null,
     whtr: whtr !== null ? Number(whtr.toFixed(2)) : null,
+    swr: swr !== null ? swr : null,
+    shoulders: shoulders > 0 ? shoulders : null,
     armDiff: armDiff !== null ? Number(armDiff.toFixed(1)) : null,
     thighDiff: thighDiff !== null ? Number(thighDiff.toFixed(1)) : null
   };
@@ -3598,6 +3606,7 @@ function renderBodyMetricsView() {
       // Group 2: Upper Body
       { isGroup: true, title: '📐 ابعاد بالاتنه (Upper Body)' },
       { label: 'دور گردن (Neck - ارتش آمریکا)', key: 'neck', unit: 'cm', isFat: true, baseVal: baseline.neck, prevVal: prev?.neck, curVal: current.neck },
+      { label: 'دور سرشانه / دلتوئید (Shoulders 👑)', key: 'shoulders', unit: 'cm', isFat: false, baseVal: baseline.shoulders, prevVal: prev?.shoulders, curVal: current.shoulders },
       { label: 'دور سینه (Chest)', key: 'chest', unit: 'cm', isFat: false, baseVal: baseline.chest, prevVal: prev?.chest, curVal: current.chest },
       { label: 'دور بازوی راست منقبض (Right Arm)', key: 'armRight', unit: 'cm', isFat: false, baseVal: baseline.armRight, prevVal: prev?.armRight, curVal: current.armRight },
       { label: 'دور بازوی چپ منقبض (Left Arm)', key: 'armLeft', unit: 'cm', isFat: false, baseVal: baseline.armLeft, prevVal: prev?.armLeft, curVal: current.armLeft },
@@ -3607,6 +3616,7 @@ function renderBodyMetricsView() {
       { label: 'دور کمر (باریک‌ترین نقطه)', key: 'waist', unit: 'cm', isFat: true, baseVal: baseline.waist, prevVal: prev?.waist, curVal: current.waist },
       { label: 'دور شکم (دقیقاً از روی ناف)', key: 'abdomen', unit: 'cm', isFat: true, baseVal: baseline.abdomen, prevVal: prev?.abdomen, curVal: current.abdomen },
       { label: 'دور زیر شکم (بالای استخوان لگن)', key: 'lowerBelly', unit: 'cm', isFat: true, baseVal: baseline.lowerBelly, prevVal: prev?.lowerBelly, curVal: current.lowerBelly },
+      { label: 'نسبت سرشانه به کمر (Adonis V-Taper)', key: 'swr', unit: '', isFat: false, baseVal: baseSci.swr, prevVal: prevSci?.swr, curVal: curSci.swr },
       { label: 'نسبت دور کمر به باسن (WHR)', key: 'whr', unit: '', isFat: true, baseVal: baseSci.whr, prevVal: prevSci?.whr, curVal: curSci.whr },
       { label: 'نسبت دور کمر به قد (WHtR)', key: 'whtr', unit: '', isFat: true, baseVal: baseSci.whtr, prevVal: prevSci?.whtr, curVal: curSci.whtr },
 
@@ -3706,6 +3716,7 @@ function openAddBodyMetricModal(recordId = null) {
       document.getElementById('metricWeightInput').value = item.weight || '';
       document.getElementById('metricHeightInput').value = item.height || '';
       document.getElementById('metricNeckInput').value = item.neck || '';
+      document.getElementById('metricShouldersInput').value = item.shoulders || '';
       document.getElementById('metricChestInput').value = item.chest || '';
       document.getElementById('metricArmRightInput').value = item.armRight || '';
       document.getElementById('metricArmLeftInput').value = item.armLeft || '';
@@ -3734,6 +3745,7 @@ function openAddBodyMetricModal(recordId = null) {
     document.getElementById('metricWeightInput').value = last?.weight || '';
     document.getElementById('metricHeightInput').value = last?.height || (prof.id === 'morvarid' ? '165' : '180');
     document.getElementById('metricNeckInput').value = last?.neck || '';
+    document.getElementById('metricShouldersInput').value = last?.shoulders || '';
     document.getElementById('metricChestInput').value = last?.chest || '';
     document.getElementById('metricArmRightInput').value = last?.armRight || '';
     document.getElementById('metricArmLeftInput').value = last?.armLeft || '';
@@ -3783,6 +3795,7 @@ function saveBodyMetricRecord() {
     weight: weightVal,
     height: heightVal,
     neck: parseFloat(document.getElementById('metricNeckInput').value) || 0,
+    shoulders: parseFloat(document.getElementById('metricShouldersInput').value) || 0,
     chest: parseFloat(document.getElementById('metricChestInput').value) || 0,
     armRight: parseFloat(document.getElementById('metricArmRightInput').value) || 0,
     armLeft: parseFloat(document.getElementById('metricArmLeftInput').value) || 0,
