@@ -5396,6 +5396,9 @@ function onProfileChange(newId) {
   activeProfileId = newId;
   localStorage.setItem('chieftain_active_profile_id', newId);
   renderApp();
+  if (activeMainTab === 'metrics') {
+    renderBodyMetricsView();
+  }
 }
 
 function openNewProfileModal() {
@@ -7877,9 +7880,94 @@ function renderBodyMetricsView() {
       </div>
     `;
 
+    // --- Detailed Scientific Analysis & Interpretation Report ---
+    let bfAnalysis = '';
+    if (curSci.bodyFat !== null) {
+      if (current.gender === 'female') {
+        if (curSci.bodyFat < 16) bfAnalysis = 'تفکیک عضلانی بسیار بالا و چربی فوق‌العاده پایین (ورزشکار حرفه‌ای).';
+        else if (curSci.bodyFat <= 22) bfAnalysis = 'سطح چربی ایده‌آل برای فیتنس بانوان و هایپرتروفی همراه با سلامت کامل.';
+        else if (curSci.bodyFat <= 28) bfAnalysis = 'محدوده سلامت نرمال و پایدار.';
+        else bfAnalysis = 'پیشنهاد: فاز ملایم چربی‌سوزی با کنترل کالری و حفظ توده عضلانی.';
+      } else {
+        if (curSci.bodyFat < 10) bfAnalysis = 'سطح چربی بسیار پایین و کات مسابقه‌ای (تراشیدگی کامل عضلات).';
+        else if (curSci.bodyFat <= 15) bfAnalysis = 'محدوده طلایی فیتنس و بدنسازی (عضلات مشخص + شادابی هورمونی).';
+        else if (curSci.bodyFat <= 20) bfAnalysis = 'محدوده سلامت عمومی و بالک تمیز.';
+        else bfAnalysis = 'پیشنهاد: تمرکز بر کات و چربی‌سوزی تدریجی در کنار تمرینات پرفشار.';
+      }
+    }
+
+    let adonisAnalysis = '';
+    if (curSci.swr !== null) {
+      if (curSci.swr >= 1.60) adonisAnalysis = '🎉 تبریک! بالاتنه شما به نسبت طلایی کلاسیک (۱.۶۱۸) و V-Taper اصیل رسیده است.';
+      else if (curSci.swr >= 1.45) adonisAnalysis = 'فرم V-Taper بسیار خوب با پتانسیل عالی؛ با رشد دلتوئید جانبی به نسبت طلایی ۱.۶۱۸ خواهید رسید.';
+      else adonisAnalysis = 'برای رسیدن به نسبت V-Taper، تمرکز بر هایپرتروفی سرشانه و باریک‌تر کردن دور کمر توصیه می‌شود.';
+    }
+
+    let symmetryAnalysis = '';
+    if (curSci.armDiff !== null || curSci.thighDiff !== null) {
+      const maxDiff = Math.max(curSci.armDiff || 0, curSci.thighDiff || 0);
+      if (maxDiff <= 0.5) symmetryAnalysis = 'تقارن عضلانی در اندام‌های چپ و راست فوق‌العاده متوازن و استاندارد است. 🎯';
+      else if (maxDiff <= 1.2) symmetryAnalysis = `اختلاف جزئی (${maxDiff} سانتی‌متر) کاملاً طبیعی است؛ برای بالانس بیشتر از دمبل و سیم‌کش استفاده کنید.`;
+      else symmetryAnalysis = `عدم تقارن قابل توجه (${maxDiff} سانتی‌متر)؛ ست‌ها را با اندام ضعیف‌تر شروع کنید و حجم مساوی بزنید.`;
+    }
+
+    const reportCardHtml = `
+      <div style="background:linear-gradient(145deg, #131f38, #182848); border:1px solid rgba(56,189,248,0.3); border-radius:var(--radius-lg); padding:16px; margin-bottom:16px; box-shadow:var(--shadow-card);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:8px; flex-wrap:wrap; gap:6px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:20px;">🧠</span>
+            <h3 style="font-size:14px; font-weight:900; color:#38bdf8; margin:0;">گزارش تحلیلی و بادی‌آنالیز هوشمند (${prof.name})</h3>
+          </div>
+          <span style="font-size:11px; background:rgba(0,242,254,0.15); color:#00f2fe; padding:2px 8px; border-radius:8px; font-weight:800;">تحلیل بر پایه آخرین یافته‌های علمی</span>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:10px;">
+          ${curSci.bodyFat !== null ? `
+            <div style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px;">
+              <div style="font-size:11.5px; font-weight:800; color:#34d399; margin-bottom:4px;">🔬 تحلیل توده چربی و عضله خالص:</div>
+              <div style="font-size:11px; color:#cbd5e1; line-height:1.6;">
+                درصد چربی شما <b>${curSci.bodyFat}٪</b> (معادل <b>${curSci.fatMass} کیلو چربی</b>) و توده عضلانی خالص شما <b>${curSci.leanMass} کیلوگرم</b> است.
+                <div style="color:#38bdf8; margin-top:3px;">${bfAnalysis}</div>
+              </div>
+            </div>
+          ` : ''}
+
+          ${curSci.swr !== null ? `
+            <div style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px;">
+              <div style="font-size:11.5px; font-weight:800; color:#facc15; margin-bottom:4px;">👑 تحلیل نسبت طلایی سرشانه (Adonis Index):</div>
+              <div style="font-size:11px; color:#cbd5e1; line-height:1.6;">
+                نسبت سرشانه به کمر شما <b>${curSci.swr}</b> است (هدف طلایی: ۱.۶۱۸).
+                <div style="color:#fde047; margin-top:3px;">${adonisAnalysis}</div>
+              </div>
+            </div>
+          ` : ''}
+
+          ${curSci.whr !== null ? `
+            <div style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px;">
+              <div style="font-size:11.5px; font-weight:800; color:#38bdf8; margin-bottom:4px;">🎯 سلامت متابولیک و چربی احشایی (WHR):</div>
+              <div style="font-size:11px; color:#cbd5e1; line-height:1.6;">
+                نسبت دور کمر به باسن: <b>${curSci.whr}</b> · وضعیت: <span class="delta-pill ${whrClass}">${whrLabel}</span>
+                <div style="color:#94a3b8; margin-top:3px;">نشان‌دهنده توزیع سالم چربی و عدم ریسک چربی احشایی در اطراف اندام‌های داخلی.</div>
+              </div>
+            </div>
+          ` : ''}
+
+          ${symmetryAnalysis ? `
+            <div style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px;">
+              <div style="font-size:11.5px; font-weight:800; color:#c084fc; margin-bottom:4px;">📐 ارزیابی تقارن و تعادل ساختاری:</div>
+              <div style="font-size:11px; color:#cbd5e1; line-height:1.6;">
+                ${symmetryAnalysis}
+              </div>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    `;
+
     contentHtml = `
       ${headerHtml}
       ${heroGridHtml}
+      ${reportCardHtml}
       ${matrixTableHtml}
     `;
   }
@@ -7899,11 +7987,11 @@ function openAddBodyMetricModal(recordId = null) {
   if (recordId) {
     const item = list.find(m => m.id === recordId);
     if (item) {
-      document.getElementById('addBodyMetricModalTitle').innerText = 'ویرایش اندازه‌گیری و آنتروپومتری';
+      document.getElementById('addBodyMetricModalTitle').innerText = `ویرایش اندازه‌گیری (${prof.name})`;
       document.getElementById('metricDateInput').value = item.date || '';
       document.getElementById('metricTimeInput').value = item.time || '';
       document.getElementById('metricConditionSelect').value = item.condition || 'fasted_morning';
-      document.getElementById('metricGenderSelect').value = item.gender || (prof.id === 'morvarid' ? 'female' : 'male');
+      document.getElementById('metricGenderSelect').value = item.gender || 'male';
       document.getElementById('metricWeightInput').value = item.weight || '';
       document.getElementById('metricHeightInput').value = item.height || '';
       document.getElementById('metricNeckInput').value = item.neck || '';
@@ -7922,19 +8010,18 @@ function openAddBodyMetricModal(recordId = null) {
       document.getElementById('metricNotesInput').value = item.notes || '';
     }
   } else {
-    document.getElementById('addBodyMetricModalTitle').innerText = 'ثبت اندازه‌گیری و آنتروپومتری جدید';
+    document.getElementById('addBodyMetricModalTitle').innerText = `ثبت اندازه‌گیری جدید (${prof.name})`;
     const now = new Date();
     const dStr = now.toLocaleDateString('fa-IR');
     const tStr = now.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
 
-    // Try to inherit height and gender from last record
-    const last = list[list.length - 1];
+    const last = list.length > 0 ? list[list.length - 1] : null;
     document.getElementById('metricDateInput').value = dStr;
     document.getElementById('metricTimeInput').value = tStr;
     document.getElementById('metricConditionSelect').value = 'fasted_morning';
-    document.getElementById('metricGenderSelect').value = last?.gender || (prof.id === 'morvarid' ? 'female' : 'male');
+    document.getElementById('metricGenderSelect').value = last?.gender || (prof.name.includes('مروارید') ? 'female' : 'male');
     document.getElementById('metricWeightInput').value = last?.weight || '';
-    document.getElementById('metricHeightInput').value = last?.height || (prof.id === 'morvarid' ? '165' : '180');
+    document.getElementById('metricHeightInput').value = last?.height || '';
     document.getElementById('metricNeckInput').value = last?.neck || '';
     document.getElementById('metricShouldersInput').value = last?.shoulders || '';
     document.getElementById('metricChestInput').value = last?.chest || '';
@@ -8015,8 +8102,8 @@ function saveBodyMetricRecord() {
 
   saveProfileBodyMetrics(prof.id, list);
   closeAddBodyMetricModal();
-  renderBodyMetricsView();
-  showToast('✅ رکورد اندازه‌گیری و آنتروپومتری با موفقیت ثبت و ذخیره شد!');
+  switchMainTab('metrics');
+  showToast('✅ رکورد با موفقیت ثبت شد و بادی‌آنالیز هوشمند محاسبه گردید!');
 }
 
 function openBodyMetricHistoryModal() {
