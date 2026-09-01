@@ -806,8 +806,191 @@
   </div>
 </div>
 
+<!-- Add / Edit Body Metric Modal -->
+<div id="addBodyMetricModal" class="modal-overlay">
+  <div class="modal-dialog" style="max-width: 540px; max-height: 90vh; overflow-y: auto;">
+    <button class="modal-close-btn" onclick="closeAddBodyMetricModal()">✕</button>
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+      <span style="font-size:24px;">📏</span>
+      <h3 id="addBodyMetricModalTitle" style="margin:0;">ثبت اندازه‌گیری و آنتروپومتری جدید</h3>
+    </div>
+    <p style="font-size:11.5px; color:var(--text-muted); margin-bottom:12px;">
+      ثبت دقیق ابعاد بدنی با متر نواری (به سانتی‌متر) جهت محاسبه هوشمند درصد چربی و تقارن عضلانی
+    </p>
+
+    <input type="hidden" id="metricRecordId" value="">
+
+    <!-- Row 1: Date & Time & Condition -->
+    <div style="background:rgba(56,189,248,0.06); border:1px solid rgba(56,189,248,0.2); border-radius:12px; padding:10px; margin-bottom:12px;">
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:8px;">
+        <div>
+          <label class="form-label" style="font-size:11px;">📅 تاریخ ثبت</label>
+          <input type="text" id="metricDateInput" class="form-input" placeholder="مثلاً: ۱۴۰۳/۰۶/۱۰" style="font-size:12px; text-align:center;">
+        </div>
+        <div>
+          <label class="form-label" style="font-size:11px;">⏰ ساعت / نوبت</label>
+          <input type="text" id="metricTimeInput" class="form-input" placeholder="مثلاً: ۰۸:۳۰" style="font-size:12px; text-align:center;">
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+        <div>
+          <label class="form-label" style="font-size:11px;">☀️ شرایط اندازه‌گیری</label>
+          <select id="metricConditionSelect" class="form-select" style="font-size:11.5px; padding:6px 8px;">
+            <option value="fasted_morning">ناشتا صبح اول وقت (استاندارد ☀️)</option>
+            <option value="post_workout">بعد از تمرین (پمپ عضلانی 🏋️)</option>
+            <option value="evening">عصر / پایان روز 🌙</option>
+            <option value="other">سایر شرایط 📋</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label" style="font-size:11px;">👤 جنسیت (برای فرمول چربی)</label>
+          <select id="metricGenderSelect" class="form-select" style="font-size:11.5px; padding:6px 8px;">
+            <option value="male">آقا (Male)</option>
+            <option value="female">خانم (Female)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 2: Weight & Height (Core Metrics) -->
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:12px;">
+      <div style="background:#162035; border:1px solid var(--border-color); border-radius:10px; padding:8px;">
+        <label class="form-label" style="color:#00f2fe; font-weight:800; font-size:11.5px;">⚖️ وزن بدن (kg)</label>
+        <input type="number" step="0.1" id="metricWeightInput" class="form-input" placeholder="مثلاً: 82.5" style="text-align:center; font-size:14px; font-weight:800; padding:6px;">
+      </div>
+      <div style="background:#162035; border:1px solid var(--border-color); border-radius:10px; padding:8px;">
+        <label class="form-label" style="color:#38bdf8; font-weight:800; font-size:11.5px;">📐 قد (cm)</label>
+        <input type="number" step="0.5" id="metricHeightInput" class="form-input" placeholder="مثلاً: 180" style="text-align:center; font-size:14px; font-weight:800; padding:6px;">
+      </div>
+    </div>
+
+    <!-- Section: Upper Body Circumferences -->
+    <div style="border-top:1px solid rgba(255,255,255,0.08); padding-top:10px; margin-bottom:10px;">
+      <div style="font-size:12px; font-weight:800; color:#38bdf8; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+        <span>📐</span> <span>ابعاد بالاتنه (سانتی‌متر)</span>
+      </div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:8px;">
+        <div>
+          <label class="form-label" style="font-size:11px;">گردن (Neck - ارتش آمریکا 🎖️)</label>
+          <input type="number" step="0.1" id="metricNeckInput" class="form-input" placeholder="مثلاً: 39.0" style="text-align:center; font-weight:700;">
+        </div>
+        <div>
+          <label class="form-label" style="font-size:11px;">دور سینه (Chest)</label>
+          <input type="number" step="0.1" id="metricChestInput" class="form-input" placeholder="مثلاً: 104.5" style="text-align:center; font-weight:700;">
+        </div>
+      </div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+        <div>
+          <label class="form-label" style="font-size:11px;">بازوی راست منقبض (Right Arm)</label>
+          <input type="number" step="0.1" id="metricArmRightInput" class="form-input" placeholder="مثلاً: 38.5" style="text-align:center; font-weight:700;">
+        </div>
+        <div>
+          <label class="form-label" style="font-size:11px;">بازوی چپ منقبض (Left Arm)</label>
+          <input type="number" step="0.1" id="metricArmLeftInput" class="form-input" placeholder="مثلاً: 38.0" style="text-align:center; font-weight:700;">
+        </div>
+      </div>
+    </div>
+
+    <!-- Section: Core & Waist Circumferences -->
+    <div style="border-top:1px solid rgba(255,255,255,0.08); padding-top:10px; margin-bottom:10px;">
+      <div style="font-size:12px; font-weight:800; color:#facc15; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+        <span>🎯</span> <span>ابعاد میان‌تنه و شکم (سانتی‌متر)</span>
+      </div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px;">
+        <div>
+          <label class="form-label" style="font-size:10.5px;">کمر (باریک‌ترین نقطه)</label>
+          <input type="number" step="0.1" id="metricWaistInput" class="form-input" placeholder="مثلاً: 84.0" style="text-align:center; font-weight:700;">
+        </div>
+        <div>
+          <label class="form-label" style="font-size:10.5px;">شکم (روی ناف)</label>
+          <input type="number" step="0.1" id="metricAbdomenInput" class="form-input" placeholder="مثلاً: 88.0" style="text-align:center; font-weight:700;">
+        </div>
+        <div>
+          <label class="form-label" style="font-size:10.5px;">زیر شکم (لگن)</label>
+          <input type="number" step="0.1" id="metricLowerBellyInput" class="form-input" placeholder="مثلاً: 91.0" style="text-align:center; font-weight:700;">
+        </div>
+      </div>
+    </div>
+
+    <!-- Section: Lower Body Circumferences -->
+    <div style="border-top:1px solid rgba(255,255,255,0.08); padding-top:10px; margin-bottom:10px;">
+      <div style="font-size:12px; font-weight:800; color:#34d399; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+        <span>🦵</span> <span>ابعاد پایین‌تنه (سانتی‌متر)</span>
+      </div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:8px;">
+        <div>
+          <label class="form-label" style="font-size:11px;">باسن / سرینی (Hips/Glutes)</label>
+          <input type="number" step="0.1" id="metricHipsInput" class="form-input" placeholder="مثلاً: 100.0" style="text-align:center; font-weight:700;">
+        </div>
+        <div>
+          <label class="form-label" style="font-size:11px;">دور ساق پا (Calves)</label>
+          <input type="number" step="0.1" id="metricCalvesInput" class="form-input" placeholder="مثلاً: 38.0" style="text-align:center; font-weight:700;">
+        </div>
+      </div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+        <div>
+          <label class="form-label" style="font-size:11px;">ران راست (Right Thigh)</label>
+          <input type="number" step="0.1" id="metricThighRightInput" class="form-input" placeholder="مثلاً: 59.0" style="text-align:center; font-weight:700;">
+        </div>
+        <div>
+          <label class="form-label" style="font-size:11px;">ران چپ (Left Thigh)</label>
+          <input type="number" step="0.1" id="metricThighLeftInput" class="form-input" placeholder="مثلاً: 58.5" style="text-align:center; font-weight:700;">
+        </div>
+      </div>
+    </div>
+
+    <!-- Section: Notes & InBody Optional -->
+    <div style="display:grid; grid-template-columns: 1fr 2fr; gap:8px; margin-bottom:14px;">
+      <div>
+        <label class="form-label" style="font-size:11px;">درصد چربی دستگاه (اختیاری)</label>
+        <input type="number" step="0.1" id="metricBodyFatManualInput" class="form-input" placeholder="InBody / کالیپر %" style="text-align:center; font-weight:700;">
+      </div>
+      <div>
+        <label class="form-label" style="font-size:11px;">یادداشت یا توضیحات دوره</label>
+        <input type="text" id="metricNotesInput" class="form-input" placeholder="مثلاً: شروع مکمل کراتین، خواب عالی">
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div style="display:flex; gap:8px;">
+      <button class="btn-header-action btn-action-success" style="flex:2; justify-content:center; padding:12px; font-weight:800;" onclick="saveBodyMetricRecord()">
+        💾 ثبت و محاسبه آنتروپومتری
+      </button>
+      <button class="btn-header-action" style="flex:1; justify-content:center; padding:12px;" onclick="closeAddBodyMetricModal()">
+        انصراف
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Body Metrics History List Modal -->
+<div id="bodyMetricHistoryModal" class="modal-overlay">
+  <div class="modal-dialog" style="max-width: 600px; max-height: 85vh; overflow-y: auto;">
+    <button class="modal-close-btn" onclick="closeBodyMetricHistoryModal()">✕</button>
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+      <span style="font-size:24px;">📜</span>
+      <h3 style="margin:0;">تاریخچه کامل ثبت ابعاد و سایزگیری</h3>
+    </div>
+    <p style="font-size:12px; color:var(--text-muted); margin-bottom:14px;">
+      مشاهده، ویرایش یا حذف رکوردهای ثبت‌شده در دوره‌های مختلف
+    </p>
+
+    <div id="metricHistoryListContainer" style="display:flex; flex-direction:column; gap:8px; margin-bottom:14px;">
+      <!-- Populated via JS -->
+    </div>
+
+    <div style="text-align:center;">
+      <button class="btn-header-action" style="width:100%; justify-content:center; padding:9px;" onclick="closeBodyMetricHistoryModal()">
+        بستن ✕
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- Floating Toast Message Container -->
 <div id="toastMsg" class="toast-msg">
   <span>✅</span>
   <span id="toastText">تغییرات با موفقیت ذخیره و اعمال شد!</span>
 </div>
+

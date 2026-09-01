@@ -736,3 +736,176 @@ input:checked + .slider:before {
   transform: translateY(-1px);
 }
 
+/* ==========================================================================
+   Anthropometrics & Body Measurements Dashboard Styles
+   ========================================================================== */
+.body-metrics-view {
+  animation: fadeIn 0.25s ease;
+  margin-bottom: 24px;
+}
+
+.metrics-hero-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.metrics-hero-card {
+  background: linear-gradient(145deg, #111a2e, #16223b);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+
+.metrics-hero-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 40px;
+  height: 3px;
+  background: linear-gradient(90deg, #00f2fe, #00e599);
+  border-radius: 2px;
+}
+
+.metric-hero-label {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  font-weight: 700;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.metric-hero-val {
+  font-size: 22px;
+  font-weight: 900;
+  color: #fff;
+  margin: 6px 0 2px 0;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.metric-hero-val small {
+  font-size: 12px;
+  color: #38bdf8;
+  font-weight: 700;
+}
+
+.metric-hero-delta {
+  font-size: 11px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.metrics-matrix-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 12.5px;
+}
+
+.metrics-matrix-table th {
+  background: rgba(17, 26, 46, 0.95);
+  color: #38bdf8;
+  font-weight: 800;
+  padding: 10px 12px;
+  border-bottom: 2px solid var(--border-color);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.metrics-matrix-table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  vertical-align: middle;
+}
+
+.metrics-matrix-table tr:hover td {
+  background: rgba(22, 34, 59, 0.6);
+}
+
+.metrics-group-header td {
+  background: rgba(56, 189, 248, 0.08) !important;
+  color: #00f2fe;
+  font-weight: 900;
+  font-size: 11.5px;
+  padding: 7px 12px;
+  border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+}
+
+.delta-pill {
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-size: 10.5px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  direction: ltr;
+}
+
+.delta-pill.good {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(52, 211, 153, 0.3);
+}
+
+.delta-pill.bad {
+  background: rgba(244, 63, 94, 0.15);
+  color: #fb7185;
+  border: 1px solid rgba(244, 63, 94, 0.3);
+}
+
+.delta-pill.neutral {
+  background: rgba(148, 163, 184, 0.12);
+  color: #94a3b8;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+/* ==========================================================================
+   Drag and Drop Visual Mechanics
+   ========================================================================== */
+.card-drag-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  color: #64748b;
+  font-size: 14px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  user-select: none;
+  touch-action: none;
+  transition: all 0.15s ease;
+}
+
+.card-drag-handle:hover,
+.card-drag-handle:active {
+  color: #00f2fe;
+  background: rgba(0, 242, 254, 0.15);
+  cursor: grabbing;
+}
+
+.exercise-card.is-dragging,
+.superset-block.is-dragging {
+  opacity: 0.45;
+  border-color: #00f2fe !important;
+  box-shadow: 0 10px 25px rgba(0, 242, 254, 0.35);
+  transform: scale(0.98);
+}
+
+.drop-target-hover {
+  outline: 2px dashed #00f2fe !important;
+  outline-offset: 4px;
+  background: rgba(0, 242, 254, 0.05) !important;
+}
+
+

@@ -131,6 +131,17 @@ function renderApp(preserveScroll = true, targetCardExId = null) {
   loadSavedSets();
   updateAllProgressBars();
   setupSectionObserver();
+  setupDragAndDropEngine();
+
+  if (activeMainTab === 'metrics') {
+    const workoutContent = document.getElementById('workoutContent');
+    const metricsView = document.getElementById('bodyMetricsView');
+    if (workoutContent) workoutContent.style.display = 'none';
+    if (metricsView) {
+      metricsView.style.display = 'block';
+      renderBodyMetricsView();
+    }
+  }
 
   // If a specific card was edited/moved, keep it precisely in view
   if (targetCardExId) {
@@ -227,11 +238,12 @@ function updateGreetingText() {
 function renderDayNav() {
   const prof = getActiveProfile();
   const nav = document.getElementById('dayNav');
+  if (!nav) return;
   
   const tabsHtml = prof.days.map((d, idx) => {
     const typeLabel = d.type === 'gym' ? 'باشگاه' : (d.type === 'home' ? 'خانه' : 'استراحت');
     return `
-      <a href="javascript:void(0)" onclick="navigateToDaySection(event, '${d.id}')" class="nav-tab" data-day="${idx}" data-target-id="${d.id}">
+      <a href="javascript:void(0)" onclick="navigateToDaySection(event, '${d.id}')" class="nav-tab ${activeMainTab === 'workout' && idx === 0 ? 'active' : ''}" data-day="${idx}" data-target-id="${d.id}">
         <span>${d.title}</span>
         <span class="tab-badge">${typeLabel}</span>
         <span id="nav-pill-${d.id}" class="tab-prog-pill" style="display:none;">۰٪</span>
@@ -239,7 +251,10 @@ function renderDayNav() {
     `;
   }).join('');
 
-  nav.innerHTML = tabsHtml + `<a href="javascript:void(0)" onclick="navigateToDaySection(event, 'weekly-summary')" class="nav-tab" data-day="summary" data-target-id="weekly-summary">📊 جمع‌بندی</a>`;
+  const metricsBadge = `<span class="tab-badge" style="background:rgba(56,189,248,0.2); color:#38bdf8; font-weight:800;">آنالیز</span>`;
+  const metricsTab = `<a href="javascript:void(0)" onclick="switchMainTab('metrics')" class="nav-tab ${activeMainTab === 'metrics' ? 'active' : ''}" data-target-id="body-metrics" style="border-color:rgba(56,189,248,0.4);"><span>📏 سایز و ابعاد</span>${metricsBadge}</a>`;
+
+  nav.innerHTML = tabsHtml + `<a href="javascript:void(0)" onclick="navigateToDaySection(event, 'weekly-summary')" class="nav-tab" data-day="summary" data-target-id="weekly-summary">📊 جمع‌بندی</a>` + metricsTab;
 }
 
 function navigateToDaySection(e, secId) {
@@ -356,11 +371,14 @@ function renderExerciseCard(item, dayId, isSuperset = false, singleIdx = -1, tot
   }
 
   return `
-    <article class="exercise-card" data-ex-id="${dayId}_${ex.id}">
+    <article class="exercise-card" data-ex-id="${dayId}_${ex.id}" data-day-id="${dayId}" data-is-ss="${isSuperset ? '1' : '0'}" data-ss-idx="${ssIdx}" data-ex-idx="${isSuperset ? exIdx : singleIdx}">
       <div class="exercise-header">
-        <div>
-          <div class="exercise-name-fa">${displayNameFa}</div>
-          ${originalSubtext}
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span class="card-drag-handle" title="لمس یا کشیدن برای جابجایی سریع">⠿</span>
+          <div>
+            <div class="exercise-name-fa">${displayNameFa}</div>
+            ${originalSubtext}
+          </div>
         </div>
         <div class="reps-badge">${reps}</div>
       </div>
@@ -937,9 +955,10 @@ function renderDaySupersetsHTML(day) {
   if (!day.supersets || day.supersets.length === 0) return '';
   const totalSS = day.supersets.length;
   return day.supersets.map((ss, ssIdx) => `
-    <div class="superset-block" id="ss_${day.id}_${ssIdx}">
+    <div class="superset-block" id="ss_${day.id}_${ssIdx}" data-day-id="${day.id}" data-ss-idx="${ssIdx}">
       <div class="superset-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
         <div style="display:flex; align-items:center; gap:8px;">
+          <span class="card-drag-handle" title="لمس یا کشیدن برای جابجایی کل سوپرست">⠿</span>
           <span>⚡ ${ss.title}</span>
           <span style="font-size:10.5px; background:rgba(0,242,254,0.15); color:#00f2fe; padding:2px 8px; border-radius:10px; border:1px solid rgba(0,242,254,0.3); font-weight:700;">${ss.exercises.length} حرکت</span>
         </div>
@@ -3285,3 +3304,815 @@ if ('serviceWorker' in navigator) {
     }).catch((err) => {});
   });
 }
+
+// ==========================================================================
+// 📏 Anthropometrics & Body Measurements Tracking Engine
+// ==========================================================================
+let activeMainTab = 'workout'; // 'workout' | 'metrics'
+
+function getProfileBodyMetrics(profId = activeProfileId) {
+  try {
+    const raw = localStorage.getItem(`chieftain_metrics_${profId}`);
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return [];
+}
+
+function saveProfileBodyMetrics(profId, metricsList) {
+  try {
+    localStorage.setItem(`chieftain_metrics_${profId}`, JSON.stringify(metricsList));
+    if (typeof pushProfilesToCloudSilent === 'function') {
+      pushProfilesToCloudSilent();
+    }
+  } catch(e) {}
+}
+
+function calculateAnthropometrics(m) {
+  const weight = parseFloat(m.weight) || 0;
+  const height = parseFloat(m.height) || 0;
+  const waist = parseFloat(m.waist) || 0;
+  const neck = parseFloat(m.neck) || 0;
+  const hips = parseFloat(m.hips) || 0;
+  const isFemale = m.gender === 'female';
+
+  let bodyFat = null;
+  if (m.bodyFatManual && parseFloat(m.bodyFatManual) > 0) {
+    bodyFat = parseFloat(m.bodyFatManual);
+  } else if (height > 0 && waist > 0 && neck > 0) {
+    if (!isFemale && waist > neck) {
+      // U.S. Navy Formula for Men
+      const denom = 1.0324 - 0.19077 * Math.log10(waist - neck) + 0.15456 * Math.log10(height);
+      if (denom > 0) bodyFat = Math.max(3, Math.min(50, (495 / denom) - 450));
+    } else if (isFemale && hips > 0 && (waist + hips) > neck) {
+      // U.S. Navy Formula for Women
+      const denom = 1.29579 - 0.35004 * Math.log10(waist + hips - neck) + 0.22100 * Math.log10(height);
+      if (denom > 0) bodyFat = Math.max(8, Math.min(60, (495 / denom) - 450));
+    }
+  }
+
+  let fatMass = null;
+  let leanMass = null;
+  if (bodyFat !== null && weight > 0) {
+    fatMass = weight * (bodyFat / 100);
+    leanMass = weight - fatMass;
+  }
+
+  let whr = null;
+  if (waist > 0 && hips > 0) {
+    whr = waist / hips;
+  }
+
+  let whtr = null;
+  if (waist > 0 && height > 0) {
+    whtr = waist / height;
+  }
+
+  const armRight = parseFloat(m.armRight) || 0;
+  const armLeft = parseFloat(m.armLeft) || 0;
+  const armDiff = (armRight > 0 && armLeft > 0) ? Math.abs(armRight - armLeft) : null;
+
+  const thighRight = parseFloat(m.thighRight) || 0;
+  const thighLeft = parseFloat(m.thighLeft) || 0;
+  const thighDiff = (thighRight > 0 && thighLeft > 0) ? Math.abs(thighRight - thighLeft) : null;
+
+  return {
+    bodyFat: bodyFat !== null ? Number(bodyFat.toFixed(1)) : null,
+    fatMass: fatMass !== null ? Number(fatMass.toFixed(1)) : null,
+    leanMass: leanMass !== null ? Number(leanMass.toFixed(1)) : null,
+    whr: whr !== null ? Number(whr.toFixed(2)) : null,
+    whtr: whtr !== null ? Number(whtr.toFixed(2)) : null,
+    armDiff: armDiff !== null ? Number(armDiff.toFixed(1)) : null,
+    thighDiff: thighDiff !== null ? Number(thighDiff.toFixed(1)) : null
+  };
+}
+
+function switchMainTab(tabName) {
+  activeMainTab = tabName;
+  const workoutContent = document.getElementById('workoutContent');
+  const metricsView = document.getElementById('bodyMetricsView');
+  const navTabs = document.querySelectorAll('#dayNav .nav-tab');
+
+  navTabs.forEach(t => t.classList.remove('active'));
+
+  if (tabName === 'metrics') {
+    if (workoutContent) workoutContent.style.display = 'none';
+    if (metricsView) {
+      metricsView.style.display = 'block';
+      renderBodyMetricsView();
+    }
+    const metricsNavTab = document.querySelector('[data-target-id="body-metrics"]');
+    if (metricsNavTab) metricsNavTab.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } else {
+    if (metricsView) metricsView.style.display = 'none';
+    if (workoutContent) workoutContent.style.display = 'block';
+    const firstNavTab = document.querySelector('#dayNav .nav-tab[data-day="0"]');
+    if (firstNavTab) firstNavTab.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+function formatDeltaPill(diff, isFatMetric, unit = 'cm') {
+  if (diff === null || diff === undefined || isNaN(diff)) {
+    return `<span class="delta-pill neutral">-</span>`;
+  }
+  const rounded = Number(diff.toFixed(1));
+  if (rounded === 0) {
+    return `<span class="delta-pill neutral">۰.۰ ${unit}</span>`;
+  }
+
+  const sign = rounded > 0 ? `+${rounded}` : `${rounded}`;
+  if (isFatMetric) {
+    // For fat/waist: decrease is good, increase is bad
+    const cls = rounded < 0 ? 'good' : 'bad';
+    const icon = rounded < 0 ? '▼' : '▲';
+    return `<span class="delta-pill ${cls}">${icon} ${sign} ${unit}</span>`;
+  } else {
+    // For muscle/chest/arms: increase is good, decrease is bad
+    const cls = rounded > 0 ? 'good' : 'bad';
+    const icon = rounded > 0 ? '▲' : '▼';
+    return `<span class="delta-pill ${cls}">${icon} ${sign} ${unit}</span>`;
+  }
+}
+
+function renderBodyMetricsView() {
+  const container = document.getElementById('bodyMetricsView');
+  if (!container) return;
+
+  const prof = getActiveProfile();
+  const list = getProfileBodyMetrics(prof.id);
+
+  // Sort by timestamp
+  list.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+
+  let contentHtml = '';
+
+  // Header Bar
+  const headerHtml = `
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px; background:linear-gradient(145deg, rgba(17,26,46,0.95), rgba(12,18,32,0.95)); border:1px solid var(--border-color); border-radius:var(--radius-lg); padding:16px; box-shadow:var(--shadow-card);">
+      <div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:24px;">📏</span>
+          <h2 style="font-size:17px; font-weight:900; color:#fff; margin:0;">داشبورد آنتروپومتری و ابعاد بدنی (${prof.name})</h2>
+        </div>
+        <p style="font-size:12px; color:var(--text-muted); margin:4px 0 0 0;">
+          پایش ماهانه سایز، محاسبه درصد چربی با فرمول ارتش آمریکا (<bdi>U.S. Navy</bdi>) و تحلیل تقارن عضلانی
+        </p>
+      </div>
+
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn-header-action btn-action-primary" style="font-weight:800;" onclick="openAddBodyMetricModal()">
+          <span>➕</span> <span>ثبت اندازه‌گیری جدید</span>
+        </button>
+        ${list.length > 0 ? `
+          <button class="btn-header-action" onclick="openBodyMetricHistoryModal()" title="مشاهده تاریخچه تمام ${list.length} رکورد">
+            <span>📜</span> <span>تاریخچه (${list.length})</span>
+          </button>
+        ` : ''}
+        <button class="btn-header-action" onclick="switchMainTab('workout')" style="border-color:rgba(255,255,255,0.15);">
+          <span>🏋️</span> <span>بازگشت به تمرینات</span>
+        </button>
+      </div>
+    </div>
+  `;
+
+  if (list.length === 0) {
+    // Empty State
+    contentHtml = `
+      ${headerHtml}
+      <div style="background:#111a2e; border:1px dashed var(--border-color); border-radius:var(--radius-lg); padding:36px 20px; text-align:center;">
+        <div style="font-size:48px; margin-bottom:12px;">📏✨</div>
+        <h3 style="color:#fff; font-size:18px; font-weight:800; margin-bottom:8px;">هنوز اندازه‌ای برای ${prof.name} ثبت نشده است!</h3>
+        <p style="color:var(--text-muted); font-size:13px; max-width:520px; margin:0 auto 20px auto; line-height:1.7;">
+          با ثبت ماهانه اندازه‌های دور سینه، بازو، کمر، شکم، باسن و ران، برنامه به صورت خودکار درصد چربی، حجم عضلانی خالص و نسبت تقارن بدن شما را محاسبه و مقایسه می‌کند.
+        </p>
+        <button class="btn-header-action btn-action-success" style="padding:12px 24px; font-size:14px; font-weight:800; margin:0 auto;" onclick="openAddBodyMetricModal()">
+          <span>➕</span> <span>ثبت اولین اندازه‌گیری ماهانه</span>
+        </button>
+      </div>
+    `;
+  } else {
+    const current = list[list.length - 1];
+    const prev = list.length > 1 ? list[list.length - 2] : null;
+    const baseline = list[0];
+
+    const curSci = calculateAnthropometrics(current);
+    const prevSci = prev ? calculateAnthropometrics(prev) : null;
+    const baseSci = calculateAnthropometrics(baseline);
+
+    const diffWeightLast = prev ? (current.weight - prev.weight) : null;
+    const diffWeightBase = current.weight - baseline.weight;
+
+    const diffWaistLast = prev ? (current.waist - prev.waist) : null;
+    const diffWaistBase = current.waist - baseline.waist;
+
+    const diffBfLast = (curSci.bodyFat !== null && prevSci?.bodyFat !== null) ? (curSci.bodyFat - prevSci.bodyFat) : null;
+    const diffBfBase = (curSci.bodyFat !== null && baseSci?.bodyFat !== null) ? (curSci.bodyFat - baseSci.bodyFat) : null;
+
+    const diffLeanLast = (curSci.leanMass !== null && prevSci?.leanMass !== null) ? (curSci.leanMass - prevSci.leanMass) : null;
+    const diffLeanBase = (curSci.leanMass !== null && baseSci?.leanMass !== null) ? (curSci.leanMass - baseSci.leanMass) : null;
+
+    // WHR Health Tag
+    let whrLabel = 'استاندارد';
+    let whrClass = 'good';
+    if (curSci.whr !== null) {
+      if (current.gender === 'female') {
+        if (curSci.whr <= 0.80) { whrLabel = 'فرم ساعت‌شنی عالی ✨'; whrClass = 'good'; }
+        else if (curSci.whr <= 0.85) { whrLabel = 'متوسط ⚠️'; whrClass = 'neutral'; }
+        else { whrLabel = 'تجمع چربی شکمی 🔴'; whrClass = 'bad'; }
+      } else {
+        if (curSci.whr <= 0.90) { whrLabel = 'V-Taper ایده‌آل ✨'; whrClass = 'good'; }
+        else if (curSci.whr <= 0.99) { whrLabel = 'متوسط ⚠️'; whrClass = 'neutral'; }
+        else { whrLabel = 'چربی احشایی بالا 🔴'; whrClass = 'bad'; }
+      }
+    }
+
+    // Hero Grid
+    const heroGridHtml = `
+      <div class="metrics-hero-grid">
+        <!-- Card 1: Weight -->
+        <div class="metrics-hero-card">
+          <div class="metric-hero-label">
+            <span>⚖️ وزن کنونی</span>
+            <span style="font-size:10px; color:#38bdf8; background:rgba(56,189,248,0.1); padding:2px 6px; border-radius:6px;">${current.date}</span>
+          </div>
+          <div class="metric-hero-val">${current.weight || '--'} <small>kg</small></div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+            <div style="font-size:10.5px; color:var(--text-muted);">نسبت به شروع:</div>
+            ${formatDeltaPill(diffWeightBase, false, 'kg')}
+          </div>
+        </div>
+
+        <!-- Card 2: Navy Body Fat % -->
+        <div class="metrics-hero-card">
+          <div class="metric-hero-label">
+            <span>🔬 درصد چربی (Navy)</span>
+            <span style="font-size:10px; color:#34d399; background:rgba(52,211,153,0.1); padding:2px 6px; border-radius:6px;">ارتش آمریکا</span>
+          </div>
+          <div class="metric-hero-val" style="color:#00f2fe;">${curSci.bodyFat !== null ? curSci.bodyFat + '%' : '--'}</div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+            <div style="font-size:10.5px; color:var(--text-muted);">عضله خالص (LBM):</div>
+            <span style="font-size:11px; font-weight:800; color:#34d399;">${curSci.leanMass !== null ? curSci.leanMass + ' kg' : '--'}</span>
+          </div>
+        </div>
+
+        <!-- Card 3: Waist & WHR -->
+        <div class="metrics-hero-card">
+          <div class="metric-hero-label">
+            <span>🎯 دور کمر و WHR</span>
+            <span style="font-size:10px; color:#facc15; background:rgba(250,204,21,0.1); padding:2px 6px; border-radius:6px;">سلامت متابولیک</span>
+          </div>
+          <div class="metric-hero-val" style="color:#facc15;">${current.waist || '--'} <small>cm</small></div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+            <div style="font-size:10.5px; color:var(--text-muted);">نسبت کمر به باسن:</div>
+            <span class="delta-pill ${whrClass}">${curSci.whr !== null ? curSci.whr + ' (' + whrLabel + ')' : '--'}</span>
+          </div>
+        </div>
+
+        <!-- Card 4: Muscle Symmetry -->
+        <div class="metrics-hero-card">
+          <div class="metric-hero-label">
+            <span>📐 تقارن عضلانی</span>
+            <span style="font-size:10px; color:#a855f7; background:rgba(168,85,247,0.1); padding:2px 6px; border-radius:6px;">راست vs چپ</span>
+          </div>
+          <div class="metric-hero-val" style="font-size:18px; color:#c084fc;">
+            ${curSci.armDiff !== null ? `بازو: ${curSci.armDiff}cm` : 'متقارن'}
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+            <div style="font-size:10.5px; color:var(--text-muted);">اختلاف ران:</div>
+            <span style="font-size:11px; font-weight:800; color:#cbd5e1;">${curSci.thighDiff !== null ? curSci.thighDiff + ' cm' : '--'}</span>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Comparison Rows Definition
+    const rowsData = [
+      // Group 1: Body Composition
+      { isGroup: true, title: '⚖️ وزن و ترکیب بدنی (Body Composition)' },
+      { label: 'وزن بدن (Weight)', key: 'weight', unit: 'kg', isFat: false, baseVal: baseline.weight, prevVal: prev?.weight, curVal: current.weight },
+      { label: 'درصد چربی تخمینی (Navy Body Fat)', key: 'bodyFat', unit: '%', isFat: true, baseVal: baseSci.bodyFat, prevVal: prevSci?.bodyFat, curVal: curSci.bodyFat },
+      { label: 'توده خالص عضلانی (Lean Body Mass)', key: 'leanMass', unit: 'kg', isFat: false, baseVal: baseSci.leanMass, prevVal: prevSci?.leanMass, curVal: curSci.leanMass },
+      { label: 'توده چربی بدن (Fat Mass)', key: 'fatMass', unit: 'kg', isFat: true, baseVal: baseSci.fatMass, prevVal: prevSci?.fatMass, curVal: curSci.fatMass },
+
+      // Group 2: Upper Body
+      { isGroup: true, title: '📐 ابعاد بالاتنه (Upper Body)' },
+      { label: 'دور گردن (Neck - ارتش آمریکا)', key: 'neck', unit: 'cm', isFat: true, baseVal: baseline.neck, prevVal: prev?.neck, curVal: current.neck },
+      { label: 'دور سینه (Chest)', key: 'chest', unit: 'cm', isFat: false, baseVal: baseline.chest, prevVal: prev?.chest, curVal: current.chest },
+      { label: 'دور بازوی راست منقبض (Right Arm)', key: 'armRight', unit: 'cm', isFat: false, baseVal: baseline.armRight, prevVal: prev?.armRight, curVal: current.armRight },
+      { label: 'دور بازوی چپ منقبض (Left Arm)', key: 'armLeft', unit: 'cm', isFat: false, baseVal: baseline.armLeft, prevVal: prev?.armLeft, curVal: current.armLeft },
+
+      // Group 3: Core & Waist
+      { isGroup: true, title: '🎯 میان‌تنه و شکم (Core & Waist)' },
+      { label: 'دور کمر (باریک‌ترین نقطه)', key: 'waist', unit: 'cm', isFat: true, baseVal: baseline.waist, prevVal: prev?.waist, curVal: current.waist },
+      { label: 'دور شکم (دقیقاً از روی ناف)', key: 'abdomen', unit: 'cm', isFat: true, baseVal: baseline.abdomen, prevVal: prev?.abdomen, curVal: current.abdomen },
+      { label: 'دور زیر شکم (بالای استخوان لگن)', key: 'lowerBelly', unit: 'cm', isFat: true, baseVal: baseline.lowerBelly, prevVal: prev?.lowerBelly, curVal: current.lowerBelly },
+      { label: 'نسبت دور کمر به باسن (WHR)', key: 'whr', unit: '', isFat: true, baseVal: baseSci.whr, prevVal: prevSci?.whr, curVal: curSci.whr },
+      { label: 'نسبت دور کمر به قد (WHtR)', key: 'whtr', unit: '', isFat: true, baseVal: baseSci.whtr, prevVal: prevSci?.whtr, curVal: curSci.whtr },
+
+      // Group 4: Lower Body
+      { isGroup: true, title: '🦵 ابعاد پایین‌تنه (Lower Body)' },
+      { label: 'دور باسن / سرینی (Hips/Glutes)', key: 'hips', unit: 'cm', isFat: false, baseVal: baseline.hips, prevVal: prev?.hips, curVal: current.hips },
+      { label: 'دور ران راست (Right Thigh)', key: 'thighRight', unit: 'cm', isFat: false, baseVal: baseline.thighRight, prevVal: prev?.thighRight, curVal: current.thighRight },
+      { label: 'دور ران چپ (Left Thigh)', key: 'thighLeft', unit: 'cm', isFat: false, baseVal: baseline.thighLeft, prevVal: prev?.thighLeft, curVal: current.thighLeft },
+      { label: 'دور ساق پا (Calves)', key: 'calves', unit: 'cm', isFat: false, baseVal: baseline.calves, prevVal: prev?.calves, curVal: current.calves }
+    ];
+
+    const tableRowsHtml = rowsData.map(r => {
+      if (r.isGroup) {
+        return `<tr class="metrics-group-header"><td colspan="6">${r.title}</td></tr>`;
+      }
+
+      const curVal = r.curVal !== null && r.curVal !== undefined ? parseFloat(r.curVal) : null;
+      const prevVal = r.prevVal !== null && r.prevVal !== undefined ? parseFloat(r.prevVal) : null;
+      const baseVal = r.baseVal !== null && r.baseVal !== undefined ? parseFloat(r.baseVal) : null;
+
+      const deltaLast = (curVal !== null && prevVal !== null) ? (curVal - prevVal) : null;
+      const deltaBase = (curVal !== null && baseVal !== null) ? (curVal - baseVal) : null;
+
+      const formatVal = (v) => v !== null && v > 0 ? `${v} <span style="font-size:10px; color:var(--text-muted);">${r.unit}</span>` : '<span style="color:#64748b;">--</span>';
+
+      return `
+        <tr>
+          <td style="font-weight:700; color:#fff;">${r.label}</td>
+          <td style="color:#94a3b8; text-align:center;">${formatVal(baseVal)}</td>
+          <td style="color:#94a3b8; text-align:center;">${formatVal(prevVal)}</td>
+          <td style="color:#00f2fe; font-weight:800; text-align:center; font-size:13.5px;">${formatVal(curVal)}</td>
+          <td style="text-align:center;">${formatDeltaPill(deltaLast, r.isFat, r.unit)}</td>
+          <td style="text-align:center;">${formatDeltaPill(deltaBase, r.isFat, r.unit)}</td>
+        </tr>
+      `;
+    }).join('');
+
+    const matrixTableHtml = `
+      <div style="background:#111a2e; border:1px solid var(--border-color); border-radius:var(--radius-lg); padding:16px; margin-bottom:20px; box-shadow:var(--shadow-card);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+          <div style="font-size:14px; font-weight:800; color:#fff; display:flex; align-items:center; gap:6px;">
+            <span>📊</span> <span>جدول جامع مقایسه و تغییرات ابعاد بدنی</span>
+          </div>
+          <div style="display:flex; gap:6px;">
+            <button class="btn-move-action" style="color:#38bdf8; border-color:rgba(56,189,248,0.4);" onclick="openAddBodyMetricModal('${current.id}')">✏️ ویرایش این رکورد</button>
+            <button class="btn-move-action" style="color:#34d399; border-color:rgba(52,211,153,0.4);" onclick="openAddBodyMetricModal()">➕ رکورد جدید</button>
+          </div>
+        </div>
+
+        <div class="table-container" style="overflow-x:auto;">
+          <table class="metrics-matrix-table">
+            <thead>
+              <tr>
+                <th>گروه / شاخص</th>
+                <th style="text-align:center;">نقطه شروع (${baseline.date})</th>
+                <th style="text-align:center;">رکورد قبلی (${prev ? prev.date : '--'})</th>
+                <th style="text-align:center; color:#00f2fe;">اندازه کنونی (${current.date})</th>
+                <th style="text-align:center;">تغییر نسبت به قبل (Δ Last)</th>
+                <th style="text-align:center;">تغییر کل از شروع (Δ Total)</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${tableRowsHtml}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+
+    contentHtml = `
+      ${headerHtml}
+      ${heroGridHtml}
+      ${matrixTableHtml}
+    `;
+  }
+
+  container.innerHTML = contentHtml;
+}
+
+// --- Modal Handlers for Body Metrics ---
+function openAddBodyMetricModal(recordId = null) {
+  const prof = getActiveProfile();
+  const list = getProfileBodyMetrics(prof.id);
+  const modal = document.getElementById('addBodyMetricModal');
+  if (!modal) return;
+
+  document.getElementById('metricRecordId').value = recordId || '';
+
+  if (recordId) {
+    const item = list.find(m => m.id === recordId);
+    if (item) {
+      document.getElementById('addBodyMetricModalTitle').innerText = 'ویرایش اندازه‌گیری و آنتروپومتری';
+      document.getElementById('metricDateInput').value = item.date || '';
+      document.getElementById('metricTimeInput').value = item.time || '';
+      document.getElementById('metricConditionSelect').value = item.condition || 'fasted_morning';
+      document.getElementById('metricGenderSelect').value = item.gender || (prof.id === 'morvarid' ? 'female' : 'male');
+      document.getElementById('metricWeightInput').value = item.weight || '';
+      document.getElementById('metricHeightInput').value = item.height || '';
+      document.getElementById('metricNeckInput').value = item.neck || '';
+      document.getElementById('metricChestInput').value = item.chest || '';
+      document.getElementById('metricArmRightInput').value = item.armRight || '';
+      document.getElementById('metricArmLeftInput').value = item.armLeft || '';
+      document.getElementById('metricWaistInput').value = item.waist || '';
+      document.getElementById('metricAbdomenInput').value = item.abdomen || '';
+      document.getElementById('metricLowerBellyInput').value = item.lowerBelly || '';
+      document.getElementById('metricHipsInput').value = item.hips || '';
+      document.getElementById('metricThighRightInput').value = item.thighRight || '';
+      document.getElementById('metricThighLeftInput').value = item.thighLeft || '';
+      document.getElementById('metricCalvesInput').value = item.calves || '';
+      document.getElementById('metricBodyFatManualInput').value = item.bodyFatManual || '';
+      document.getElementById('metricNotesInput').value = item.notes || '';
+    }
+  } else {
+    document.getElementById('addBodyMetricModalTitle').innerText = 'ثبت اندازه‌گیری و آنتروپومتری جدید';
+    const now = new Date();
+    const dStr = now.toLocaleDateString('fa-IR');
+    const tStr = now.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
+
+    // Try to inherit height and gender from last record
+    const last = list[list.length - 1];
+    document.getElementById('metricDateInput').value = dStr;
+    document.getElementById('metricTimeInput').value = tStr;
+    document.getElementById('metricConditionSelect').value = 'fasted_morning';
+    document.getElementById('metricGenderSelect').value = last?.gender || (prof.id === 'morvarid' ? 'female' : 'male');
+    document.getElementById('metricWeightInput').value = last?.weight || '';
+    document.getElementById('metricHeightInput').value = last?.height || (prof.id === 'morvarid' ? '165' : '180');
+    document.getElementById('metricNeckInput').value = last?.neck || '';
+    document.getElementById('metricChestInput').value = last?.chest || '';
+    document.getElementById('metricArmRightInput').value = last?.armRight || '';
+    document.getElementById('metricArmLeftInput').value = last?.armLeft || '';
+    document.getElementById('metricWaistInput').value = last?.waist || '';
+    document.getElementById('metricAbdomenInput').value = last?.abdomen || '';
+    document.getElementById('metricLowerBellyInput').value = last?.lowerBelly || '';
+    document.getElementById('metricHipsInput').value = last?.hips || '';
+    document.getElementById('metricThighRightInput').value = last?.thighRight || '';
+    document.getElementById('metricThighLeftInput').value = last?.thighLeft || '';
+    document.getElementById('metricCalvesInput').value = last?.calves || '';
+    document.getElementById('metricBodyFatManualInput').value = '';
+    document.getElementById('metricNotesInput').value = '';
+  }
+
+  modal.classList.add('open');
+}
+
+function closeAddBodyMetricModal() {
+  document.getElementById('addBodyMetricModal')?.classList.remove('open');
+}
+
+function saveBodyMetricRecord() {
+  const prof = getActiveProfile();
+  const list = getProfileBodyMetrics(prof.id);
+  const recordId = document.getElementById('metricRecordId').value;
+
+  const dateVal = document.getElementById('metricDateInput').value.trim() || new Date().toLocaleDateString('fa-IR');
+  const timeVal = document.getElementById('metricTimeInput').value.trim() || new Date().toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
+  const conditionVal = document.getElementById('metricConditionSelect').value;
+  const genderVal = document.getElementById('metricGenderSelect').value;
+
+  const weightVal = parseFloat(document.getElementById('metricWeightInput').value) || 0;
+  const heightVal = parseFloat(document.getElementById('metricHeightInput').value) || 0;
+
+  if (weightVal <= 0) {
+    alert('لطفاً وزن خود را وارد کنید.');
+    return;
+  }
+
+  const record = {
+    id: recordId || ('m_' + Date.now()),
+    timestamp: Date.now(),
+    date: dateVal,
+    time: timeVal,
+    condition: conditionVal,
+    gender: genderVal,
+    weight: weightVal,
+    height: heightVal,
+    neck: parseFloat(document.getElementById('metricNeckInput').value) || 0,
+    chest: parseFloat(document.getElementById('metricChestInput').value) || 0,
+    armRight: parseFloat(document.getElementById('metricArmRightInput').value) || 0,
+    armLeft: parseFloat(document.getElementById('metricArmLeftInput').value) || 0,
+    waist: parseFloat(document.getElementById('metricWaistInput').value) || 0,
+    abdomen: parseFloat(document.getElementById('metricAbdomenInput').value) || 0,
+    lowerBelly: parseFloat(document.getElementById('metricLowerBellyInput').value) || 0,
+    hips: parseFloat(document.getElementById('metricHipsInput').value) || 0,
+    thighRight: parseFloat(document.getElementById('metricThighRightInput').value) || 0,
+    thighLeft: parseFloat(document.getElementById('metricThighLeftInput').value) || 0,
+    calves: parseFloat(document.getElementById('metricCalvesInput').value) || 0,
+    bodyFatManual: parseFloat(document.getElementById('metricBodyFatManualInput').value) || 0,
+    notes: document.getElementById('metricNotesInput').value.trim()
+  };
+
+  if (recordId) {
+    const idx = list.findIndex(m => m.id === recordId);
+    if (idx >= 0) {
+      record.timestamp = list[idx].timestamp; // keep original timestamp
+      list[idx] = record;
+    } else {
+      list.push(record);
+    }
+  } else {
+    list.push(record);
+  }
+
+  saveProfileBodyMetrics(prof.id, list);
+  closeAddBodyMetricModal();
+  renderBodyMetricsView();
+  showToast('✅ رکورد اندازه‌گیری و آنتروپومتری با موفقیت ثبت و ذخیره شد!');
+}
+
+function openBodyMetricHistoryModal() {
+  const prof = getActiveProfile();
+  const list = getProfileBodyMetrics(prof.id);
+  const modal = document.getElementById('bodyMetricHistoryModal');
+  const container = document.getElementById('metricHistoryListContainer');
+  if (!modal || !container) return;
+
+  list.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+  if (list.length === 0) {
+    container.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding:20px;">هیچ رکوردی ثبت نشده است.</div>';
+  } else {
+    container.innerHTML = list.map((item, idx) => {
+      const sci = calculateAnthropometrics(item);
+      return `
+        <div style="background:#152033; border:1px solid var(--border-color); border-radius:10px; padding:10px 12px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
+          <div>
+            <div style="font-weight:800; color:#fff; font-size:13px;">
+              <span>📅 ${item.date} (${item.time || ''})</span>
+              <span style="font-size:11px; color:#38bdf8; margin-right:6px;">⚖️ ${item.weight} kg</span>
+            </div>
+            <div style="font-size:11px; color:var(--text-muted); margin-top:3px;">
+              دور کمر: <b>${item.waist || '--'}cm</b> · دور شکم: <b>${item.abdomen || '--'}cm</b> · چربی Navy: <b>${sci.bodyFat !== null ? sci.bodyFat + '%' : '--'}</b>
+              ${item.notes ? ` · <span style="color:#fcd34d;">📌 ${item.notes}</span>` : ''}
+            </div>
+          </div>
+          <div style="display:flex; gap:6px;">
+            <button class="btn-move-action" style="color:#38bdf8; border-color:rgba(56,189,248,0.4);" onclick="closeBodyMetricHistoryModal(); openAddBodyMetricModal('${item.id}');">✏️</button>
+            <button class="btn-move-action" style="color:#f87171; border-color:rgba(248,113,113,0.4);" onclick="deleteBodyMetricRecord('${item.id}')">🗑️</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  modal.classList.add('open');
+}
+
+function closeBodyMetricHistoryModal() {
+  document.getElementById('bodyMetricHistoryModal')?.classList.remove('open');
+}
+
+function deleteBodyMetricRecord(id) {
+  const prof = getActiveProfile();
+  let list = getProfileBodyMetrics(prof.id);
+  const item = list.find(m => m.id === id);
+  if (!item) return;
+
+  if (confirm(`آیا از حذف رکورد اندازه‌گیری تاریخ «${item.date}» اطمینان دارید؟`)) {
+    list = list.filter(m => m.id !== id);
+    saveProfileBodyMetrics(prof.id, list);
+    openBodyMetricHistoryModal();
+    renderBodyMetricsView();
+    showToast('🗑️ رکورد با موفقیت حذف شد.');
+  }
+}
+
+// ==========================================================================
+// 🖐️ Drag and Drop Reordering Engine (Mouse & Mobile Touch)
+// ==========================================================================
+function setupDragAndDropEngine() {
+  const daySections = document.querySelectorAll('.day-section');
+  
+  daySections.forEach(daySec => {
+    const dayId = daySec.id;
+
+    // 1. Singles Drag & Drop (Desktop)
+    const singlesWrap = document.getElementById('singles_' + dayId);
+    if (singlesWrap) {
+      const cards = singlesWrap.querySelectorAll(':scope > .exercise-card');
+      cards.forEach((card, idx) => {
+        card.setAttribute('draggable', 'true');
+        
+        card.ondragstart = (e) => {
+          e.dataTransfer.setData('text/plain', JSON.stringify({ type: 'single', dayId, idx }));
+          card.classList.add('is-dragging');
+        };
+
+        card.ondragend = () => {
+          card.classList.remove('is-dragging');
+          singlesWrap.querySelectorAll('.drop-target-hover').forEach(el => el.classList.remove('drop-target-hover'));
+        };
+
+        card.ondragover = (e) => {
+          e.preventDefault();
+          card.classList.add('drop-target-hover');
+        };
+
+        card.ondragleave = () => {
+          card.classList.remove('drop-target-hover');
+        };
+
+        card.ondrop = (e) => {
+          e.preventDefault();
+          card.classList.remove('drop-target-hover');
+          try {
+            const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+            if (data.type === 'single' && data.dayId === dayId && data.idx !== idx) {
+              reorderSingleArray(dayId, data.idx, idx);
+            }
+          } catch(err) {}
+        };
+      });
+    }
+
+    // 2. Supersets Drag & Drop (Desktop)
+    const supersetsWrap = document.getElementById('supersets_' + dayId);
+    if (supersetsWrap) {
+      const ssBlocks = supersetsWrap.querySelectorAll(':scope > .superset-block');
+      ssBlocks.forEach((block, ssIdx) => {
+        block.setAttribute('draggable', 'true');
+
+        block.ondragstart = (e) => {
+          if (e.target.closest('.exercise-card')) return;
+          e.dataTransfer.setData('text/plain', JSON.stringify({ type: 'superset', dayId, ssIdx }));
+          block.classList.add('is-dragging');
+        };
+
+        block.ondragend = () => {
+          block.classList.remove('is-dragging');
+          supersetsWrap.querySelectorAll('.drop-target-hover').forEach(el => el.classList.remove('drop-target-hover'));
+        };
+
+        block.ondragover = (e) => {
+          e.preventDefault();
+          block.classList.add('drop-target-hover');
+        };
+
+        block.ondragleave = () => {
+          block.classList.remove('drop-target-hover');
+        };
+
+        block.ondrop = (e) => {
+          e.preventDefault();
+          block.classList.remove('drop-target-hover');
+          try {
+            const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+            if (data.type === 'superset' && data.dayId === dayId && data.ssIdx !== ssIdx) {
+              reorderSupersetArray(dayId, data.ssIdx, ssIdx);
+            }
+          } catch(err) {}
+        };
+
+        // 3. Reorder inside superset (Desktop)
+        const innerCards = block.querySelectorAll(':scope > .exercise-card');
+        innerCards.forEach((innerCard, exIdx) => {
+          innerCard.setAttribute('draggable', 'true');
+
+          innerCard.ondragstart = (e) => {
+            e.stopPropagation();
+            e.dataTransfer.setData('text/plain', JSON.stringify({ type: 'superset_ex', dayId, ssIdx, exIdx }));
+            innerCard.classList.add('is-dragging');
+          };
+
+          innerCard.ondragend = () => {
+            innerCard.classList.remove('is-dragging');
+            block.querySelectorAll('.drop-target-hover').forEach(el => el.classList.remove('drop-target-hover'));
+          };
+
+          innerCard.ondragover = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            innerCard.classList.add('drop-target-hover');
+          };
+
+          innerCard.ondragleave = () => {
+            innerCard.classList.remove('drop-target-hover');
+          };
+
+          innerCard.ondrop = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            innerCard.classList.remove('drop-target-hover');
+            try {
+              const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+              if (data.type === 'superset_ex' && data.dayId === dayId && data.ssIdx === ssIdx && data.exIdx !== exIdx) {
+                reorderSupersetExerciseArray(dayId, ssIdx, data.exIdx, exIdx);
+              }
+            } catch(err) {}
+          };
+        });
+      });
+    }
+  });
+
+  setupTouchDragDrop();
+}
+
+function reorderSingleArray(dayId, fromIdx, toIdx) {
+  verifyEditPIN(() => {
+    const prof = getActiveProfile();
+    const day = prof.days.find(d => d.id === dayId);
+    if (!day || !day.singles) return;
+    const item = day.singles.splice(fromIdx, 1)[0];
+    day.singles.splice(toIdx, 0, item);
+    saveProfiles();
+    const singlesWrap = document.getElementById('singles_' + dayId);
+    if (singlesWrap) {
+      singlesWrap.innerHTML = renderDaySinglesHTML(day);
+      loadSavedSets();
+      setupDragAndDropEngine();
+      showToast('⚡ ترتیب حرکت با موفقیت تغییر کرد!');
+    }
+  });
+}
+
+function reorderSupersetArray(dayId, fromIdx, toIdx) {
+  verifyEditPIN(() => {
+    const prof = getActiveProfile();
+    const day = prof.days.find(d => d.id === dayId);
+    if (!day || !day.supersets) return;
+    const item = day.supersets.splice(fromIdx, 1)[0];
+    day.supersets.splice(toIdx, 0, item);
+    saveProfiles();
+    const ssWrap = document.getElementById('supersets_' + dayId);
+    if (ssWrap) {
+      ssWrap.innerHTML = renderDaySupersetsHTML(day);
+      loadSavedSets();
+      setupDragAndDropEngine();
+      showToast('⚡ ترتیب سوپرست با موفقیت تغییر کرد!');
+    }
+  });
+}
+
+function reorderSupersetExerciseArray(dayId, ssIdx, fromIdx, toIdx) {
+  verifyEditPIN(() => {
+    const prof = getActiveProfile();
+    const day = prof.days.find(d => d.id === dayId);
+    if (!day || !day.supersets?.[ssIdx]) return;
+    const list = day.supersets[ssIdx].exercises;
+    const item = list.splice(fromIdx, 1)[0];
+    list.splice(toIdx, 0, item);
+    saveProfiles();
+    const ssWrap = document.getElementById('supersets_' + dayId);
+    if (ssWrap) {
+      ssWrap.innerHTML = renderDaySupersetsHTML(day);
+      loadSavedSets();
+      setupDragAndDropEngine();
+      showToast('⚡ ترتیب حرکت درون سوپرست تغییر کرد!');
+    }
+  });
+}
+
+function setupTouchDragDrop() {
+  const handles = document.querySelectorAll('.card-drag-handle');
+  handles.forEach(handle => {
+    let draggedCard = null;
+    let parentContainer = null;
+    let initialCards = [];
+
+    handle.ontouchstart = (e) => {
+      draggedCard = handle.closest('.exercise-card') || handle.closest('.superset-block');
+      if (!draggedCard) return;
+      parentContainer = draggedCard.parentElement;
+      initialCards = Array.from(parentContainer.children);
+      draggedCard.classList.add('is-dragging');
+    };
+
+    handle.ontouchmove = (e) => {
+      if (!draggedCard) return;
+      e.preventDefault();
+      const touch = e.touches[0];
+      const hoveredEl = document.elementFromPoint(touch.clientX, touch.clientY);
+      const targetCard = hoveredEl?.closest('.exercise-card') || hoveredEl?.closest('.superset-block');
+      
+      parentContainer.querySelectorAll('.drop-target-hover').forEach(el => el.classList.remove('drop-target-hover'));
+      if (targetCard && targetCard !== draggedCard && targetCard.parentElement === parentContainer) {
+        targetCard.classList.add('drop-target-hover');
+      }
+    };
+
+    handle.ontouchend = () => {
+      if (!draggedCard) return;
+      draggedCard.classList.remove('is-dragging');
+      const targetCard = parentContainer.querySelector('.drop-target-hover');
+      if (targetCard) {
+        targetCard.classList.remove('drop-target-hover');
+        const fromIdx = initialCards.indexOf(draggedCard);
+        const toIdx = initialCards.indexOf(targetCard);
+        if (fromIdx >= 0 && toIdx >= 0 && fromIdx !== toIdx) {
+          const daySec = draggedCard.closest('.day-section');
+          const dayId = daySec?.id;
+          const isSS = draggedCard.classList.contains('superset-block');
+          const isInnerSS = !!draggedCard.closest('.superset-block') && !isSS;
+
+          if (isInnerSS) {
+            const ssBlock = draggedCard.closest('.superset-block');
+            const ssIdx = parseInt(ssBlock.id.split('_').pop());
+            reorderSupersetExerciseArray(dayId, ssIdx, fromIdx, toIdx);
+          } else if (isSS) {
+            reorderSupersetArray(dayId, fromIdx, toIdx);
+          } else {
+            reorderSingleArray(dayId, fromIdx, toIdx);
+          }
+        }
+      }
+      draggedCard = null;
+    };
+  });
+}
+
