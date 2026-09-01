@@ -3613,8 +3613,8 @@ function renderBodyMetricsView() {
       // Group 4: Lower Body
       { isGroup: true, title: '🦵 ابعاد پایین‌تنه (Lower Body)' },
       { label: 'دور باسن / سرینی (Hips/Glutes)', key: 'hips', unit: 'cm', isFat: false, baseVal: baseline.hips, prevVal: prev?.hips, curVal: current.hips },
-      { label: 'دور ران راست (Right Thigh)', key: 'thighRight', unit: 'cm', isFat: false, baseVal: baseline.thighRight, prevVal: prev?.thighRight, curVal: current.thighRight },
-      { label: 'دور ران چپ (Left Thigh)', key: 'thighLeft', unit: 'cm', isFat: false, baseVal: baseline.thighLeft, prevVal: prev?.thighLeft, curVal: current.thighLeft },
+      { label: 'دور ران راست میانی (وسط زانو تا باسن)', key: 'thighRight', unit: 'cm', isFat: false, baseVal: baseline.thighRight, prevVal: prev?.thighRight, curVal: current.thighRight },
+      { label: 'دور ران چپ میانی (وسط زانو تا باسن)', key: 'thighLeft', unit: 'cm', isFat: false, baseVal: baseline.thighLeft, prevVal: prev?.thighLeft, curVal: current.thighLeft },
       { label: 'دور ساق پا (Calves)', key: 'calves', unit: 'cm', isFat: false, baseVal: baseline.calves, prevVal: prev?.calves, curVal: current.calves }
     ];
 

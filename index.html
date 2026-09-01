@@ -2008,11 +2008,11 @@ input:checked + .slider:before {
       </div>
       <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
         <div>
-          <label class="form-label" style="font-size:11px;">ران راست (Right Thigh)</label>
+          <label class="form-label" style="font-size:11px;">ران راست میانی (نقطه وسط زانو تا باسن 🎯)</label>
           <input type="number" step="0.1" id="metricThighRightInput" class="form-input" placeholder="مثلاً: 59.0" style="text-align:center; font-weight:700;">
         </div>
         <div>
-          <label class="form-label" style="font-size:11px;">ران چپ (Left Thigh)</label>
+          <label class="form-label" style="font-size:11px;">ران چپ میانی (نقطه وسط زانو تا باسن 🎯)</label>
           <input type="number" step="0.1" id="metricThighLeftInput" class="form-input" placeholder="مثلاً: 58.5" style="text-align:center; font-weight:700;">
         </div>
       </div>
@@ -7800,8 +7800,8 @@ function renderBodyMetricsView() {
       // Group 4: Lower Body
       { isGroup: true, title: '🦵 ابعاد پایین‌تنه (Lower Body)' },
       { label: 'دور باسن / سرینی (Hips/Glutes)', key: 'hips', unit: 'cm', isFat: false, baseVal: baseline.hips, prevVal: prev?.hips, curVal: current.hips },
-      { label: 'دور ران راست (Right Thigh)', key: 'thighRight', unit: 'cm', isFat: false, baseVal: baseline.thighRight, prevVal: prev?.thighRight, curVal: current.thighRight },
-      { label: 'دور ران چپ (Left Thigh)', key: 'thighLeft', unit: 'cm', isFat: false, baseVal: baseline.thighLeft, prevVal: prev?.thighLeft, curVal: current.thighLeft },
+      { label: 'دور ران راست میانی (وسط زانو تا باسن)', key: 'thighRight', unit: 'cm', isFat: false, baseVal: baseline.thighRight, prevVal: prev?.thighRight, curVal: current.thighRight },
+      { label: 'دور ران چپ میانی (وسط زانو تا باسن)', key: 'thighLeft', unit: 'cm', isFat: false, baseVal: baseline.thighLeft, prevVal: prev?.thighLeft, curVal: current.thighLeft },
       { label: 'دور ساق پا (Calves)', key: 'calves', unit: 'cm', isFat: false, baseVal: baseline.calves, prevVal: prev?.calves, curVal: current.calves }
     ];
 
