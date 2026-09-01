@@ -945,6 +945,98 @@ input:checked + .slider:before {
   background: rgba(0, 242, 254, 0.05) !important;
 }
 
+/* ==========================================================================
+   Laboratory-Style Body Composition & Aesthetic Range Styles
+   ========================================================================== */
+.lab-report-box {
+  background: linear-gradient(145deg, #0e172a, #13223f);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.lab-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 12.5px;
+}
+
+.lab-table th {
+  background: rgba(15, 23, 42, 0.95);
+  color: #38bdf8;
+  font-weight: 800;
+  padding: 10px 12px;
+  border-bottom: 2px solid rgba(56, 189, 248, 0.3);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.lab-table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  vertical-align: middle;
+}
+
+.lab-table tr:hover td {
+  background: rgba(30, 41, 59, 0.5);
+}
+
+.range-pill-health {
+  background: rgba(16, 185, 129, 0.12);
+  color: #34d399;
+  border: 1px solid rgba(52, 211, 153, 0.3);
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-block;
+  direction: ltr;
+}
+
+.range-pill-golden {
+  background: rgba(234, 179, 8, 0.15);
+  color: #facc15;
+  border: 1px solid rgba(250, 204, 21, 0.4);
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 800;
+  display: inline-block;
+  direction: ltr;
+}
+
+.lab-status-badge {
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.lab-status-golden {
+  background: rgba(234, 179, 8, 0.2);
+  color: #fde047;
+  border: 1px solid rgba(250, 204, 21, 0.5);
+}
+
+.lab-status-healthy {
+  background: rgba(16, 185, 129, 0.18);
+  color: #34d399;
+  border: 1px solid rgba(52, 211, 153, 0.4);
+}
+
+.lab-status-attention {
+  background: rgba(244, 63, 94, 0.18);
+  color: #fb7185;
+  border: 1px solid rgba(244, 63, 94, 0.4);
+}
+
+
 
 
 </style>
@@ -1962,14 +2054,24 @@ input:checked + .slider:before {
           <input type="number" step="0.1" id="metricChestInput" class="form-input" placeholder="مثلاً: 104.5" style="text-align:center; font-weight:700;">
         </div>
       </div>
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:8px;">
         <div>
-          <label class="form-label" style="font-size:11px;">بازوی راست منقبض (Right Arm)</label>
+          <label class="form-label" style="font-size:11px;">💪 بازوی راست منقبض (Flexed)</label>
           <input type="number" step="0.1" id="metricArmRightInput" class="form-input" placeholder="مثلاً: 38.5" style="text-align:center; font-weight:700;">
         </div>
         <div>
-          <label class="form-label" style="font-size:11px;">بازوی چپ منقبض (Left Arm)</label>
+          <label class="form-label" style="font-size:11px;">🖐️ بازوی راست ریلکس / عادی (Relaxed)</label>
+          <input type="number" step="0.1" id="metricArmRightRelaxedInput" class="form-input" placeholder="مثلاً: 35.0" style="text-align:center; font-weight:700;">
+        </div>
+      </div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+        <div>
+          <label class="form-label" style="font-size:11px;">💪 بازوی چپ منقبض (Flexed)</label>
           <input type="number" step="0.1" id="metricArmLeftInput" class="form-input" placeholder="مثلاً: 38.0" style="text-align:center; font-weight:700;">
+        </div>
+        <div>
+          <label class="form-label" style="font-size:11px;">🖐️ بازوی چپ ریلکس / عادی (Relaxed)</label>
+          <input type="number" step="0.1" id="metricArmLeftRelaxedInput" class="form-input" placeholder="مثلاً: 34.5" style="text-align:center; font-weight:700;">
         </div>
       </div>
     </div>
@@ -4452,6 +4554,13 @@ function navigateToDaySection(e, secId) {
   if (e) {
     e.preventDefault();
     e.stopPropagation();
+  }
+  if (activeMainTab !== 'workout') {
+    activeMainTab = 'workout';
+    const workoutContent = document.getElementById('workoutContent');
+    const metricsView = document.getElementById('bodyMetricsView');
+    if (metricsView) metricsView.style.display = 'none';
+    if (workoutContent) workoutContent.style.display = 'block';
   }
   const el = document.getElementById(secId);
   if (el) {
@@ -7571,6 +7680,9 @@ function calculateAnthropometrics(m) {
   const armLeft = parseFloat(m.armLeft) || 0;
   const armDiff = (armRight > 0 && armLeft > 0) ? Math.abs(armRight - armLeft) : null;
 
+  const armRightRelaxed = parseFloat(m.armRightRelaxed) || 0;
+  const armLeftRelaxed = parseFloat(m.armLeftRelaxed) || 0;
+
   const thighRight = parseFloat(m.thighRight) || 0;
   const thighLeft = parseFloat(m.thighLeft) || 0;
   const thighDiff = (thighRight > 0 && thighLeft > 0) ? Math.abs(thighRight - thighLeft) : null;
@@ -7584,7 +7696,130 @@ function calculateAnthropometrics(m) {
     swr: swr !== null ? swr : null,
     shoulders: shoulders > 0 ? shoulders : null,
     armDiff: armDiff !== null ? Number(armDiff.toFixed(1)) : null,
+    armRightRelaxed: armRightRelaxed > 0 ? armRightRelaxed : null,
+    armLeftRelaxed: armLeftRelaxed > 0 ? armLeftRelaxed : null,
     thighDiff: thighDiff !== null ? Number(thighDiff.toFixed(1)) : null
+  };
+}
+
+function getAnthropometricReferenceRanges(height, gender) {
+  const isFemale = gender === 'female';
+  const H = height > 0 ? height : (isFemale ? 165 : 180);
+
+  return {
+    bodyFat: {
+      healthRange: isFemale ? '18% – 28%' : '10% – 20%',
+      goldenRange: isFemale ? '15% – 20%' : '8% – 12%',
+      unit: '%',
+      evalStatus: (val) => {
+        if (!val) return null;
+        if (isFemale) {
+          if (val <= 20) return { label: '👑 طلایی / فیتنس', cls: 'lab-status-golden' };
+          if (val <= 28) return { label: '🟢 نرمال سلامت', cls: 'lab-status-healthy' };
+          return { label: '🔴 نیاز به چربی‌سوزی', cls: 'lab-status-attention' };
+        } else {
+          if (val <= 12) return { label: '👑 طلایی / کات', cls: 'lab-status-golden' };
+          if (val <= 20) return { label: '🟢 نرمال سلامت', cls: 'lab-status-healthy' };
+          return { label: '🔴 نیاز به چربی‌سوزی', cls: 'lab-status-attention' };
+        }
+      }
+    },
+    swr: {
+      healthRange: '1.30 – 1.45',
+      goldenRange: '1.55 – 1.65 (هدف: ۱.۶۱۸)',
+      unit: '',
+      evalStatus: (val) => {
+        if (!val) return null;
+        if (val >= 1.55) return { label: '👑 نسبت طلایی V-Taper', cls: 'lab-status-golden' };
+        if (val >= 1.40) return { label: '🟢 نرمال و متناسب', cls: 'lab-status-healthy' };
+        return { label: '⚠️ نیاز به شانه پهن‌تر', cls: 'lab-status-attention' };
+      }
+    },
+    chest: {
+      healthRange: `${Math.round(H * 0.50)} – ${Math.round(H * 0.55)} cm`,
+      goldenRange: `${Math.round(H * 0.58)} – ${Math.round(H * 0.62)} cm`,
+      unit: 'cm',
+      evalStatus: (val) => {
+        if (!val) return null;
+        const target = H * 0.58;
+        if (val >= target) return { label: '👑 سینه پهن و هایپرتروفی', cls: 'lab-status-golden' };
+        if (val >= H * 0.50) return { label: '🟢 محدوده سلامت', cls: 'lab-status-healthy' };
+        return { label: '⚠️ نیاز به هایپرتروفی', cls: 'lab-status-attention' };
+      }
+    },
+    armFlexed: {
+      healthRange: `${(H * 0.18).toFixed(1)} – ${(H * 0.20).toFixed(1)} cm`,
+      goldenRange: `${(H * 0.22).toFixed(1)} – ${(H * 0.24).toFixed(1)} cm`,
+      unit: 'cm',
+      evalStatus: (val) => {
+        if (!val) return null;
+        const target = H * 0.22;
+        if (val >= target) return { label: '👑 بازوی حجیم فیتنس', cls: 'lab-status-golden' };
+        if (val >= H * 0.18) return { label: '🟢 نرمال سلامت', cls: 'lab-status-healthy' };
+        return { label: '⚠️ نیاز به حجم‌گیری', cls: 'lab-status-attention' };
+      }
+    },
+    armRelaxed: {
+      healthRange: `${(H * 0.16).toFixed(1)} – ${(H * 0.18).toFixed(1)} cm`,
+      goldenRange: `${(H * 0.20).toFixed(1)} – ${(H * 0.22).toFixed(1)} cm`,
+      unit: 'cm',
+      evalStatus: (val) => {
+        if (!val) return null;
+        if (val >= H * 0.20) return { label: '👑 فرم عضلانی عالی', cls: 'lab-status-golden' };
+        if (val >= H * 0.16) return { label: '🟢 نرمال سلامت', cls: 'lab-status-healthy' };
+        return { label: '⚠️ نیاز به هایپرتروفی', cls: 'lab-status-attention' };
+      }
+    },
+    waist: {
+      healthRange: `${(H * 0.44).toFixed(1)} – ${(H * 0.49).toFixed(1)} cm`,
+      goldenRange: `${(H * 0.42).toFixed(1)} – ${(H * 0.45).toFixed(1)} cm`,
+      unit: 'cm',
+      evalStatus: (val) => {
+        if (!val) return null;
+        if (val <= H * 0.45) return { label: '👑 کمر باریک و کات', cls: 'lab-status-golden' };
+        if (val <= H * 0.49) return { label: '🟢 سلامت نرمال', cls: 'lab-status-healthy' };
+        return { label: '🔴 چربی مرکزی بالا', cls: 'lab-status-attention' };
+      }
+    },
+    whr: {
+      healthRange: isFemale ? '< 0.80' : '< 0.90',
+      goldenRange: isFemale ? '0.70 – 0.75' : '0.80 – 0.84',
+      unit: '',
+      evalStatus: (val) => {
+        if (!val) return null;
+        if (isFemale) {
+          if (val <= 0.75) return { label: '👑 ساعت‌شنی ایده‌آل', cls: 'lab-status-golden' };
+          if (val <= 0.80) return { label: '🟢 استاندارد سلامت', cls: 'lab-status-healthy' };
+          return { label: '🔴 تجمع چربی', cls: 'lab-status-attention' };
+        } else {
+          if (val <= 0.84) return { label: '👑 تناسب V-Shape', cls: 'lab-status-golden' };
+          if (val <= 0.90) return { label: '🟢 استاندارد سلامت', cls: 'lab-status-healthy' };
+          return { label: '🔴 چربی احشایی', cls: 'lab-status-attention' };
+        }
+      }
+    },
+    thigh: {
+      healthRange: `${(H * 0.28).toFixed(1)} – ${(H * 0.31).toFixed(1)} cm`,
+      goldenRange: `${(H * 0.32).toFixed(1)} – ${(H * 0.35).toFixed(1)} cm`,
+      unit: 'cm',
+      evalStatus: (val) => {
+        if (!val) return null;
+        if (val >= H * 0.32) return { label: '👑 پاهای قدرتمند و پر', cls: 'lab-status-golden' };
+        if (val >= H * 0.28) return { label: '🟢 نرمال سلامت', cls: 'lab-status-healthy' };
+        return { label: '⚠️ نیاز به تمرین پا', cls: 'lab-status-attention' };
+      }
+    },
+    calves: {
+      healthRange: `${(H * 0.18).toFixed(1)} – ${(H * 0.20).toFixed(1)} cm`,
+      goldenRange: `${(H * 0.21).toFixed(1)} – ${(H * 0.23).toFixed(1)} cm`,
+      unit: 'cm',
+      evalStatus: (val) => {
+        if (!val) return null;
+        if (val >= H * 0.21) return { label: '👑 تقارن طلایی ساق', cls: 'lab-status-golden' };
+        if (val >= H * 0.18) return { label: '🟢 نرمال سلامت', cls: 'lab-status-healthy' };
+        return { label: '⚠️ نیاز به تمرین ساق', cls: 'lab-status-attention' };
+      }
+    }
   };
 }
 
@@ -7607,7 +7842,9 @@ function switchMainTab(tabName) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   } else {
     if (metricsView) metricsView.style.display = 'none';
-    if (workoutContent) workoutContent.style.display = 'block';
+    if (workoutContent) {
+      workoutContent.style.display = 'block';
+    }
     const firstNavTab = document.querySelector('#dayNav .nav-tab[data-day="0"]');
     if (firstNavTab) firstNavTab.classList.add('active');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -7644,52 +7881,21 @@ function renderBodyMetricsView() {
   const prof = getActiveProfile();
   const list = getProfileBodyMetrics(prof.id);
 
-  // Sort by timestamp
+  // Sort chronologically (oldest to newest)
   list.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
 
   let contentHtml = '';
 
-  // Header Bar
-  const headerHtml = `
-    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px; background:linear-gradient(145deg, rgba(17,26,46,0.95), rgba(12,18,32,0.95)); border:1px solid var(--border-color); border-radius:var(--radius-lg); padding:16px; box-shadow:var(--shadow-card);">
-      <div>
-        <div style="display:flex; align-items:center; gap:8px;">
-          <span style="font-size:24px;">📏</span>
-          <h2 style="font-size:17px; font-weight:900; color:#fff; margin:0;">داشبورد آنتروپومتری و ابعاد بدنی (${prof.name})</h2>
-        </div>
-        <p style="font-size:12px; color:var(--text-muted); margin:4px 0 0 0;">
-          پایش ماهانه سایز، محاسبه درصد چربی با فرمول ارتش آمریکا (<bdi>U.S. Navy</bdi>) و تحلیل تقارن عضلانی
-        </p>
-      </div>
-
-      <div style="display:flex; gap:8px; flex-wrap:wrap;">
-        <button class="btn-header-action btn-action-primary" style="font-weight:800;" onclick="openAddBodyMetricModal()">
-          <span>➕</span> <span>ثبت اندازه‌گیری جدید</span>
-        </button>
-        ${list.length > 0 ? `
-          <button class="btn-header-action" onclick="openBodyMetricHistoryModal()" title="مشاهده تاریخچه تمام ${list.length} رکورد">
-            <span>📜</span> <span>تاریخچه (${list.length})</span>
-          </button>
-        ` : ''}
-        <button class="btn-header-action" onclick="switchMainTab('workout')" style="border-color:rgba(255,255,255,0.15);">
-          <span>🏋️</span> <span>بازگشت به تمرینات</span>
-        </button>
-      </div>
-    </div>
-  `;
-
   if (list.length === 0) {
-    // Empty State
     contentHtml = `
-      ${headerHtml}
-      <div style="background:#111a2e; border:1px dashed var(--border-color); border-radius:var(--radius-lg); padding:36px 20px; text-align:center;">
-        <div style="font-size:48px; margin-bottom:12px;">📏✨</div>
-        <h3 style="color:#fff; font-size:18px; font-weight:800; margin-bottom:8px;">هنوز اندازه‌ای برای ${prof.name} ثبت نشده است!</h3>
-        <p style="color:var(--text-muted); font-size:13px; max-width:520px; margin:0 auto 20px auto; line-height:1.7;">
-          با ثبت ماهانه اندازه‌های دور سینه، بازو، کمر، شکم، باسن و ران، برنامه به صورت خودکار درصد چربی، حجم عضلانی خالص و نسبت تقارن بدن شما را محاسبه و مقایسه می‌کند.
+      <div class="metrics-empty-card">
+        <div class="metrics-empty-icon">📏</div>
+        <h3 style="font-size:17px; font-weight:900; color:#fff; margin-bottom:8px;">سایز و بادی‌آنالیز اختصاصی «${prof.name}»</h3>
+        <p style="color:var(--text-muted); font-size:13px; max-width:440px; margin:0 auto 16px auto; line-height:1.6;">
+          هنوز رکوردی برای این کاربر ثبت نشده است. اندازه‌گیری‌های ماهانه خود را ثبت کنید تا درصد چربی ارتش آمریکا، نسبت‌های طلایی زیبایی و جدول مقایسه‌ای به صورت هوشمند محاسبه گردند.
         </p>
-        <button class="btn-header-action btn-action-success" style="padding:12px 24px; font-size:14px; font-weight:800; margin:0 auto;" onclick="openAddBodyMetricModal()">
-          <span>➕</span> <span>ثبت اولین اندازه‌گیری ماهانه</span>
+        <button class="btn-header-action btn-action-primary" onclick="openAddBodyMetricModal()" style="font-size:13px; padding:8px 18px;">
+          ➕ ثبت اولین اندازه‌گیری (${prof.name})
         </button>
       </div>
     `;
@@ -7705,42 +7911,54 @@ function renderBodyMetricsView() {
     const diffWeightLast = prev ? (current.weight - prev.weight) : null;
     const diffWeightBase = current.weight - baseline.weight;
 
-    const diffWaistLast = prev ? (current.waist - prev.waist) : null;
-    const diffWaistBase = current.waist - baseline.waist;
-
-    const diffBfLast = (curSci.bodyFat !== null && prevSci?.bodyFat !== null) ? (curSci.bodyFat - prevSci.bodyFat) : null;
-    const diffBfBase = (curSci.bodyFat !== null && baseSci?.bodyFat !== null) ? (curSci.bodyFat - baseSci.bodyFat) : null;
-
-    const diffLeanLast = (curSci.leanMass !== null && prevSci?.leanMass !== null) ? (curSci.leanMass - prevSci.leanMass) : null;
-    const diffLeanBase = (curSci.leanMass !== null && baseSci?.leanMass !== null) ? (curSci.leanMass - baseSci.leanMass) : null;
-
-    // WHR Health Tag
-    let whrLabel = 'استاندارد';
+    let whrLabel = 'ایده‌آل';
     let whrClass = 'good';
     if (curSci.whr !== null) {
       if (current.gender === 'female') {
-        if (curSci.whr <= 0.80) { whrLabel = 'فرم ساعت‌شنی عالی ✨'; whrClass = 'good'; }
-        else if (curSci.whr <= 0.85) { whrLabel = 'متوسط ⚠️'; whrClass = 'neutral'; }
-        else { whrLabel = 'تجمع چربی شکمی 🔴'; whrClass = 'bad'; }
+        if (curSci.whr > 0.85) { whrLabel = 'ریسک بالا'; whrClass = 'bad'; }
+        else if (curSci.whr > 0.80) { whrLabel = 'متوسط'; whrClass = 'neutral'; }
+        else { whrLabel = 'ساعت‌شنی عالی'; whrClass = 'good'; }
       } else {
-        if (curSci.whr <= 0.90) { whrLabel = 'V-Taper ایده‌آل ✨'; whrClass = 'good'; }
-        else if (curSci.whr <= 0.99) { whrLabel = 'متوسط ⚠️'; whrClass = 'neutral'; }
-        else { whrLabel = 'چربی احشایی بالا 🔴'; whrClass = 'bad'; }
+        if (curSci.whr > 1.0) { whrLabel = 'ریسک بالا'; whrClass = 'bad'; }
+        else if (curSci.whr > 0.90) { whrLabel = 'متوسط'; whrClass = 'neutral'; }
+        else { whrLabel = 'V-Shape عالی'; whrClass = 'good'; }
       }
     }
 
-    // Hero Grid
+    const headerHtml = `
+      <div class="metrics-header-bar">
+        <div>
+          <h2 class="metrics-title">
+            <span>📏</span>
+            <span>آنتروپومتری و آنالیز بدنی: ${prof.name}</span>
+          </h2>
+          <div class="metrics-subtitle">
+            آخرین ثبت: <b>${current.date}</b> (${current.time || 'صبح ناشتا'}) · تعداد ثبت‌ها: <b>${list.length} رکورد</b>
+          </div>
+        </div>
+        <div class="metrics-action-btns">
+          <button class="btn-header-action" onclick="openBodyMetricHistoryModal()" style="background:#162035; color:#cbd5e1; border-color:var(--border-color); font-size:12px;">
+            📜 تاریخچه (${list.length})
+          </button>
+          <button class="btn-header-action btn-action-primary" onclick="openAddBodyMetricModal()" style="font-size:12px; padding:6px 14px;">
+            ➕ ثبت اندازه جدید
+          </button>
+        </div>
+      </div>
+    `;
+
+    // 4 Key Summary Hero Cards
     const heroGridHtml = `
       <div class="metrics-hero-grid">
-        <!-- Card 1: Weight -->
+        <!-- Card 1: Weight & Total Delta -->
         <div class="metrics-hero-card">
           <div class="metric-hero-label">
             <span>⚖️ وزن کنونی</span>
-            <span style="font-size:10px; color:#38bdf8; background:rgba(56,189,248,0.1); padding:2px 6px; border-radius:6px;">${current.date}</span>
+            <span style="font-size:10px; color:#38bdf8;">نقطه شروع: ${baseline.weight}kg</span>
           </div>
-          <div class="metric-hero-val">${current.weight || '--'} <small>kg</small></div>
+          <div class="metric-hero-val">${current.weight} <small>kg</small></div>
           <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
-            <div style="font-size:10.5px; color:var(--text-muted);">نسبت به شروع:</div>
+            <div style="font-size:10.5px; color:var(--text-muted);">تغییر از شروع:</div>
             ${formatDeltaPill(diffWeightBase, false, 'kg')}
           </div>
         </div>
@@ -7749,7 +7967,7 @@ function renderBodyMetricsView() {
         <div class="metrics-hero-card">
           <div class="metric-hero-label">
             <span>🔬 درصد چربی (Navy)</span>
-            <span style="font-size:10px; color:#34d399; background:rgba(52,211,153,0.1); padding:2px 6px; border-radius:6px;">ارتش آمریکا</span>
+            <span style="font-size:10px; color:#34d399;">ارتش آمریکا</span>
           </div>
           <div class="metric-hero-val" style="color:#00f2fe;">${curSci.bodyFat !== null ? curSci.bodyFat + '%' : '--'}</div>
           <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
@@ -7762,12 +7980,12 @@ function renderBodyMetricsView() {
         <div class="metrics-hero-card">
           <div class="metric-hero-label">
             <span>🎯 دور کمر و WHR</span>
-            <span style="font-size:10px; color:#facc15; background:rgba(250,204,21,0.1); padding:2px 6px; border-radius:6px;">سلامت متابولیک</span>
+            <span style="font-size:10px; color:#facc15;">سلامت متابولیک</span>
           </div>
           <div class="metric-hero-val" style="color:#facc15;">${current.waist || '--'} <small>cm</small></div>
           <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
-            <div style="font-size:10.5px; color:var(--text-muted);">نسبت کمر به باسن:</div>
-            <span class="delta-pill ${whrClass}">${curSci.whr !== null ? curSci.whr + ' (' + whrLabel + ')' : '--'}</span>
+            <div style="font-size:10.5px; color:var(--text-muted);">وضعیت:</div>
+            <span class="delta-pill ${whrClass}">${whrLabel}</span>
           </div>
         </div>
 
@@ -7775,10 +7993,10 @@ function renderBodyMetricsView() {
         <div class="metrics-hero-card">
           <div class="metric-hero-label">
             <span>📐 تقارن عضلانی</span>
-            <span style="font-size:10px; color:#a855f7; background:rgba(168,85,247,0.1); padding:2px 6px; border-radius:6px;">راست vs چپ</span>
+            <span style="font-size:10px; color:#a855f7;">راست vs چپ</span>
           </div>
           <div class="metric-hero-val" style="font-size:18px; color:#c084fc;">
-            ${curSci.armDiff !== null ? `بازو: ${curSci.armDiff}cm` : 'متقارن'}
+            ${curSci.armDiff !== null ? `اختلاف بازو: ${curSci.armDiff}cm` : 'متقارن'}
           </div>
           <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
             <div style="font-size:10.5px; color:var(--text-muted);">اختلاف ران:</div>
@@ -7788,7 +8006,103 @@ function renderBodyMetricsView() {
       </div>
     `;
 
-    // Comparison Rows Definition
+    // --- Laboratory-Style Health & Golden Aesthetic Analysis Table ---
+    const labRanges = getAnthropometricReferenceRanges(current.height, current.gender);
+
+    const labRows = [
+      { name: 'درصد چربی بدن (Navy BF%)', val: curSci.bodyFat, unit: '%', rangeObj: labRanges.bodyFat },
+      { name: 'نسبت سرشانه به کمر (Adonis V-Taper)', val: curSci.swr, unit: '', rangeObj: labRanges.swr },
+      { name: 'دور سینه (Chest)', val: current.chest, unit: 'cm', rangeObj: labRanges.chest },
+      { name: 'دور بازوی منقبض (Flexed Biceps)', val: current.armRight || current.armLeft, unit: 'cm', rangeObj: labRanges.armFlexed },
+      { name: 'دور بازوی ریلکس / عادی (Relaxed Arm)', val: current.armRightRelaxed || current.armLeftRelaxed, unit: 'cm', rangeObj: labRanges.armRelaxed },
+      { name: 'دور کمر (Waist)', val: current.waist, unit: 'cm', rangeObj: labRanges.waist },
+      { name: 'نسبت دور کمر به باسن (WHR)', val: curSci.whr, unit: '', rangeObj: labRanges.whr },
+      { name: 'دور ران میانی (Mid-Thigh)', val: current.thighRight || current.thighLeft, unit: 'cm', rangeObj: labRanges.thigh },
+      { name: 'دور ساق پا (Calves)', val: current.calves, unit: 'cm', rangeObj: labRanges.calves }
+    ];
+
+    const labTableRowsHtml = labRows.map(r => {
+      const valNum = r.val !== null && r.val !== undefined ? parseFloat(r.val) : null;
+      const status = valNum !== null ? r.rangeObj.evalStatus(valNum) : null;
+      const valDisplay = valNum !== null ? `<b>${valNum}</b> <span style="font-size:11px; color:#94a3b8;">${r.unit}</span>` : '<span style="color:#64748b;">--</span>';
+      
+      return `
+        <tr>
+          <td style="font-weight:800; color:#fff;">${r.name}</td>
+          <td style="color:#00f2fe; font-size:13.5px; text-align:center;">${valDisplay}</td>
+          <td style="text-align:center;"><span class="range-pill-health">${r.rangeObj.healthRange}</span></td>
+          <td style="text-align:center;"><span class="range-pill-golden">${r.rangeObj.goldenRange}</span></td>
+          <td style="text-align:center;">
+            ${status ? `<span class="lab-status-badge ${status.cls}">${status.label}</span>` : '<span style="color:#64748b;">—</span>'}
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    const labReportBoxHtml = `
+      <div class="lab-report-box">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid rgba(56,189,248,0.25); padding-bottom:8px; flex-wrap:wrap; gap:8px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:22px;">🔬</span>
+            <div>
+              <h3 style="font-size:14.5px; font-weight:900; color:#38bdf8; margin:0;">برگه آنالیز آزمایشگاهی و رنج‌های طلایی تناسب اندام (${prof.name})</h3>
+              <div style="font-size:11px; color:#94a3b8; margin-top:2px;">مقایسه با استانداردهای سلامت جهانی (WHO/Navy) و نسبت‌های طلایی فیزیک کلاسیک (قد: ${current.height || '180'}cm)</div>
+            </div>
+          </div>
+          <span style="font-size:11px; background:rgba(0,242,254,0.15); color:#00f2fe; border:1px solid rgba(0,242,254,0.3); padding:3px 10px; border-radius:8px; font-weight:800;">🧪 Clinical & Aesthetic Lab</span>
+        </div>
+
+        <div class="table-container" style="overflow-x:auto; margin-bottom:16px;">
+          <table class="lab-table">
+            <thead>
+              <tr>
+                <th>شاخص فیزیولوژیک / عضو</th>
+                <th style="text-align:center; color:#00f2fe;">اندازه شما</th>
+                <th style="text-align:center; color:#34d399;">محدوده نرمال سلامت 🟢</th>
+                <th style="text-align:center; color:#facc15;">محدوده طلایی و زیبایی 👑</th>
+                <th style="text-align:center;">ارزیابی وضعیت</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${labTableRowsHtml}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Interpretive Coaching Notes -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:10px;">
+          <div style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px;">
+            <div style="font-size:11.5px; font-weight:800; color:#34d399; margin-bottom:4px;">🔬 ترکیب بدنی و چربی‌سوزی:</div>
+            <div style="font-size:11px; color:#cbd5e1; line-height:1.6;">
+              توده چربی: <b>${curSci.fatMass !== null ? curSci.fatMass + ' kg' : '--'}</b> · عضله خالص: <b>${curSci.leanMass !== null ? curSci.leanMass + ' kg' : '--'}</b>
+              <div style="color:#38bdf8; margin-top:3px;">
+                ${curSci.bodyFat !== null ? (curSci.bodyFat <= 14 ? 'تفکیک عضلانی فوق‌العاده و درصد چربی در محدوده طلایی فیتنس.' : 'روند چربی‌سوزی در حال پیشرفت است؛ تمرکز بر حفظ عضله خالص.') : 'درصد چربی پس از ثبت دور گردن و کمر محاسبه می‌شود.'}
+              </div>
+            </div>
+          </div>
+
+          <div style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px;">
+            <div style="font-size:11.5px; font-weight:800; color:#facc15; margin-bottom:4px;">👑 تقارن V-Taper و نسبت طلایی:</div>
+            <div style="font-size:11px; color:#cbd5e1; line-height:1.6;">
+              نسبت سرشانه به کمر شما <b>${curSci.swr !== null ? curSci.swr : '--'}</b> است (هدف طلایی: ۱.۶۱۸).
+              <div style="color:#fde047; margin-top:3px;">
+                ${curSci.swr && curSci.swr >= 1.55 ? '🎉 فرم V-Taper کلاسیک در بالاترین سطح استاندارد فیزیک بدنسازی.' : 'با هایپرتروفی دلتوئید جانبی و باریک‌تر کردن کمر، به فرم V-Taper نزدیک‌تر می‌شوید.'}
+              </div>
+            </div>
+          </div>
+
+          <div style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px;">
+            <div style="font-size:11.5px; font-weight:800; color:#c084fc; margin-bottom:4px;">💪 انقباض بازو و تقارن ساختاری:</div>
+            <div style="font-size:11px; color:#cbd5e1; line-height:1.6;">
+              ${(current.armRight && current.armRightRelaxed) ? `پمپ انقباض بازوی راست: <b>+${(current.armRight - current.armRightRelaxed).toFixed(1)} cm</b> (تفاوت منقبض و ریلکس).` : ''}
+              ${curSci.armDiff !== null ? `اختلاف راست و چپ: <b>${curSci.armDiff} cm</b> (${curSci.armDiff <= 0.5 ? 'تقارن عالی 🎯' : 'پیشنهاد: تمرینات تک‌دست'}).` : 'اطلاعات تقارن پس از ثبت اندازه‌های دو طرف نمایش داده می‌شود.'}
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Comparison Rows Definition for Matrix Table
     const rowsData = [
       // Group 1: Body Composition
       { isGroup: true, title: '⚖️ وزن و ترکیب بدنی (Body Composition)' },
@@ -7802,8 +8116,10 @@ function renderBodyMetricsView() {
       { label: 'دور گردن (Neck - ارتش آمریکا)', key: 'neck', unit: 'cm', isFat: true, baseVal: baseline.neck, prevVal: prev?.neck, curVal: current.neck },
       { label: 'دور سرشانه / دلتوئید (Shoulders 👑)', key: 'shoulders', unit: 'cm', isFat: false, baseVal: baseline.shoulders, prevVal: prev?.shoulders, curVal: current.shoulders },
       { label: 'دور سینه (Chest)', key: 'chest', unit: 'cm', isFat: false, baseVal: baseline.chest, prevVal: prev?.chest, curVal: current.chest },
-      { label: 'دور بازوی راست منقبض (Right Arm)', key: 'armRight', unit: 'cm', isFat: false, baseVal: baseline.armRight, prevVal: prev?.armRight, curVal: current.armRight },
-      { label: 'دور بازوی چپ منقبض (Left Arm)', key: 'armLeft', unit: 'cm', isFat: false, baseVal: baseline.armLeft, prevVal: prev?.armLeft, curVal: current.armLeft },
+      { label: 'دور بازوی راست منقبض (Right Arm Flexed)', key: 'armRight', unit: 'cm', isFat: false, baseVal: baseline.armRight, prevVal: prev?.armRight, curVal: current.armRight },
+      { label: 'دور بازوی راست ریلکس (Right Arm Relaxed)', key: 'armRightRelaxed', unit: 'cm', isFat: false, baseVal: baseline.armRightRelaxed, prevVal: prev?.armRightRelaxed, curVal: current.armRightRelaxed },
+      { label: 'دور بازوی چپ منقبض (Left Arm Flexed)', key: 'armLeft', unit: 'cm', isFat: false, baseVal: baseline.armLeft, prevVal: prev?.armLeft, curVal: current.armLeft },
+      { label: 'دور بازوی چپ ریلکس (Left Arm Relaxed)', key: 'armLeftRelaxed', unit: 'cm', isFat: false, baseVal: baseline.armLeftRelaxed, prevVal: prev?.armLeftRelaxed, curVal: current.armLeftRelaxed },
 
       // Group 3: Core & Waist
       { isGroup: true, title: '🎯 میان‌تنه و شکم (Core & Waist)' },
@@ -7826,26 +8142,13 @@ function renderBodyMetricsView() {
       if (r.isGroup) {
         return `<tr class="metrics-group-header"><td colspan="6">${r.title}</td></tr>`;
       }
-
       const curVal = r.curVal !== null && r.curVal !== undefined ? parseFloat(r.curVal) : null;
       const prevVal = r.prevVal !== null && r.prevVal !== undefined ? parseFloat(r.prevVal) : null;
       const baseVal = r.baseVal !== null && r.baseVal !== undefined ? parseFloat(r.baseVal) : null;
-
       const deltaLast = (curVal !== null && prevVal !== null) ? (curVal - prevVal) : null;
       const deltaBase = (curVal !== null && baseVal !== null) ? (curVal - baseVal) : null;
-
       const formatVal = (v) => v !== null && v > 0 ? `${v} <span style="font-size:10px; color:var(--text-muted);">${r.unit}</span>` : '<span style="color:#64748b;">--</span>';
-
-      return `
-        <tr>
-          <td style="font-weight:700; color:#fff;">${r.label}</td>
-          <td style="color:#94a3b8; text-align:center;">${formatVal(baseVal)}</td>
-          <td style="color:#94a3b8; text-align:center;">${formatVal(prevVal)}</td>
-          <td style="color:#00f2fe; font-weight:800; text-align:center; font-size:13.5px;">${formatVal(curVal)}</td>
-          <td style="text-align:center;">${formatDeltaPill(deltaLast, r.isFat, r.unit)}</td>
-          <td style="text-align:center;">${formatDeltaPill(deltaBase, r.isFat, r.unit)}</td>
-        </tr>
-      `;
+      return `<tr><td style="font-weight:700; color:#fff;">${r.label}</td><td style="color:#94a3b8; text-align:center;">${formatVal(baseVal)}</td><td style="color:#94a3b8; text-align:center;">${formatVal(prevVal)}</td><td style="color:#00f2fe; font-weight:800; text-align:center; font-size:13.5px;">${formatVal(curVal)}</td><td style="text-align:center;">${formatDeltaPill(deltaLast, r.isFat, r.unit)}</td><td style="text-align:center;">${formatDeltaPill(deltaBase, r.isFat, r.unit)}</td></tr>`;
     }).join('');
 
     const matrixTableHtml = `
@@ -7880,94 +8183,10 @@ function renderBodyMetricsView() {
       </div>
     `;
 
-    // --- Detailed Scientific Analysis & Interpretation Report ---
-    let bfAnalysis = '';
-    if (curSci.bodyFat !== null) {
-      if (current.gender === 'female') {
-        if (curSci.bodyFat < 16) bfAnalysis = 'تفکیک عضلانی بسیار بالا و چربی فوق‌العاده پایین (ورزشکار حرفه‌ای).';
-        else if (curSci.bodyFat <= 22) bfAnalysis = 'سطح چربی ایده‌آل برای فیتنس بانوان و هایپرتروفی همراه با سلامت کامل.';
-        else if (curSci.bodyFat <= 28) bfAnalysis = 'محدوده سلامت نرمال و پایدار.';
-        else bfAnalysis = 'پیشنهاد: فاز ملایم چربی‌سوزی با کنترل کالری و حفظ توده عضلانی.';
-      } else {
-        if (curSci.bodyFat < 10) bfAnalysis = 'سطح چربی بسیار پایین و کات مسابقه‌ای (تراشیدگی کامل عضلات).';
-        else if (curSci.bodyFat <= 15) bfAnalysis = 'محدوده طلایی فیتنس و بدنسازی (عضلات مشخص + شادابی هورمونی).';
-        else if (curSci.bodyFat <= 20) bfAnalysis = 'محدوده سلامت عمومی و بالک تمیز.';
-        else bfAnalysis = 'پیشنهاد: تمرکز بر کات و چربی‌سوزی تدریجی در کنار تمرینات پرفشار.';
-      }
-    }
-
-    let adonisAnalysis = '';
-    if (curSci.swr !== null) {
-      if (curSci.swr >= 1.60) adonisAnalysis = '🎉 تبریک! بالاتنه شما به نسبت طلایی کلاسیک (۱.۶۱۸) و V-Taper اصیل رسیده است.';
-      else if (curSci.swr >= 1.45) adonisAnalysis = 'فرم V-Taper بسیار خوب با پتانسیل عالی؛ با رشد دلتوئید جانبی به نسبت طلایی ۱.۶۱۸ خواهید رسید.';
-      else adonisAnalysis = 'برای رسیدن به نسبت V-Taper، تمرکز بر هایپرتروفی سرشانه و باریک‌تر کردن دور کمر توصیه می‌شود.';
-    }
-
-    let symmetryAnalysis = '';
-    if (curSci.armDiff !== null || curSci.thighDiff !== null) {
-      const maxDiff = Math.max(curSci.armDiff || 0, curSci.thighDiff || 0);
-      if (maxDiff <= 0.5) symmetryAnalysis = 'تقارن عضلانی در اندام‌های چپ و راست فوق‌العاده متوازن و استاندارد است. 🎯';
-      else if (maxDiff <= 1.2) symmetryAnalysis = `اختلاف جزئی (${maxDiff} سانتی‌متر) کاملاً طبیعی است؛ برای بالانس بیشتر از دمبل و سیم‌کش استفاده کنید.`;
-      else symmetryAnalysis = `عدم تقارن قابل توجه (${maxDiff} سانتی‌متر)؛ ست‌ها را با اندام ضعیف‌تر شروع کنید و حجم مساوی بزنید.`;
-    }
-
-    const reportCardHtml = `
-      <div style="background:linear-gradient(145deg, #131f38, #182848); border:1px solid rgba(56,189,248,0.3); border-radius:var(--radius-lg); padding:16px; margin-bottom:16px; box-shadow:var(--shadow-card);">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:8px; flex-wrap:wrap; gap:6px;">
-          <div style="display:flex; align-items:center; gap:8px;">
-            <span style="font-size:20px;">🧠</span>
-            <h3 style="font-size:14px; font-weight:900; color:#38bdf8; margin:0;">گزارش تحلیلی و بادی‌آنالیز هوشمند (${prof.name})</h3>
-          </div>
-          <span style="font-size:11px; background:rgba(0,242,254,0.15); color:#00f2fe; padding:2px 8px; border-radius:8px; font-weight:800;">تحلیل بر پایه آخرین یافته‌های علمی</span>
-        </div>
-
-        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:10px;">
-          ${curSci.bodyFat !== null ? `
-            <div style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px;">
-              <div style="font-size:11.5px; font-weight:800; color:#34d399; margin-bottom:4px;">🔬 تحلیل توده چربی و عضله خالص:</div>
-              <div style="font-size:11px; color:#cbd5e1; line-height:1.6;">
-                درصد چربی شما <b>${curSci.bodyFat}٪</b> (معادل <b>${curSci.fatMass} کیلو چربی</b>) و توده عضلانی خالص شما <b>${curSci.leanMass} کیلوگرم</b> است.
-                <div style="color:#38bdf8; margin-top:3px;">${bfAnalysis}</div>
-              </div>
-            </div>
-          ` : ''}
-
-          ${curSci.swr !== null ? `
-            <div style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px;">
-              <div style="font-size:11.5px; font-weight:800; color:#facc15; margin-bottom:4px;">👑 تحلیل نسبت طلایی سرشانه (Adonis Index):</div>
-              <div style="font-size:11px; color:#cbd5e1; line-height:1.6;">
-                نسبت سرشانه به کمر شما <b>${curSci.swr}</b> است (هدف طلایی: ۱.۶۱۸).
-                <div style="color:#fde047; margin-top:3px;">${adonisAnalysis}</div>
-              </div>
-            </div>
-          ` : ''}
-
-          ${curSci.whr !== null ? `
-            <div style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px;">
-              <div style="font-size:11.5px; font-weight:800; color:#38bdf8; margin-bottom:4px;">🎯 سلامت متابولیک و چربی احشایی (WHR):</div>
-              <div style="font-size:11px; color:#cbd5e1; line-height:1.6;">
-                نسبت دور کمر به باسن: <b>${curSci.whr}</b> · وضعیت: <span class="delta-pill ${whrClass}">${whrLabel}</span>
-                <div style="color:#94a3b8; margin-top:3px;">نشان‌دهنده توزیع سالم چربی و عدم ریسک چربی احشایی در اطراف اندام‌های داخلی.</div>
-              </div>
-            </div>
-          ` : ''}
-
-          ${symmetryAnalysis ? `
-            <div style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px;">
-              <div style="font-size:11.5px; font-weight:800; color:#c084fc; margin-bottom:4px;">📐 ارزیابی تقارن و تعادل ساختاری:</div>
-              <div style="font-size:11px; color:#cbd5e1; line-height:1.6;">
-                ${symmetryAnalysis}
-              </div>
-            </div>
-          ` : ''}
-        </div>
-      </div>
-    `;
-
     contentHtml = `
       ${headerHtml}
       ${heroGridHtml}
-      ${reportCardHtml}
+      ${labReportBoxHtml}
       ${matrixTableHtml}
     `;
   }

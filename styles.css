@@ -908,4 +908,96 @@ input:checked + .slider:before {
   background: rgba(0, 242, 254, 0.05) !important;
 }
 
+/* ==========================================================================
+   Laboratory-Style Body Composition & Aesthetic Range Styles
+   ========================================================================== */
+.lab-report-box {
+  background: linear-gradient(145deg, #0e172a, #13223f);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.lab-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 12.5px;
+}
+
+.lab-table th {
+  background: rgba(15, 23, 42, 0.95);
+  color: #38bdf8;
+  font-weight: 800;
+  padding: 10px 12px;
+  border-bottom: 2px solid rgba(56, 189, 248, 0.3);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.lab-table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  vertical-align: middle;
+}
+
+.lab-table tr:hover td {
+  background: rgba(30, 41, 59, 0.5);
+}
+
+.range-pill-health {
+  background: rgba(16, 185, 129, 0.12);
+  color: #34d399;
+  border: 1px solid rgba(52, 211, 153, 0.3);
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-block;
+  direction: ltr;
+}
+
+.range-pill-golden {
+  background: rgba(234, 179, 8, 0.15);
+  color: #facc15;
+  border: 1px solid rgba(250, 204, 21, 0.4);
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 800;
+  display: inline-block;
+  direction: ltr;
+}
+
+.lab-status-badge {
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.lab-status-golden {
+  background: rgba(234, 179, 8, 0.2);
+  color: #fde047;
+  border: 1px solid rgba(250, 204, 21, 0.5);
+}
+
+.lab-status-healthy {
+  background: rgba(16, 185, 129, 0.18);
+  color: #34d399;
+  border: 1px solid rgba(52, 211, 153, 0.4);
+}
+
+.lab-status-attention {
+  background: rgba(244, 63, 94, 0.18);
+  color: #fb7185;
+  border: 1px solid rgba(244, 63, 94, 0.4);
+}
+
+
 
