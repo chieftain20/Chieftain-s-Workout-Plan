@@ -7655,9 +7655,19 @@ function calculateAnthropometrics(m) {
 
   let fatMass = null;
   let leanMass = null;
+  let skeletalMuscle = null;
+  let bodyWater = null;
+  let boneMass = null;
+
   if (bodyFat !== null && weight > 0) {
-    fatMass = weight * (bodyFat / 100);
-    leanMass = weight - fatMass;
+    fatMass = Number((weight * (bodyFat / 100)).toFixed(1));
+    leanMass = Number((weight - fatMass).toFixed(1));
+    // SMM (Skeletal Muscle Mass) ≈ 54% of LBM for men, 48% for women (Janssen/Lee formula)
+    skeletalMuscle = Number((leanMass * (isFemale ? 0.48 : 0.54)).toFixed(1));
+    // TBW (Total Body Water) ≈ 73% of LBM
+    bodyWater = Number((leanMass * 0.73).toFixed(1));
+    // BMC (Bone Mineral Content) ≈ 4.2% of body weight for men, 3.8% for women
+    boneMass = Number((weight * (isFemale ? 0.038 : 0.042)).toFixed(1));
   }
 
   let whr = null;
@@ -7691,6 +7701,9 @@ function calculateAnthropometrics(m) {
     bodyFat: bodyFat !== null ? Number(bodyFat.toFixed(1)) : null,
     fatMass: fatMass !== null ? Number(fatMass.toFixed(1)) : null,
     leanMass: leanMass !== null ? Number(leanMass.toFixed(1)) : null,
+    skeletalMuscle: skeletalMuscle !== null ? Number(skeletalMuscle.toFixed(1)) : null,
+    bodyWater: bodyWater !== null ? Number(bodyWater.toFixed(1)) : null,
+    boneMass: boneMass !== null ? Number(boneMass.toFixed(1)) : null,
     whr: whr !== null ? Number(whr.toFixed(2)) : null,
     whtr: whtr !== null ? Number(whtr.toFixed(2)) : null,
     swr: swr !== null ? swr : null,
@@ -7743,7 +7756,7 @@ function getAnthropometricReferenceRanges(height, gender) {
         if (!val) return null;
         const target = H * 0.58;
         if (val >= target) return { label: '👑 سینه پهن و هایپرتروفی', cls: 'lab-status-golden' };
-        if (val >= H * 0.50) return { label: '🟢 محدوده سلامت', cls: 'lab-status-healthy' };
+        if (val >= H * 0.50) return { label: '🟢 محدوده سلامت پایه', cls: 'lab-status-healthy' };
         return { label: '⚠️ نیاز به هایپرتروفی', cls: 'lab-status-attention' };
       }
     },
@@ -7755,7 +7768,7 @@ function getAnthropometricReferenceRanges(height, gender) {
         if (!val) return null;
         const target = H * 0.22;
         if (val >= target) return { label: '👑 بازوی حجیم فیتنس', cls: 'lab-status-golden' };
-        if (val >= H * 0.18) return { label: '🟢 نرمال سلامت', cls: 'lab-status-healthy' };
+        if (val >= H * 0.18) return { label: '🟢 نرمال سلامت پایه', cls: 'lab-status-healthy' };
         return { label: '⚠️ نیاز به حجم‌گیری', cls: 'lab-status-attention' };
       }
     },
@@ -7766,7 +7779,7 @@ function getAnthropometricReferenceRanges(height, gender) {
       evalStatus: (val) => {
         if (!val) return null;
         if (val >= H * 0.20) return { label: '👑 فرم عضلانی عالی', cls: 'lab-status-golden' };
-        if (val >= H * 0.16) return { label: '🟢 نرمال سلامت', cls: 'lab-status-healthy' };
+        if (val >= H * 0.16) return { label: '🟢 نرمال سلامت پایه', cls: 'lab-status-healthy' };
         return { label: '⚠️ نیاز به هایپرتروفی', cls: 'lab-status-attention' };
       }
     },
@@ -7805,7 +7818,7 @@ function getAnthropometricReferenceRanges(height, gender) {
       evalStatus: (val) => {
         if (!val) return null;
         if (val >= H * 0.32) return { label: '👑 پاهای قدرتمند و پر', cls: 'lab-status-golden' };
-        if (val >= H * 0.28) return { label: '🟢 نرمال سلامت', cls: 'lab-status-healthy' };
+        if (val >= H * 0.28) return { label: '🟢 نرمال سلامت پایه', cls: 'lab-status-healthy' };
         return { label: '⚠️ نیاز به تمرین پا', cls: 'lab-status-attention' };
       }
     },
@@ -7816,7 +7829,7 @@ function getAnthropometricReferenceRanges(height, gender) {
       evalStatus: (val) => {
         if (!val) return null;
         if (val >= H * 0.21) return { label: '👑 تقارن طلایی ساق', cls: 'lab-status-golden' };
-        if (val >= H * 0.18) return { label: '🟢 نرمال سلامت', cls: 'lab-status-healthy' };
+        if (val >= H * 0.18) return { label: '🟢 نرمال سلامت پایه', cls: 'lab-status-healthy' };
         return { label: '⚠️ نیاز به تمرین ساق', cls: 'lab-status-attention' };
       }
     }
@@ -7954,25 +7967,25 @@ function renderBodyMetricsView() {
         <div class="metrics-hero-card">
           <div class="metric-hero-label">
             <span>⚖️ وزن کنونی</span>
-            <span style="font-size:10px; color:#38bdf8;">نقطه شروع: ${baseline.weight}kg</span>
+            <span style="font-size:10px; color:#38bdf8;">شروع: ${baseline.weight}kg</span>
           </div>
           <div class="metric-hero-val">${current.weight} <small>kg</small></div>
           <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
-            <div style="font-size:10.5px; color:var(--text-muted);">تغییر از شروع:</div>
+            <div style="font-size:10.5px; color:var(--text-muted);">تغییر کل:</div>
             ${formatDeltaPill(diffWeightBase, false, 'kg')}
           </div>
         </div>
 
-        <!-- Card 2: Navy Body Fat % -->
+        <!-- Card 2: Navy Body Fat % & Muscle Mass -->
         <div class="metrics-hero-card">
           <div class="metric-hero-label">
             <span>🔬 درصد چربی (Navy)</span>
-            <span style="font-size:10px; color:#34d399;">ارتش آمریکا</span>
+            <span style="font-size:10px; color:#34d399;">چربی: ${curSci.fatMass !== null ? curSci.fatMass + 'kg' : '--'}</span>
           </div>
           <div class="metric-hero-val" style="color:#00f2fe;">${curSci.bodyFat !== null ? curSci.bodyFat + '%' : '--'}</div>
           <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
-            <div style="font-size:10.5px; color:var(--text-muted);">عضله خالص (LBM):</div>
-            <span style="font-size:11px; font-weight:800; color:#34d399;">${curSci.leanMass !== null ? curSci.leanMass + ' kg' : '--'}</span>
+            <div style="font-size:10.5px; color:var(--text-muted);">عضله اسکلتی (SMM):</div>
+            <span style="font-size:11px; font-weight:800; color:#34d399;">${curSci.skeletalMuscle !== null ? '~' + curSci.skeletalMuscle + ' kg' : '--'}</span>
           </div>
         </div>
 
@@ -7984,7 +7997,7 @@ function renderBodyMetricsView() {
           </div>
           <div class="metric-hero-val" style="color:#facc15;">${current.waist || '--'} <small>cm</small></div>
           <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
-            <div style="font-size:10.5px; color:var(--text-muted);">وضعیت:</div>
+            <div style="font-size:10.5px; color:var(--text-muted);">وضعیت فرم:</div>
             <span class="delta-pill ${whrClass}">${whrLabel}</span>
           </div>
         </div>
@@ -8041,15 +8054,22 @@ function renderBodyMetricsView() {
 
     const labReportBoxHtml = `
       <div class="lab-report-box">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid rgba(56,189,248,0.25); padding-bottom:8px; flex-wrap:wrap; gap:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid rgba(56,189,248,0.25); padding-bottom:8px; flex-wrap:wrap; gap:8px;">
           <div style="display:flex; align-items:center; gap:8px;">
             <span style="font-size:22px;">🔬</span>
             <div>
               <h3 style="font-size:14.5px; font-weight:900; color:#38bdf8; margin:0;">برگه آنالیز آزمایشگاهی و رنج‌های طلایی تناسب اندام (${prof.name})</h3>
-              <div style="font-size:11px; color:#94a3b8; margin-top:2px;">مقایسه با استانداردهای سلامت جهانی (WHO/Navy) و نسبت‌های طلایی فیزیک کلاسیک (قد: ${current.height || '180'}cm)</div>
+              <div style="font-size:11px; color:#94a3b8; margin-top:2px;">پایش استانداردهای فیزیولوژیک بر اساس قد: <b>${current.height || '180'}cm</b></div>
             </div>
           </div>
           <span style="font-size:11px; background:rgba(0,242,254,0.15); color:#00f2fe; border:1px solid rgba(0,242,254,0.3); padding:3px 10px; border-radius:8px; font-weight:800;">🧪 Clinical & Aesthetic Lab</span>
+        </div>
+
+        <!-- Range Clarification Guide Banner -->
+        <div style="background:rgba(15,23,42,0.6); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:8px 12px; margin-bottom:12px; font-size:11px; color:#cbd5e1; line-height:1.6;">
+          💡 <b>راهنمای ستون‌ها:</b>
+          <span style="color:#34d399; margin-right:4px;">🟢 <b>سلامت پایه:</b> حداقل استاندارد فیزیولوژیک یک فرد عادی جامعه برای پیشگیری از تحلیل عضلانی و سلامت متابولیک.</span> | 
+          <span style="color:#facc15; margin-right:4px;">👑 <b>محدوده طلایی فیتنس:</b> اوج تناسب اندام نچرال و جذابیت کلاسیک (استیو ریوز و آدونیس). فراتر از این محدوده وارد فاز پرورش‌اندام سنگین مسابقه‌ای می‌شود.</span>
         </div>
 
         <div class="table-container" style="overflow-x:auto; margin-bottom:16px;">
@@ -8058,8 +8078,8 @@ function renderBodyMetricsView() {
               <tr>
                 <th>شاخص فیزیولوژیک / عضو</th>
                 <th style="text-align:center; color:#00f2fe;">اندازه شما</th>
-                <th style="text-align:center; color:#34d399;">محدوده نرمال سلامت 🟢</th>
-                <th style="text-align:center; color:#facc15;">محدوده طلایی و زیبایی 👑</th>
+                <th style="text-align:center; color:#34d399;">محدوده سلامت پایه (فرد عادی) 🟢</th>
+                <th style="text-align:center; color:#facc15;">محدوده طلایی فیتنس و زیبایی 👑</th>
                 <th style="text-align:center;">ارزیابی وضعیت</th>
               </tr>
             </thead>
@@ -8072,11 +8092,11 @@ function renderBodyMetricsView() {
         <!-- Interpretive Coaching Notes -->
         <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:10px;">
           <div style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px;">
-            <div style="font-size:11.5px; font-weight:800; color:#34d399; margin-bottom:4px;">🔬 ترکیب بدنی و چربی‌سوزی:</div>
+            <div style="font-size:11.5px; font-weight:800; color:#34d399; margin-bottom:4px;">🔬 تفکیک دقیق ترکیب بدنی و بافت‌ها:</div>
             <div style="font-size:11px; color:#cbd5e1; line-height:1.6;">
-              توده چربی: <b>${curSci.fatMass !== null ? curSci.fatMass + ' kg' : '--'}</b> · عضله خالص: <b>${curSci.leanMass !== null ? curSci.leanMass + ' kg' : '--'}</b>
-              <div style="color:#38bdf8; margin-top:3px;">
-                ${curSci.bodyFat !== null ? (curSci.bodyFat <= 14 ? 'تفکیک عضلانی فوق‌العاده و درصد چربی در محدوده طلایی فیتنس.' : 'روند چربی‌سوزی در حال پیشرفت است؛ تمرکز بر حفظ عضله خالص.') : 'درصد چربی پس از ثبت دور گردن و کمر محاسبه می‌شود.'}
+              توده چربی: <b>${curSci.fatMass !== null ? curSci.fatMass + ' kg' : '--'}</b> (${curSci.bodyFat}٪) · توده بدون چربی (LBM کل): <b>${curSci.leanMass !== null ? curSci.leanMass + ' kg' : '--'}</b>
+              <div style="color:#38bdf8; margin-top:4px; font-size:10.5px;">
+                💪 <b>عضله اسکلتی خالص (SMM):</b> ~<b>${curSci.skeletalMuscle !== null ? curSci.skeletalMuscle + ' kg' : '--'}</b> | 💧 <b>آب کل بدن:</b> ~<b>${curSci.bodyWater !== null ? curSci.bodyWater + ' kg' : '--'}</b> | 🦴 <b>اسکلت استخوانی:</b> ~<b>${curSci.boneMass !== null ? curSci.boneMass + ' kg' : '--'}</b>
               </div>
             </div>
           </div>
@@ -8106,10 +8126,13 @@ function renderBodyMetricsView() {
     const rowsData = [
       // Group 1: Body Composition
       { isGroup: true, title: '⚖️ وزن و ترکیب بدنی (Body Composition)' },
-      { label: 'وزن بدن (Weight)', key: 'weight', unit: 'kg', isFat: false, baseVal: baseline.weight, prevVal: prev?.weight, curVal: current.weight },
+      { label: 'وزن کل بدن (Weight)', key: 'weight', unit: 'kg', isFat: false, baseVal: baseline.weight, prevVal: prev?.weight, curVal: current.weight },
       { label: 'درصد چربی تخمینی (Navy Body Fat)', key: 'bodyFat', unit: '%', isFat: true, baseVal: baseSci.bodyFat, prevVal: prevSci?.bodyFat, curVal: curSci.bodyFat },
-      { label: 'توده خالص عضلانی (Lean Body Mass)', key: 'leanMass', unit: 'kg', isFat: false, baseVal: baseSci.leanMass, prevVal: prevSci?.leanMass, curVal: curSci.leanMass },
+      { label: 'توده بدون چربی کل (Lean Body Mass - LBM)', key: 'leanMass', unit: 'kg', isFat: false, baseVal: baseSci.leanMass, prevVal: prevSci?.leanMass, curVal: curSci.leanMass },
+      { label: 'عضله اسکلتی تخمینی (Skeletal Muscle - SMM 🏋️)', key: 'skeletalMuscle', unit: 'kg', isFat: false, baseVal: baseSci.skeletalMuscle, prevVal: prevSci?.skeletalMuscle, curVal: curSci.skeletalMuscle },
       { label: 'توده چربی بدن (Fat Mass)', key: 'fatMass', unit: 'kg', isFat: true, baseVal: baseSci.fatMass, prevVal: prevSci?.fatMass, curVal: curSci.fatMass },
+      { label: 'آب تخمینی کل بدن (Total Body Water)', key: 'bodyWater', unit: 'kg', isFat: false, baseVal: baseSci.bodyWater, prevVal: prevSci?.bodyWater, curVal: curSci.bodyWater },
+      { label: 'توده استخوانی و معدنی تخمینی (Bone Mass)', key: 'boneMass', unit: 'kg', isFat: false, baseVal: baseSci.boneMass, prevVal: prevSci?.boneMass, curVal: curSci.boneMass },
 
       // Group 2: Upper Body
       { isGroup: true, title: '📐 ابعاد بالاتنه (Upper Body)' },
