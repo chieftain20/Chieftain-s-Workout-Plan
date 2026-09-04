@@ -7709,6 +7709,94 @@ function saveProfileBodyMetrics(profId, metricsList) {
   } catch(e) {}
 }
 
+function determineHeathCarterSomatotype(height, weight, wrist, bodyFat, waist, hips, gender) {
+  const isFemale = gender === 'female';
+  const H = height > 0 ? height : (isFemale ? 165 : 180);
+  const W = weight > 0 ? weight : (isFemale ? 60 : 80);
+  const hwr = H / Math.cbrt(W); // Reciprocal Ponderal Index (Height / cube-root of weight)
+  const boneRatio = H / (wrist > 0 ? wrist : (isFemale ? 15.5 : 17.8));
+  
+  // 1. Endomorphy Score (Relative Fatness)
+  let endoScore = 2;
+  const bf = bodyFat || (isFemale ? 24 : 18);
+  if (isFemale) {
+    if (bf >= 28) endoScore = 3;
+    else if (bf <= 19) endoScore = 1;
+    else endoScore = 2;
+  } else {
+    if (bf >= 21) endoScore = 3;
+    else if (bf <= 12) endoScore = 1;
+    else endoScore = 2;
+  }
+
+  // 2. Mesomorphy Score (Musculoskeletal Robustness & Bone Frame)
+  let mesoScore = 2;
+  if (isFemale) {
+    if (boneRatio < 10.3) mesoScore = 3; // Robust bone frame
+    else if (boneRatio > 11.2) mesoScore = 1; // Slender petite frame
+    else mesoScore = 2;
+  } else {
+    if (boneRatio < 9.8) mesoScore = 3; // Thick heavy athletic frame
+    else if (boneRatio > 10.6) mesoScore = 1; // Fine/light frame
+    else mesoScore = 2;
+  }
+
+  // 3. Ectomorphy Score (Linearity & Slenderness)
+  let ectoScore = 2;
+  if (hwr >= 42.5) ectoScore = 3; // Linear / slender
+  else if (hwr <= 40.2) ectoScore = 1; // Dense / compact
+  else ectoScore = 2;
+
+  let nameFa = '';
+  let nameEn = '';
+  let descFa = '';
+
+  if (isFemale) {
+    if (ectoScore >= 3 || (ectoScore >= 2 && mesoScore <= 2 && endoScore <= 2)) {
+      nameEn = 'Ecto-Mesomorph (Lean Athletic Grace)';
+      nameFa = 'اکتو - مزومورف (ظریف، کشیده و ورزیده)';
+      descFa = 'اسکلت استخوانی ظریف و کشیده با متابولیسم چربی‌سوز فعال. بالاترین پتانسیل برای فرم‌دهی و لیفت عضلات سرینی بدون نگرانی از حجم‌گیری زمخت بالاتنه.';
+    } else if (mesoScore >= 2 && endoScore <= 2) {
+      nameEn = 'Athletic Mesomorph (Hourglass Tone)';
+      nameFa = 'مزومورف ورزشی (ساعت‌شنی متناسب)';
+      descFa = 'تعادل کامل توده عضلانی و ظرافت زنانه، پاسخ‌دهی فوق‌العاده به سفت‌سازی و تراشیدن میان‌تنه و هایپرتروفی پایین‌تنه.';
+    } else if (endoScore >= 3 || (endoScore >= 2 && mesoScore >= 2)) {
+      nameEn = 'Endo-Mesomorph (Curvy Feminine)';
+      nameFa = 'اندو - مزومورف (انحنای پر و ژینوئید)';
+      descFa = 'استعداد طبیعی در انحناهای پر در باسن و ران‌ها با توده عضلانی خوب. اولویت تمرینی: چربی‌سوزی هدفمند، تقویت ثبات هسته مرکزی و حفظ فرم ساعت‌شنی.';
+    } else {
+      nameEn = 'Delicate Ectomorph';
+      nameFa = 'اکتومورف ظریف';
+      descFa = 'فیزیک بسیار باریک و درصد چربی پایین؛ هدف: عضله‌سازی ظریف و تقویت انحناها.';
+    }
+  } else {
+    // Male
+    if (mesoScore >= 2 && endoScore >= 2 && ectoScore <= 1) {
+      nameEn = 'Meso-Endomorph (Heavy Muscular)';
+      nameFa = 'مزو - اندومورف (عضلانی پرقدرت با استعداد چربی پهلو)';
+      descFa = 'اسکلت استخوانی مستحکم و ضخیم، بالاتنه ستبر و عضلات پرقدرت؛ اما تمایل طبیعی به ذخیره چربی آندروئید در پهلوها و زیر شکم در مازاد کالری.';
+    } else if (mesoScore >= 2 && endoScore <= 1) {
+      nameEn = 'Pure Athletic Mesomorph (Classic V-Taper)';
+      nameFa = 'مزومورف اصیل ورزشی (V-Taper کلاسیک)';
+      descFa = 'شانه‌های عریض طبیعی، چربی پایین، کمر باریک و پاسخ بسیار سریع به تمرینات با وزنه.';
+    } else if (ectoScore >= 2 && mesoScore >= 2) {
+      nameEn = 'Ecto-Mesomorph (Lean Aesthetic)';
+      nameFa = 'اکتو - مزومورف (کات و فیبر)';
+      descFa = 'تراشیده، کم‌چرب و خطوط عضلانی واضح با تفکیک عالی.';
+    } else if (endoScore >= 2 && mesoScore <= 1) {
+      nameEn = 'Endomorph (Soft Frame)';
+      nameFa = 'اندومورف (چربی‌پذیر)';
+      descFa = 'متابولیسم آرام‌تر با تمایل به ذخیره چربی در میان‌تنه؛ نیازمند مدیریت هوشمند کربوهیدرات.';
+    } else {
+      nameEn = 'Balanced Mesomorph';
+      nameFa = 'مزومورف متوازن ورزشی';
+      descFa = 'تقارن بدنی کلاسیک و پاسخ‌دهی متوازن به تمرین.';
+    }
+  }
+
+  return { nameFa, nameEn, descFa, endoScore, mesoScore, ectoScore, hwr: Number(hwr.toFixed(1)) };
+}
+
 function calculateAnthropometrics(m) {
   const weight = parseFloat(m.weight) || 0;
   const height = parseFloat(m.height) || 0;
@@ -7899,6 +7987,8 @@ function calculateAnthropometrics(m) {
     };
   }
 
+  const somatotype = determineHeathCarterSomatotype(height, weight, wrist, bodyFat, waist, hips, m.gender);
+
   return {
     bodyFat: bodyFat !== null ? Number(bodyFat.toFixed(1)) : null,
     bfNavyNavel: bfNavyNavel !== null ? Number(bfNavyNavel.toFixed(1)) : null,
@@ -7929,6 +8019,7 @@ function calculateAnthropometrics(m) {
     loveHandleStatus,
     loveHandleDelta,
     reevesTrinity,
+    somatotype,
     armDiff: armDiff !== null ? Number(armDiff.toFixed(1)) : null,
     armRightRelaxed: armRightRelaxed > 0 ? armRightRelaxed : null,
     armLeftRelaxed: armLeftRelaxed > 0 ? armLeftRelaxed : null,
@@ -7943,12 +8034,12 @@ function getAnthropometricReferenceRanges(height, gender) {
   return {
     bodyFat: {
       healthRange: isFemale ? '18% – 28%' : '10% – 20%',
-      goldenRange: isFemale ? '15% – 20%' : '8% – 12%',
+      goldenRange: isFemale ? '18% – 21% (جذابیت شنی و تعادل استروژن 👑)' : '8% – 12% (کات V-Taper آدونیس 👑)',
       unit: '%',
       evalStatus: (val) => {
         if (!val) return null;
         if (isFemale) {
-          if (val <= 20) return { label: '👑 طلایی / فیتنس', cls: 'lab-status-golden' };
+          if (val >= 17 && val <= 22) return { label: '👑 طلایی / فیتنس ساعت‌شنی', cls: 'lab-status-golden' };
           if (val <= 28) return { label: '🟢 نرمال سلامت', cls: 'lab-status-healthy' };
           return { label: '🔴 نیاز به چربی‌سوزی', cls: 'lab-status-attention' };
         } else {
@@ -7959,8 +8050,8 @@ function getAnthropometricReferenceRanges(height, gender) {
       }
     },
     neck: {
-      healthRange: isFemale ? '32.0 – 36.0 cm' : '37.0 – 41.0 cm',
-      goldenRange: isFemale ? '33.0 – 35.0 cm' : `${(H * 0.21).toFixed(1)} – ${(H * 0.23).toFixed(1)} cm (تثلیث استیو ریوز)`,
+      healthRange: isFemale ? '31.0 – 35.0 cm' : '37.0 – 41.0 cm',
+      goldenRange: isFemale ? '32.0 – 34.5 cm (ظرافت زنانه 👑)' : `${(H * 0.21).toFixed(1)} – ${(H * 0.23).toFixed(1)} cm (تثلیث استیو ریوز)`,
       unit: 'cm',
       evalStatus: (val) => {
         if (!val) return null;
@@ -7969,89 +8060,111 @@ function getAnthropometricReferenceRanges(height, gender) {
           if (val >= 36 && val <= 42) return { label: '🟢 نرمال سلامت پایه', cls: 'lab-status-healthy' };
           return { label: '⚠️ خارج از رنج', cls: 'lab-status-attention' };
         } else {
-          if (val >= 32 && val <= 36) return { label: '🟢 نرمال سلامت', cls: 'lab-status-healthy' };
-          return { label: '⚠️ بررسی بیشتر', cls: 'lab-status-attention' };
+          if (val >= 31 && val <= 35) return { label: '👑 گردن ظریف و متناسب', cls: 'lab-status-golden' };
+          return { label: '🟢 استاندارد سلامت', cls: 'lab-status-healthy' };
         }
       }
     },
     loveHandle: {
       healthRange: '< 1.10',
-      goldenRange: '1.00 – 1.05 (بدون چربی پهلو 👑)',
+      goldenRange: isFemale ? '1.00 – 1.07 (انحنای ساعت‌شنی بدون پهلو 👑)' : '1.00 – 1.05 (V-Cut تراشیده بدون پهلو 👑)',
       unit: '',
       evalStatus: (val) => {
         if (!val) return null;
-        if (val <= 1.05) return { label: '👑 پهلوی تراشیده V-Cut', cls: 'lab-status-golden' };
+        if (val <= (isFemale ? 1.07 : 1.05)) return { label: isFemale ? '👑 میان‌تنه ظریف و کشیده' : '👑 پهلوی تراشیده V-Cut', cls: 'lab-status-golden' };
         if (val <= 1.11) return { label: '🟢 چربی خفیف پهلو', cls: 'lab-status-healthy' };
         return { label: '⚠️ لاو هندل و چربی پهلو', cls: 'lab-status-attention' };
       }
     },
     swr: {
-      healthRange: '1.30 – 1.45',
-      goldenRange: '1.55 – 1.65 (هدف: ۱.۶۱۸)',
+      healthRange: isFemale ? '1.20 – 1.30' : '1.30 – 1.45',
+      goldenRange: isFemale ? '1.28 – 1.38 (تناسب ساعت‌شنی بالاتنه 👑)' : '1.55 – 1.65 (هدف آدونیس: ۱.۶۱۸ 👑)',
       unit: '',
       evalStatus: (val) => {
         if (!val) return null;
-        if (val >= 1.55) return { label: '👑 نسبت طلایی V-Taper', cls: 'lab-status-golden' };
-        if (val >= 1.40) return { label: '🟢 نرمال و متناسب', cls: 'lab-status-healthy' };
-        return { label: '⚠️ نیاز به شانه پهن‌تر', cls: 'lab-status-attention' };
+        if (isFemale) {
+          if (val >= 1.28 && val <= 1.40) return { label: '👑 شانه کشیده و ساعت‌شنی', cls: 'lab-status-golden' };
+          return { label: '🟢 نرمال و متناسب', cls: 'lab-status-healthy' };
+        } else {
+          if (val >= 1.55) return { label: '👑 نسبت طلایی V-Taper', cls: 'lab-status-golden' };
+          if (val >= 1.40) return { label: '🟢 نرمال و متناسب', cls: 'lab-status-healthy' };
+          return { label: '⚠️ نیاز به شانه پهن‌تر', cls: 'lab-status-attention' };
+        }
       }
     },
     chest: {
-      healthRange: `${Math.round(H * 0.50)} – ${Math.round(H * 0.55)} cm`,
-      goldenRange: `${Math.round(H * 0.58)} – ${Math.round(H * 0.62)} cm`,
+      healthRange: isFemale ? `${Math.round(H * 0.48)} – ${Math.round(H * 0.53)} cm` : `${Math.round(H * 0.50)} – ${Math.round(H * 0.55)} cm`,
+      goldenRange: isFemale ? `${Math.round(H * 0.52)} – ${Math.round(H * 0.56)} cm` : `${Math.round(H * 0.58)} – ${Math.round(H * 0.62)} cm`,
       unit: 'cm',
       evalStatus: (val) => {
         if (!val) return null;
-        const target = H * 0.58;
-        if (val >= target) return { label: '👑 سینه پهن و هایپرتروفی', cls: 'lab-status-golden' };
-        if (val >= H * 0.50) return { label: '🟢 محدوده سلامت پایه', cls: 'lab-status-healthy' };
-        return { label: '⚠️ نیاز به هایپرتروفی', cls: 'lab-status-attention' };
+        if (isFemale) {
+          if (val >= H * 0.51 && val <= H * 0.58) return { label: '👑 بالاتنه خوش‌فرم و متناسب', cls: 'lab-status-golden' };
+          return { label: '🟢 محدوده سلامت پایه', cls: 'lab-status-healthy' };
+        } else {
+          const target = H * 0.58;
+          if (val >= target) return { label: '👑 سینه پهن و هایپرتروفی', cls: 'lab-status-golden' };
+          if (val >= H * 0.50) return { label: '🟢 محدوده سلامت پایه', cls: 'lab-status-healthy' };
+          return { label: '⚠️ نیاز به هایپرتروفی', cls: 'lab-status-attention' };
+        }
       }
     },
     armFlexed: {
-      healthRange: `${(H * 0.18).toFixed(1)} – ${(H * 0.20).toFixed(1)} cm`,
-      goldenRange: `${(H * 0.22).toFixed(1)} – ${(H * 0.24).toFixed(1)} cm`,
+      healthRange: isFemale ? `${(H * 0.15).toFixed(1)} – ${(H * 0.17).toFixed(1)} cm` : `${(H * 0.18).toFixed(1)} – ${(H * 0.20).toFixed(1)} cm`,
+      goldenRange: isFemale ? `${(H * 0.165).toFixed(1)} – ${(H * 0.185).toFixed(1)} cm (ظرافت و توند زنانه 👑)` : `${(H * 0.22).toFixed(1)} – ${(H * 0.24).toFixed(1)} cm (بازوی حجیم 👑)`,
       unit: 'cm',
       evalStatus: (val) => {
         if (!val) return null;
-        const target = H * 0.22;
-        if (val >= target) return { label: '👑 بازوی حجیم فیتنس', cls: 'lab-status-golden' };
-        if (val >= H * 0.18) return { label: '🟢 نرمال سلامت پایه', cls: 'lab-status-healthy' };
-        return { label: '⚠️ نیاز به حجم‌گیری', cls: 'lab-status-attention' };
+        if (isFemale) {
+          if (val <= H * 0.19 && val >= H * 0.16) return { label: '👑 ظریف، توند و کشیده', cls: 'lab-status-golden' };
+          if (val < H * 0.16) return { label: '🟢 نرمال سلامت و لاغر', cls: 'lab-status-healthy' };
+          return { label: '⚠️ حجم بیشتر از ظرافت کلاسیک', cls: 'lab-status-attention' };
+        } else {
+          const target = H * 0.22;
+          if (val >= target) return { label: '👑 بازوی حجیم فیتنس', cls: 'lab-status-golden' };
+          if (val >= H * 0.18) return { label: '🟢 نرمال سلامت پایه', cls: 'lab-status-healthy' };
+          return { label: '⚠️ نیاز به حجم‌گیری', cls: 'lab-status-attention' };
+        }
       }
     },
     armRelaxed: {
-      healthRange: `${(H * 0.16).toFixed(1)} – ${(H * 0.18).toFixed(1)} cm`,
-      goldenRange: `${(H * 0.20).toFixed(1)} – ${(H * 0.22).toFixed(1)} cm`,
+      healthRange: isFemale ? `${(H * 0.13).toFixed(1)} – ${(H * 0.15).toFixed(1)} cm` : `${(H * 0.16).toFixed(1)} – ${(H * 0.18).toFixed(1)} cm`,
+      goldenRange: isFemale ? `${(H * 0.145).toFixed(1)} – ${(H * 0.165).toFixed(1)} cm` : `${(H * 0.20).toFixed(1)} – ${(H * 0.22).toFixed(1)} cm`,
       unit: 'cm',
       evalStatus: (val) => {
         if (!val) return null;
-        if (val >= H * 0.20) return { label: '👑 فرم عضلانی عالی', cls: 'lab-status-golden' };
-        if (val >= H * 0.16) return { label: '🟢 نرمال سلامت پایه', cls: 'lab-status-healthy' };
-        return { label: '⚠️ نیاز به هایپرتروفی', cls: 'lab-status-attention' };
+        if (isFemale) {
+          if (val <= H * 0.17) return { label: '👑 بازوی کشیده و ظریف', cls: 'lab-status-golden' };
+          return { label: '🟢 نرمال سلامت', cls: 'lab-status-healthy' };
+        } else {
+          if (val >= H * 0.20) return { label: '👑 فرم عضلانی عالی', cls: 'lab-status-golden' };
+          if (val >= H * 0.16) return { label: '🟢 نرمال سلامت پایه', cls: 'lab-status-healthy' };
+          return { label: '⚠️ نیاز به هایپرتروفی', cls: 'lab-status-attention' };
+        }
       }
     },
     waist: {
       healthRange: `${(H * 0.44).toFixed(1)} – ${(H * 0.49).toFixed(1)} cm`,
-      goldenRange: `${(H * 0.42).toFixed(1)} – ${(H * 0.45).toFixed(1)} cm`,
+      goldenRange: isFemale ? `${(H * 0.38).toFixed(1)} – ${(H * 0.42).toFixed(1)} cm (کمر باریک ساعت‌شنی 👑)` : `${(H * 0.42).toFixed(1)} – ${(H * 0.45).toFixed(1)} cm`,
       unit: 'cm',
       evalStatus: (val) => {
         if (!val) return null;
-        if (val <= H * 0.45) return { label: '👑 کمر باریک و کات', cls: 'lab-status-golden' };
+        const target = isFemale ? H * 0.42 : H * 0.45;
+        if (val <= target) return { label: '👑 کمر باریک و کات', cls: 'lab-status-golden' };
         if (val <= H * 0.49) return { label: '🟢 سلامت نرمال', cls: 'lab-status-healthy' };
         return { label: '🔴 چربی مرکزی بالا', cls: 'lab-status-attention' };
       }
     },
     whr: {
       healthRange: isFemale ? '< 0.80' : '< 0.90',
-      goldenRange: isFemale ? '0.70 – 0.75' : '0.80 – 0.84',
+      goldenRange: isFemale ? '0.68 – 0.73 (استاندارد طلایی ساعت‌شنی 👑)' : '0.80 – 0.84 (تناسب V-Shape 👑)',
       unit: '',
       evalStatus: (val) => {
         if (!val) return null;
         if (isFemale) {
-          if (val <= 0.75) return { label: '👑 ساعت‌شنی ایده‌آل', cls: 'lab-status-golden' };
-          if (val <= 0.80) return { label: '🟢 استاندارد سلامت', cls: 'lab-status-healthy' };
-          return { label: '🔴 تجمع چربی', cls: 'lab-status-attention' };
+          if (val <= 0.73) return { label: '👑 ساعت‌شنی ایده‌آل (دکتر سینگ)', cls: 'lab-status-golden' };
+          if (val <= 0.80) return { label: '🟢 استاندارد سلامت زنانه', cls: 'lab-status-healthy' };
+          return { label: '🔴 تجمع چربی میان‌تنه', cls: 'lab-status-attention' };
         } else {
           if (val <= 0.84) return { label: '👑 تناسب V-Shape', cls: 'lab-status-golden' };
           if (val <= 0.90) return { label: '🟢 استاندارد سلامت', cls: 'lab-status-healthy' };
@@ -8061,24 +8174,34 @@ function getAnthropometricReferenceRanges(height, gender) {
     },
     thigh: {
       healthRange: `${(H * 0.28).toFixed(1)} – ${(H * 0.31).toFixed(1)} cm`,
-      goldenRange: `${(H * 0.32).toFixed(1)} – ${(H * 0.35).toFixed(1)} cm`,
+      goldenRange: isFemale ? `${(H * 0.30).toFixed(1)} – ${(H * 0.33).toFixed(1)} cm (پاهای خوش‌فرم و سفت)` : `${(H * 0.32).toFixed(1)} – ${(H * 0.35).toFixed(1)} cm`,
       unit: 'cm',
       evalStatus: (val) => {
         if (!val) return null;
-        if (val >= H * 0.32) return { label: '👑 پاهای قدرتمند و پر', cls: 'lab-status-golden' };
-        if (val >= H * 0.28) return { label: '🟢 نرمال سلامت پایه', cls: 'lab-status-healthy' };
-        return { label: '⚠️ نیاز به تمرین پا', cls: 'lab-status-attention' };
+        if (isFemale) {
+          if (val <= H * 0.34 && val >= H * 0.29) return { label: '👑 ران‌های سفت، توند و متناسب', cls: 'lab-status-golden' };
+          return { label: '🟢 نرمال سلامت پایه', cls: 'lab-status-healthy' };
+        } else {
+          if (val >= H * 0.32) return { label: '👑 پاهای قدرتمند و پر', cls: 'lab-status-golden' };
+          if (val >= H * 0.28) return { label: '🟢 نرمال سلامت پایه', cls: 'lab-status-healthy' };
+          return { label: '⚠️ نیاز به تمرین پا', cls: 'lab-status-attention' };
+        }
       }
     },
     calves: {
       healthRange: `${(H * 0.18).toFixed(1)} – ${(H * 0.20).toFixed(1)} cm`,
-      goldenRange: `${(H * 0.21).toFixed(1)} – ${(H * 0.23).toFixed(1)} cm`,
+      goldenRange: isFemale ? `${(H * 0.19).toFixed(1)} – ${(H * 0.21).toFixed(1)} cm` : `${(H * 0.21).toFixed(1)} – ${(H * 0.23).toFixed(1)} cm`,
       unit: 'cm',
       evalStatus: (val) => {
         if (!val) return null;
-        if (val >= H * 0.21) return { label: '👑 تقارن طلایی ساق', cls: 'lab-status-golden' };
-        if (val >= H * 0.18) return { label: '🟢 نرمال سلامت پایه', cls: 'lab-status-healthy' };
-        return { label: '⚠️ نیاز به تمرین ساق', cls: 'lab-status-attention' };
+        if (isFemale) {
+          if (val <= H * 0.22) return { label: '👑 ساق‌های کشیده و ظریف', cls: 'lab-status-golden' };
+          return { label: '🟢 نرمال سلامت پایه', cls: 'lab-status-healthy' };
+        } else {
+          if (val >= H * 0.21) return { label: '👑 تقارن طلایی ساق', cls: 'lab-status-golden' };
+          if (val >= H * 0.18) return { label: '🟢 نرمال سلامت پایه', cls: 'lab-status-healthy' };
+          return { label: '⚠️ نیاز به تمرین ساق', cls: 'lab-status-attention' };
+        }
       }
     }
   };
@@ -8405,92 +8528,151 @@ function renderBodyMetricsView() {
       `;
     }).join('');
 
-    // --- Special Diagnostic Box: Love Handles, Somatotype & Steve Reeves Golden Trinity ---
+    // --- Special Diagnostic Box: Love Handles, Somatotype & Female Hourglass / Male V-Taper ---
+    const isFemale = current.gender === 'female';
     const isLoveHandleProminent = curSci.loveHandleStatus === 'prominent';
     const trinityObj = curSci.reevesTrinity;
-    
+    const somato = curSci.somatotype || { nameFa: 'مزومورف متناسب', nameEn: 'Athletic Mesomorph', descFa: '' };
+
+    // Dynamic Card 2 based on Gender
+    const card2Html = isFemale ? `
+      <!-- Card 2 Female: Devendra Singh Golden Hourglass & Feminine Tone -->
+      <div style="background:rgba(15,23,42,0.6); border:1px solid rgba(244,114,182,0.25); border-radius:10px; padding:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <span style="font-size:12px; font-weight:800; color:#f472b6;">👑 تندیس ساعت‌شنی و ظرافت بانوان (WHR):</span>
+          <span style="font-size:11px; color:#38bdf8;">مدل دکتر سینگ (هدف: ۰.۶۸–۰.۷۳)</span>
+        </div>
+        <div style="display:flex; justify-content:space-around; align-items:center; background:rgba(0,0,0,0.25); border-radius:8px; padding:8px 4px; margin-bottom:8px;">
+          <div style="text-align:center;">
+            <div style="font-size:10px; color:#94a3b8;">کمر (Waist)</div>
+            <div style="font-size:14px; font-weight:900; color:#f472b6;">${current.waist || '--'} <small style="font-size:9px;">cm</small></div>
+          </div>
+          <div style="color:var(--text-muted); font-size:12px;">vs</div>
+          <div style="text-align:center;">
+            <div style="font-size:10px; color:#94a3b8;">باسن (Hips)</div>
+            <div style="font-size:14px; font-weight:900; color:#38bdf8;">${current.hips || '--'} <small style="font-size:9px;">cm</small></div>
+          </div>
+          <div style="color:var(--text-muted); font-size:12px;">نسبت:</div>
+          <div style="text-align:center;">
+            <div style="font-size:10px; color:#94a3b8;">قوس WHR</div>
+            <div style="font-size:14px; font-weight:900; color:#34d399;">${curSci.whr || '--'}</div>
+          </div>
+        </div>
+        <div style="font-size:11px; color:#cbd5e1; line-height:1.5;">
+          🌸 <b>معیار زیبایی فیتنس بانوان:</b> بر خلاف بدنسازی مردانه، بازوی خانم‌ها هرگز نباید اندازه ساق پا (۳۷cm) ضخیم شود! بازوی <b>${current.armRight || current.armLeft || 31} سانتی‌متری</b> شما با دور کمر باریک و باسن در نهایت ظرافت زنانه قرار دارد. هدف: لیفت عضلات سرینی (Glutes) و بازوهای کشیده و توند بدون حجم زمخت.
+        </div>
+      </div>
+    ` : `
+      <!-- Card 2 Male: Steve Reeves Classic Golden Trinity -->
+      <div style="background:rgba(15,23,42,0.6); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <span style="font-size:12px; font-weight:800; color:#facc15;">👑 تثلیث طلایی استیو ریوز (Neck / Arm / Calf):</span>
+          <span style="font-size:11px; color:#38bdf8;">هدف آقایان: برابری سه عضو</span>
+        </div>
+        <div style="display:flex; justify-content:space-around; align-items:center; background:rgba(0,0,0,0.25); border-radius:8px; padding:8px 4px; margin-bottom:8px;">
+          <div style="text-align:center;">
+            <div style="font-size:10px; color:#94a3b8;">گردن (Neck)</div>
+            <div style="font-size:14px; font-weight:900; color:#38bdf8;">${current.neck || '--'} <small style="font-size:9px;">cm</small></div>
+          </div>
+          <div style="color:var(--text-muted); font-size:12px;">vs</div>
+          <div style="text-align:center;">
+            <div style="font-size:10px; color:#94a3b8;">بازو (Arm)</div>
+            <div style="font-size:14px; font-weight:900; color:#34d399;">${current.armRight || current.armLeft || '--'} <small style="font-size:9px;">cm</small></div>
+          </div>
+          <div style="color:var(--text-muted); font-size:12px;">vs</div>
+          <div style="text-align:center;">
+            <div style="font-size:10px; color:#94a3b8;">ساق (Calf)</div>
+            <div style="font-size:14px; font-weight:900; color:#facc15;">${current.calves || '--'} <small style="font-size:9px;">cm</small></div>
+          </div>
+        </div>
+        <div style="font-size:11px; color:#cbd5e1; line-height:1.5;">
+          ${trinityObj ? `ساق پای شما (${trinityObj.calf}cm) از بازو (${trinityObj.arm}cm) جلوتر است. با افزایش ۲ تا ۳ سانتیمتر حجم بازو، تقارن کامل کلاسیک استیو ریوز حاصل می‌شود.` : 'اطلاعات دور گردن، بازو و ساق برای تحلیل تقارن کلاسیک محاسبه شد.'}
+        </div>
+      </div>
+    `;
+
+    // Dynamic Strategy Box based on Gender
+    const strategyHtml = isFemale ? `
+      <!-- Strategy Box Female -->
+      <div style="background:rgba(15,23,42,0.8); border:1px solid rgba(244,114,182,0.25); border-radius:10px; padding:10px 14px; font-size:11px; color:#cbd5e1; line-height:1.6;">
+        🌸 <b>پروتکل مربیگری تخصصی فیتنس و زیبایی بانوان (${prof.name}):</b>
+        <div style="margin-top:4px; display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:8px;">
+          <div>
+            <span style="color:#f472b6;">۱. لیفت و هایپرتروفی سرینی (Glutes):</span>
+            هیپ تراست، اسکات سومو و لانج بلغاری جهت تعمیق انحنای ساعت‌شنی باسن.
+          </div>
+          <div>
+            <span style="color:#38bdf8;">۲. ظرافت و سفتی بالاتنه:</span>
+            تمرینات با تکرار ۱۲ تا ۱۵ برای کشیدگی عضلات دست و شانه بدون افزایش حجم زمخت.
+          </div>
+          <div>
+            <span style="color:#34d399;">۳. تعادل هورمونی و درصد چربی ۱۸-۲۱٪:</span>
+            حفظ ذخایر چربی ضروری استروژنیک برای سلامت چرخه قائدگی، پوست و مو.
+          </div>
+        </div>
+      </div>
+    ` : `
+      <!-- Strategy Box Male -->
+      <div style="background:rgba(15,23,42,0.8); border:1px solid rgba(245,158,11,0.25); border-radius:10px; padding:10px 14px; font-size:11px; color:#cbd5e1; line-height:1.6;">
+        🔥 <b>پروتکل مربیگری اختصاصی برای محو کردن لاو هندل و ساخت V-Taper (${prof.name}):</b>
+        <div style="margin-top:4px; display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:8px;">
+          <div>
+            <span style="color:#facc15;">۱. تقویت عضلات مورب و ثبات هسته:</span>
+            حرکات ساید پلانک، پالووف پرس، و چوب‌بری سیمکش برای سفت کردن دیواره پهلو.
+          </div>
+          <div>
+            <span style="color:#38bdf8;">۲. افزایش جریان خون مویرگی پهلو:</span>
+            ۲۰ دقیقه پیاده‌روی شیب‌دار (LISS) ترجیحاً بلافاصله بعد از تمرین با وزنه.
+          </div>
+          <div>
+            <span style="color:#34d399;">۳. مدیریت نوسان انسولین:</span>
+            حفظ کسری ۵۰۰ کالری و پروتئین ۱۶۰-۱۷۰ گرم جهت سوزاندن ذخایر سرسخت چربی.
+          </div>
+        </div>
+      </div>
+    `;
+
     const loveHandleBoxHtml = `
-      <div style="background:linear-gradient(145deg, #0e172a, #162035); border:1px solid ${isLoveHandleProminent ? 'rgba(244,63,94,0.35)' : 'rgba(56,189,248,0.35)'}; border-radius:var(--radius-lg); padding:16px; margin-bottom:16px; box-shadow:0 4px 20px rgba(0,0,0,0.35);">
+      <div style="background:linear-gradient(145deg, #0e172a, #162035); border:1px solid ${isFemale ? 'rgba(244,114,182,0.35)' : (isLoveHandleProminent ? 'rgba(244,63,94,0.35)' : 'rgba(56,189,248,0.35)')}; border-radius:var(--radius-lg); padding:16px; margin-bottom:16px; box-shadow:0 4px 20px rgba(0,0,0,0.35);">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:8px; flex-wrap:wrap; gap:8px;">
           <div style="display:flex; align-items:center; gap:8px;">
-            <span style="font-size:22px;">🎯</span>
+            <span style="font-size:22px;">${isFemale ? '🌸' : '🎯'}</span>
             <div>
-              <h3 style="font-size:14.5px; font-weight:900; color:${isLoveHandleProminent ? '#fb7185' : '#38bdf8'}; margin:0;">
-                آنالیز توزیع چربی موضعی (لاو هندل) و تقارن کلاسیک استیو ریوز
+              <h3 style="font-size:14.5px; font-weight:900; color:${isFemale ? '#f472b6' : (isLoveHandleProminent ? '#fb7185' : '#38bdf8')}; margin:0;">
+                ${isFemale ? `آنالیز تناسب ساعت‌شنی، ظرافت زنانه و تیپ بدنی (${prof.name})` : `آنالیز توزیع چربی موضعی (لاو هندل) و تقارن کلاسیک مردانه (${prof.name})`}
               </h3>
               <div style="font-size:11px; color:#94a3b8; margin-top:2px;">
-                تشخیص تیپ بدنی ساختاری (${prof.name}) و پروتکل هدفمند رفع بالشتک‌های پهلو
+                تشخیص بالینی تیپ بدنی هیث-کارتر · جنسیت: <b>${isFemale ? 'بانوان (Female)' : 'آقایان (Male)'}</b>
               </div>
             </div>
           </div>
-          <span style="font-size:11px; background:${isLoveHandleProminent ? 'rgba(244,63,94,0.15)' : 'rgba(56,189,248,0.15)'}; color:${isLoveHandleProminent ? '#f43f5e' : '#38bdf8'}; border:1px solid ${isLoveHandleProminent ? 'rgba(244,63,94,0.3)' : 'rgba(56,189,248,0.3)'}; padding:3px 10px; border-radius:8px; font-weight:800;">
-            ${isLoveHandleProminent ? '⚠️ لاو هندل شناسایی شد' : '🟢 توزیع نرمال'}
+          <span style="font-size:11px; background:${isFemale ? 'rgba(244,114,182,0.15)' : (isLoveHandleProminent ? 'rgba(244,63,94,0.15)' : 'rgba(56,189,248,0.15)')}; color:${isFemale ? '#f472b6' : (isLoveHandleProminent ? '#f43f5e' : '#38bdf8')}; border:1px solid ${isFemale ? 'rgba(244,114,182,0.3)' : (isLoveHandleProminent ? 'rgba(244,63,94,0.3)' : 'rgba(56,189,248,0.3)')}; padding:3px 10px; border-radius:8px; font-weight:800;">
+            ${isFemale ? (isLoveHandleProminent ? '⚠️ چربی ملایم پهلو' : '👑 ساعت‌شنی ظریف') : (isLoveHandleProminent ? '⚠️ لاو هندل شناسایی شد' : '🟢 توزیع نرمال V-Taper')}
           </span>
         </div>
 
         <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:12px; margin-bottom:12px;">
-          <!-- Card 1: Love Handles Diagnosis -->
+          <!-- Card 1: Flank / Love Handles & Somatotype -->
           <div style="background:rgba(15,23,42,0.6); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:12px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-              <span style="font-size:12px; font-weight:800; color:#fb7185;">🍩 شاخص چربی پهلو و زیر شکم (Love Handle):</span>
+              <span style="font-size:12px; font-weight:800; color:${isFemale ? '#f472b6' : '#fb7185'};">🍩 شاخص توزیع چربی پهلو و میان‌تنه:</span>
               <span style="font-size:15px; font-weight:900; color:${isLoveHandleProminent ? '#f43f5e' : '#34d399'};">${curSci.loveHandleRatio || '--'}</span>
             </div>
             <div style="font-size:11.5px; color:#cbd5e1; line-height:1.6;">
               ${isLoveHandleProminent ? 
-                `دور پهلو و زیر شکم شما (<b>${curSci.flankCirc || 101}cm</b>) حدود <b>${curSci.loveHandleDelta || 13}cm</b> از دور کمر باریک (<b>${current.waist || 88}cm</b>) عریض‌تر است. این اختلاف نشان‌دهنده تجمع چربی موضعی سرسخت در بالای استخوان لگن (Love Handles) است.` :
-                `توزیع چربی در میان‌تنه یکنواخت است و چربی موضعی قابل‌توجهی در پهلوها دیده نمی‌شود.`}
+                `دور پهلو و زیر شکم (<b>${curSci.flankCirc || '--'}cm</b>) حدود <b>${curSci.loveHandleDelta || '--'}cm</b> از دور کمر باریک (<b>${current.waist || '--'}cm</b>) عریض‌تر است. این اختلاف نشان‌دهنده تجمع چربی موضعی در ناحیه پهلوهاست.` :
+                `توزیع بافت چربی در میان‌تنه بسیار یکنواخت است و پهلوها فاقد بالشتک چربی سرسخت هستند.`}
             </div>
-            <div style="margin-top:8px; background:rgba(0,0,0,0.25); border-radius:6px; padding:6px 10px; font-size:10.5px; color:#94a3b8;">
-              💡 <b>تیپ بدنی:</b> مزومورف - اندومورف عضلانی با گیرنده‌های آلفا-۲ آدرنرژیک در بافت پهلو که آخرین چربی‌های آب‌شونده در کات هستند.
+            <div style="margin-top:8px; background:rgba(0,0,0,0.25); border-radius:6px; padding:8px 10px; font-size:11px; color:#cbd5e1; line-height:1.5;">
+              🧬 <b>تیپ بدنی تخصصی (مدل هیث-کارتر):</b> <span style="color:#facc15; font-weight:800;">${somato.nameFa}</span> (<bdi style="color:#38bdf8;">${somato.nameEn}</bdi>)
+              <div style="color:#94a3b8; font-size:10px; margin-top:3px;">${somato.descFa}</div>
             </div>
           </div>
 
-          <!-- Card 2: Somatotype & Steve Reeves Golden Trinity -->
-          <div style="background:rgba(15,23,42,0.6); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:12px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-              <span style="font-size:12px; font-weight:800; color:#facc15;">👑 تثلیث طلایی استیو ریوز (Neck / Arm / Calf):</span>
-              <span style="font-size:11px; color:#38bdf8;">هدف: برابری سه عضو</span>
-            </div>
-            <div style="display:flex; justify-content:space-around; align-items:center; background:rgba(0,0,0,0.25); border-radius:8px; padding:8px 4px; margin-bottom:8px;">
-              <div style="text-align:center;">
-                <div style="font-size:10px; color:#94a3b8;">گردن (Neck)</div>
-                <div style="font-size:14px; font-weight:900; color:#38bdf8;">${current.neck || '--'} <small style="font-size:9px;">cm</small></div>
-              </div>
-              <div style="color:var(--text-muted); font-size:12px;">vs</div>
-              <div style="text-align:center;">
-                <div style="font-size:10px; color:#94a3b8;">بازو (Arm)</div>
-                <div style="font-size:14px; font-weight:900; color:#34d399;">${current.armRight || current.armLeft || '--'} <small style="font-size:9px;">cm</small></div>
-              </div>
-              <div style="color:var(--text-muted); font-size:12px;">vs</div>
-              <div style="text-align:center;">
-                <div style="font-size:10px; color:#94a3b8;">ساق (Calf)</div>
-                <div style="font-size:14px; font-weight:900; color:#facc15;">${current.calves || '--'} <small style="font-size:9px;">cm</small></div>
-              </div>
-            </div>
-            <div style="font-size:11px; color:#cbd5e1; line-height:1.5;">
-              ${trinityObj ? `ساق پای شما (${trinityObj.calf}cm) از بازو (${trinityObj.arm}cm) جلوتر است. با افزایش ۲ تا ۳ سانتیمتر حجم بازو، تقارن کامل کلاسیک استیو ریوز حاصل می‌شود.` : 'اطلاعات دور گردن، بازو و ساق برای تحلیل تقارن کلاسیک محاسبه شد.'}
-            </div>
-          </div>
+          ${card2Html}
         </div>
 
-        <!-- Strategy Box for Love Handles -->
-        <div style="background:rgba(15,23,42,0.8); border:1px solid rgba(245,158,11,0.25); border-radius:10px; padding:10px 14px; font-size:11px; color:#cbd5e1; line-height:1.6;">
-          🔥 <b>پروتکل مربیگری اختصاصی برای محو کردن لاو هندل (چربی پهلو):</b>
-          <div style="margin-top:4px; display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:8px;">
-            <div>
-              <span style="color:#facc15;">۱. تقویت عضلات مورب و ثبات هسته:</span>
-              حرکات ساید پلانک، پالووف پرس، و چوب‌بری سیمکش برای سفت کردن دیواره پهلو.
-            </div>
-            <div>
-              <span style="color:#38bdf8;">۲. افزایش جریان خون مویرگی پهلو:</span>
-              ۲۰ دقیقه پیاده‌روی شیب‌دار (LISS) ترجیحاً بلافاصله بعد از تمرین با وزنه.
-            </div>
-            <div>
-              <span style="color:#34d399;">۳. مدیریت نوسان انسولین:</span>
-              حفظ کسری ۵۰۰ کالری و پروتئین ۱۶۰-۱۷۰ گرم جهت سوزاندن ذخایر سرسخت چربی.
-            </div>
-          </div>
-        </div>
+        ${strategyHtml}
       </div>
     `;
 
