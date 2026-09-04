@@ -645,11 +645,25 @@ tr:nth-child(even) { background: rgba(255, 255, 255, 0.02); }
   .day-section, .summary-card { padding: 14px 10px; border-radius: 14px; margin-bottom: 16px; scroll-margin-top: 105px; }
   .timer-fab { bottom: 12px; left: 12px; padding: 8px 12px; font-size: 12px; }
   .modal-dialog { padding: 16px 12px; }
-  .table-container { display: none; }
+  .summary-card .table-container { display: none; }
   .summary-mobile-grid { display: grid; }
+  .table-container { display: block !important; overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .exercise-name-fa { font-size: 13.5px; }
   .muscles-row { gap: 4px; margin-bottom: 8px; }
   .card-footer { gap: 6px; }
+}
+
+.table-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  margin-top: 10px;
+  width: 100%;
+}
+
+.lab-table, .metrics-matrix-table {
+  min-width: 520px;
 }
 
 /* Modern iOS/Cyber Style Switch */
