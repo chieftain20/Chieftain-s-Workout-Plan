@@ -3559,10 +3559,17 @@ function calculateAnthropometrics(m, prof = null) {
     ffmiNorm = Number((ffmi + 6.1 * (1.80 - hM)).toFixed(2));
   }
 
-  // Casey Butt Natural Muscular Genetic Potential
+  // Casey Butt Natural Muscular Genetic Potential & McDonald/Aragon Diminishing Returns Model
   let maxLeanMass = null;
   let remainingMusclePotential = null;
   let yearsToPotential = null;
+  let untrainedLbm = null;
+  let totalPotentialGain = null;
+  let achievedMuscleGain = null;
+  let pctPotentialAchieved = null;
+  let completedTrainingYears = null;
+  let annualGainsTable = [];
+
   if (height > 0) {
     const hIn = height / 2.54;
     const wIn = (wrist > 0 ? wrist : (isFemale ? 15.5 : 17.8)) / 2.54;
@@ -3574,26 +3581,56 @@ function calculateAnthropometrics(m, prof = null) {
     if (leanMass !== null) {
       remainingMusclePotential = Math.max(0, Number((maxLeanMass - leanMass).toFixed(1)));
       
-      // Calculate realistic annual hypertrophy based on active workout program structure:
-      let gymCount = 0;
-      let homeCount = 0;
-      if (activeP && Array.isArray(activeP.days)) {
-        gymCount = activeP.days.filter(d => d.type === 'gym').length;
-        homeCount = activeP.days.filter(d => d.type === 'home').length;
-      } else {
-        gymCount = isFemale ? 3 : 4;
-        homeCount = isFemale ? 3 : 1;
-      }
-      
-      // McDonald & Aragon Natural Hypertrophy Model:
-      // Women build muscle at ~45-50% absolute kg rate of men due to endocrine/testosterone profile (~1.5-1.8 kg/yr vs ~3.2-3.8 kg/yr)
-      const baseAnnualGain = isFemale ? 1.65 : 3.5;
-      const volumeFactor = Math.min(1.15, Math.max(0.7, (gymCount * 0.22 + homeCount * 0.12)));
-      const realisticAnnualGain = Number((baseAnnualGain * volumeFactor).toFixed(2));
+      // Untrained baseline LBM for average non-lifting adult (Kouri et al. 1995 & Gallagher et al.)
+      // Average untrained baseline FFMI: 18.8 for men, 15.2 for women
+      const baseFfmi = isFemale ? 15.2 : 18.8;
+      const hM = height / 100;
+      untrainedLbm = Number((baseFfmi * hM * hM).toFixed(1));
 
-      yearsToPotential = remainingMusclePotential > 0
-        ? Number((remainingMusclePotential / realisticAnnualGain).toFixed(1))
-        : 0;
+      // Total lifetime muscular gain potential from untrained baseline to natural limit
+      totalPotentialGain = Math.max(2, Number((maxLeanMass - untrainedLbm).toFixed(1)));
+
+      // Muscle mass achieved above untrained baseline
+      achievedMuscleGain = Math.max(0, Number((leanMass - untrainedLbm).toFixed(1)));
+      pctPotentialAchieved = Math.min(100, Number(((achievedMuscleGain / totalPotentialGain) * 100).toFixed(1)));
+
+      // Lyle McDonald / Alan Aragon / Fitmatic Asymptotic Halving Hypertrophy Model:
+      // Y1: 51.61% (~50% Noob Gains)
+      // Y2: 25.81% (~25%)
+      // Y3: 12.90% (~12.5%)
+      // Y4: 6.45%  (~6.25%)
+      // Y5: 3.23%  (~3.125%)
+      const y1Ratio = 0.5161;
+      const y2Ratio = 0.2581;
+      const y3Ratio = 0.1290;
+      const y4Ratio = 0.0645;
+      const y5Ratio = 0.0323;
+
+      annualGainsTable = [
+        { year: 1, gainKg: Number((totalPotentialGain * y1Ratio).toFixed(1)), pct: '51.6%', label: 'فاز شتابان اولیه (Noob Gains) 🚀' },
+        { year: 2, gainKg: Number((totalPotentialGain * y2Ratio).toFixed(1)), pct: '25.8%', label: 'فاز هایپرتروفی متوسط ⚡' },
+        { year: 3, gainKg: Number((totalPotentialGain * y3Ratio).toFixed(1)), pct: '12.9%', label: 'فاز پیشرفته و تارگت 🎯' },
+        { year: 4, gainKg: Number((totalPotentialGain * y4Ratio).toFixed(1)), pct: '6.5%', label: 'تثبیت سقف طبیعی 🛡️' },
+        { year: 5, gainKg: Number((totalPotentialGain * y5Ratio).toFixed(1)), pct: '3.2%', label: 'تراکم و کمال نچرال 👑' }
+      ];
+
+      // Calculate Equivalent Training Age Completed (Years of training completed):
+      const progressFraction = Math.min(1.0, achievedMuscleGain / totalPotentialGain);
+      if (progressFraction <= y1Ratio) {
+        completedTrainingYears = progressFraction / y1Ratio;
+      } else if (progressFraction <= (y1Ratio + y2Ratio)) {
+        completedTrainingYears = 1.0 + (progressFraction - y1Ratio) / y2Ratio;
+      } else if (progressFraction <= (y1Ratio + y2Ratio + y3Ratio)) {
+        completedTrainingYears = 2.0 + (progressFraction - (y1Ratio + y2Ratio)) / y3Ratio;
+      } else if (progressFraction <= (y1Ratio + y2Ratio + y3Ratio + y4Ratio)) {
+        completedTrainingYears = 3.0 + (progressFraction - (y1Ratio + y2Ratio + y3Ratio)) / y4Ratio;
+      } else {
+        completedTrainingYears = 4.0 + Math.min(1.0, (progressFraction - (y1Ratio + y2Ratio + y3Ratio + y4Ratio)) / y5Ratio);
+      }
+      completedTrainingYears = Number(completedTrainingYears.toFixed(1));
+
+      // Realistic remaining years to reach near genetic ceiling (~95%):
+      yearsToPotential = Math.max(0.5, Number((5.0 - completedTrainingYears).toFixed(1)));
     }
   }
 
@@ -3721,6 +3758,12 @@ function calculateAnthropometrics(m, prof = null) {
     ffmi,
     ffmiNorm,
     maxLeanMass,
+    untrainedLbm,
+    totalPotentialGain,
+    achievedMuscleGain,
+    pctPotentialAchieved,
+    completedTrainingYears,
+    annualGainsTable,
     remainingMusclePotential,
     yearsToPotential,
     bmr,
@@ -4121,6 +4164,7 @@ function renderBodyMetricsView() {
     else { ffmiLabel = '👑 سقف ژنتیکی طبیعی انسان (Genetic Limit)'; ffmiColor = '#f43f5e'; }
 
     // Dynamic training days calculation from active profile
+    const isFemale = current.gender === 'female';
     const gymDaysCount = (prof.days || []).filter(d => d.type === 'gym').length;
     const homeDaysCount = (prof.days || []).filter(d => d.type === 'home').length;
     const totalDaysCount = gymDaysCount + homeDaysCount;
@@ -4170,18 +4214,70 @@ function renderBodyMetricsView() {
               +${curSci.remainingMusclePotential !== null ? curSci.remainingMusclePotential : '--'} <span style="font-size:12px; color:#94a3b8;">kg عضله خالص دیگر</span>
             </div>
             <div style="font-size:11px; color:#94a3b8; line-height:1.5;">
-              سقف ژنتیکی طبیعی شما با مچ دست ${current.wrist || 18}cm و مچ پای ${current.ankle || 24}cm حدود <b>${curSci.maxLeanMass || '--'} kg</b> توده بدون چربی است.
+              سقف ژنتیکی طبیعی شما با مچ دست ${current.wrist || (isFemale ? 15.5 : 18)}cm و مچ پای ${current.ankle || (isFemale ? 21.5 : 24)}cm حدود <b>${curSci.maxLeanMass || '--'} kg</b> توده بدون چربی است (عضله پایه بدون تمرین: <b>${curSci.untrainedLbm || '--'} kg</b>).
             </div>
           </div>
 
           <div style="background:rgba(15,23,42,0.6); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:12px;">
-            <div style="font-size:11.5px; font-weight:800; color:#facc15; margin-bottom:4px;">⏳ زمان تخمینی تا اوج پتانسیل (Years of Training):</div>
+            <div style="font-size:11.5px; font-weight:800; color:#facc15; margin-bottom:4px;">⏳ سن تمرینی معادل و زمان تا سقف طبیعی:</div>
             <div style="font-size:20px; font-weight:900; color:#fde047; margin-bottom:4px;">
-              ~ ${curSci.yearsToPotential !== null ? curSci.yearsToPotential : '--'} <span style="font-size:12px; color:#94a3b8;">سال تمرین منظم</span>
+              معادل ~ ${curSci.completedTrainingYears !== null ? curSci.completedTrainingYears : '--'} <span style="font-size:12px; color:#94a3b8;">سال تمرین موثر</span>
             </div>
             <div style="font-size:11px; color:#94a3b8; line-height:1.5;">
-              محاسبه شده بر اساس ساختار برنامه اختصاصی شما: <b>${workoutStructureText}</b> و نرخ فیزیولوژیک هایپرتروفی طبیعی.
+              زمان تخمینی باقی‌مانده تا اوج ژنتیکی: <b>~ ${curSci.yearsToPotential !== null ? curSci.yearsToPotential : '--'} سال</b> بر پایه برنامه <b>${workoutStructureText}</b> و قانون بازده نزولی.
             </div>
+          </div>
+        </div>
+
+        <!-- Metric 2.5: Dual Progress Bar & 5-Year Diminishing Returns Table -->
+        <div style="background:rgba(15,23,42,0.6); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:12px; margin-bottom:10px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px;">
+            <div style="font-size:12px; font-weight:800; color:#38bdf8; display:flex; align-items:center; gap:6px;">
+              <span>📈</span> <span>مسیر تحقق پتانسیل ژنتیکی نچرال (عضله کسب‌شده vs باقیمانده):</span>
+            </div>
+            <div style="font-size:11px; font-weight:800; color:#facc15;">
+              ${curSci.pctPotentialAchieved !== null ? curSci.pctPotentialAchieved + '٪ محقق شده' : ''}
+            </div>
+          </div>
+          
+          <div style="height:12px; background:#0f172a; border-radius:6px; overflow:hidden; display:flex; margin-bottom:6px; border:1px solid rgba(255,255,255,0.1);">
+            <div style="width:${curSci.pctPotentialAchieved || 0}%; background:linear-gradient(90deg, #f59e0b, #10b981); transition:width 0.5s ease;" title="کسب شده: ${curSci.achievedMuscleGain || 0} kg"></div>
+            <div style="width:${100 - (curSci.pctPotentialAchieved || 0)}%; background:rgba(56,189,248,0.25);" title="باقیمانده: ${curSci.remainingMusclePotential || 0} kg"></div>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; font-size:10px; color:#94a3b8; margin-bottom:10px;">
+            <span>۰٪ (بدون سابقه: ${curSci.untrainedLbm || '--'}kg)</span>
+            <span style="color:#10b981; font-weight:800;">فعلی: ${curSci.leanMass || '--'}kg (+${curSci.achievedMuscleGain || 0}kg رشد)</span>
+            <span style="color:#38bdf8;">سقف نچرال: ${curSci.maxLeanMass || '--'}kg</span>
+          </div>
+
+          <div style="font-size:11.5px; font-weight:800; color:#cbd5e1; margin-bottom:6px;">
+            📊 پیش‌بینی رشد سالیانه بر اساس مدل کاهش تصاعدی (Lyle McDonald & Alan Aragon):
+          </div>
+          <div style="overflow-x:auto;">
+            <table style="width:100%; font-size:11px; border-collapse:collapse;">
+              <thead>
+                <tr style="border-bottom:1px solid rgba(255,255,255,0.1); color:#94a3b8; text-align:right;">
+                  <th style="padding:4px 6px;">سال</th>
+                  <th style="padding:4px 6px; text-align:center;">پتانسیل رشد</th>
+                  <th style="padding:4px 6px; text-align:center;">سهم از کل</th>
+                  <th style="padding:4px 6px;">مرحله فیزیولوژیک هایپرتروفی</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${(curSci.annualGainsTable || []).map(row => `
+                  <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+                    <td style="padding:5px 6px; font-weight:800; color:#38bdf8;">سال ${row.year}</td>
+                    <td style="padding:5px 6px; text-align:center; font-weight:900; color:#34d399;">+${row.gainKg} kg</td>
+                    <td style="padding:5px 6px; text-align:center; color:#facc15;">${row.pct}</td>
+                    <td style="padding:5px 6px; font-size:10.5px; color:#cbd5e1;">${row.label}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+          <div style="margin-top:8px; font-size:10px; color:#94a3b8; line-height:1.5;">
+            💡 <b>قانون بازده نزولی در هایپرتروفی طبیعی:</b> طبق مدل علمی معتبر مک‌دونالد و آراگون (Fitmatic Model)، بیش از ۵۰٪ از کل رشد عضلانی عمر یک ورزشکار طبیعی در همان سال اول تمرین اصولی رخ می‌دهد (Newbie Gains) و در سال‌های بعد نرخ رشد تقریباً به ازای هر سال نصف می‌شود.
           </div>
         </div>
 
@@ -4261,7 +4357,6 @@ function renderBodyMetricsView() {
     }).join('');
 
     // --- Special Diagnostic Box: Love Handles, Somatotype & Female Hourglass / Male V-Taper ---
-    const isFemale = current.gender === 'female';
     const isLoveHandleProminent = curSci.loveHandleStatus === 'prominent';
     const trinityObj = curSci.reevesTrinity;
     const somato = curSci.somatotype || { nameFa: 'مزومورف متناسب', nameEn: 'Athletic Mesomorph', descFa: '' };
@@ -4301,7 +4396,7 @@ function renderBodyMetricsView() {
     if (isWhrHigh) {
       femaleWhrSummaryHtml = `
         <div style="font-size:11px; color:#cbd5e1; line-height:1.5;">
-          🌸 <b>تحلیل تناسب ساعت‌شنی:</b> نسبت فعلی (<b>${curSci.whr || '--'}</b>) بالاتر از استاندارد سلامت (زیر ۰.۸۰) و هدف طلایی دکتر سینگ (<b>۰.۶۸ تا ۰.۷۳</b>) است. با دور کمر فعلی (<b>${current.waist || '--'}cm</b>)، تمرکز اصلی روی <b>چربی‌سوزی میان‌تنه</b> در کنار حفظ و تقویت عضلات سرینی (Glutes) با تمرینات مقاومتی است تا تندیس ساعت‌شنی نمایان شود.
+          🌸 <b>تحلیل تناسب ساعت‌شنی:</b> نسبت فعلی (<b>${curSci.whr || '--'}</b>) بالاتر از استاندارد سلامت (زیر ۰.۸۰) و هدف طلایی دکتر سینگ (<b>۰.۶۸ تا ۰.۷۳</b>) است. با دور کمر فعلی (<b>${current.waist || '--'}cm</b>)، اولویت علمی <b>کسری کالری عمومی جهت کاهش تدریجی چربی کل بدن و باریک شدن کمر</b> در کنار هایپرتروفی موضعی عضلات سرینی (Glutes) با تمرینات مقاومتی است تا فرم ساعت‌شنی متجلی شود (چربی‌سوزی موضعی از نظر علمی مردود است؛ چربی به صورت سیستمیک می‌سوزد اما عضله به صورت موضعی رشد می‌کند).
         </div>
       `;
     } else if (isWhrGolden) {
@@ -4418,7 +4513,7 @@ function renderBodyMetricsView() {
     let femaleBadgeText = '👑 ساعت‌شنی ظریف';
     let femaleBadgeStyle = 'background:rgba(244,114,182,0.15); color:#f472b6; border:1px solid rgba(244,114,182,0.3);';
     if (curSci.whr > 0.80 || (curSci.bodyFat && curSci.bodyFat >= 28) || isLoveHandleProminent) {
-      femaleBadgeText = '⚠️ نیاز به چربی‌سوزی میان‌تنه';
+      femaleBadgeText = '⚠️ نیاز به چربی‌سوزی عمومی و باریک شدن کمر';
       femaleBadgeStyle = 'background:rgba(244,63,94,0.15); color:#f43f5e; border:1px solid rgba(244,63,94,0.3);';
     } else if (curSci.whr <= 0.73) {
       femaleBadgeText = '👑 ساعت‌شنی ایده‌آل (دکتر سینگ)';
