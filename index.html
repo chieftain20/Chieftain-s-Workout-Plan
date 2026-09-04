@@ -682,11 +682,25 @@ tr:nth-child(even) { background: rgba(255, 255, 255, 0.02); }
   .day-section, .summary-card { padding: 14px 10px; border-radius: 14px; margin-bottom: 16px; scroll-margin-top: 105px; }
   .timer-fab { bottom: 12px; left: 12px; padding: 8px 12px; font-size: 12px; }
   .modal-dialog { padding: 16px 12px; }
-  .table-container { display: none; }
+  .summary-card .table-container { display: none; }
   .summary-mobile-grid { display: grid; }
+  .table-container { display: block !important; overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .exercise-name-fa { font-size: 13.5px; }
   .muscles-row { gap: 4px; margin-bottom: 8px; }
   .card-footer { gap: 6px; }
+}
+
+.table-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  margin-top: 10px;
+  width: 100%;
+}
+
+.lab-table, .metrics-matrix-table {
+  min-width: 520px;
 }
 
 /* Modern iOS/Cyber Style Switch */
@@ -7083,9 +7097,17 @@ async function pullFromCloudStorage(silent = false) {
       if (data && data.profiles && Array.isArray(data.profiles)) {
         allProfiles = data.profiles;
         if (data.custom) customExercises = data.custom;
-        if (data.activeId) activeProfileId = data.activeId;
+
+        // Preserve this device's own active profile! (Prevent cross-device profile switching)
+        const localSavedActiveId = localStorage.getItem('chieftain_active_profile_id');
+        if (localSavedActiveId && allProfiles.some(p => p.id === localSavedActiveId)) {
+          activeProfileId = localSavedActiveId;
+        } else if (!allProfiles.some(p => p.id === activeProfileId)) {
+          activeProfileId = allProfiles[0].id;
+        }
+
         if (data.metrics) restoreProfilesMetricsMap(data.metrics);
-        saveProfiles();
+        localStorage.setItem('chieftain_profiles_v8', JSON.stringify(allProfiles));
         saveCustomExercises();
         renderApp();
 
@@ -7238,9 +7260,14 @@ function checkUrlSyncData() {
       if (payload && payload.profiles && Array.isArray(payload.profiles)) {
         allProfiles = payload.profiles;
         if (payload.custom) customExercises = payload.custom;
-        if (payload.activeId) activeProfileId = payload.activeId;
+        const localSavedActiveId = localStorage.getItem('chieftain_active_profile_id');
+        if (localSavedActiveId && allProfiles.some(p => p.id === localSavedActiveId)) {
+          activeProfileId = localSavedActiveId;
+        } else if (!allProfiles.some(p => p.id === activeProfileId)) {
+          activeProfileId = allProfiles[0].id;
+        }
         if (payload.metrics) restoreProfilesMetricsMap(payload.metrics);
-        saveProfiles();
+        localStorage.setItem('chieftain_profiles_v8', JSON.stringify(allProfiles));
         saveCustomExercises();
         history.replaceState(null, document.title, window.location.pathname);
         showToast('🎉 برنامه‌ها، تغییرات و ابعاد بدنی با موفقیت همگام‌سازی و ذخیره شدند!');
@@ -7835,6 +7862,43 @@ function calculateAnthropometrics(m) {
   const thighLeft = parseFloat(m.thighLeft) || 0;
   const thighDiff = (thighRight > 0 && thighLeft > 0) ? Math.abs(thighRight - thighLeft) : null;
 
+  const abdomenVal = parseFloat(m.abdomen) || 0;
+  const lowerBellyVal = parseFloat(m.lowerBelly) || 0;
+  const flankCirc = Math.max(abdomenVal, lowerBellyVal);
+  
+  let loveHandleRatio = null;
+  let loveHandleStatus = 'none'; // 'optimal' | 'mild' | 'prominent'
+  let loveHandleDelta = null;
+  if (flankCirc > 0 && waist > 0) {
+    loveHandleRatio = Number((flankCirc / waist).toFixed(2));
+    loveHandleDelta = Number((flankCirc - waist).toFixed(1));
+    if (loveHandleRatio >= 1.12) {
+      loveHandleStatus = 'prominent'; // چربی سرسخت پهلو و زیر شکم (Love Handles)
+    } else if (loveHandleRatio > 1.05) {
+      loveHandleStatus = 'mild'; // چربی خفیف پهلو
+    } else {
+      loveHandleStatus = 'optimal'; // V-Taper تراشیده و بدون لاو هندل
+    }
+  }
+
+  // Steve Reeves Classic Golden Trinity (Neck ≈ Arm ≈ Calf)
+  const neckVal = parseFloat(m.neck) || 0;
+  const armVal = Math.max(armRight, armLeft);
+  const calfVal = parseFloat(m.calves) || 0;
+  let reevesTrinity = null;
+  if (neckVal > 0 && armVal > 0 && calfVal > 0) {
+    const avg = Number(((neckVal + armVal + calfVal) / 3).toFixed(1));
+    const maxDiff = Number((Math.max(neckVal, armVal, calfVal) - Math.min(neckVal, armVal, calfVal)).toFixed(1));
+    reevesTrinity = {
+      neck: neckVal,
+      arm: armVal,
+      calf: calfVal,
+      avg,
+      maxDiff,
+      isSymmetric: maxDiff <= 2.5
+    };
+  }
+
   return {
     bodyFat: bodyFat !== null ? Number(bodyFat.toFixed(1)) : null,
     bfNavyNavel: bfNavyNavel !== null ? Number(bfNavyNavel.toFixed(1)) : null,
@@ -7859,6 +7923,12 @@ function calculateAnthropometrics(m) {
     whtr,
     swr,
     shoulders: shoulders > 0 ? shoulders : null,
+    neck: neckVal > 0 ? neckVal : null,
+    flankCirc: flankCirc > 0 ? flankCirc : null,
+    loveHandleRatio,
+    loveHandleStatus,
+    loveHandleDelta,
+    reevesTrinity,
     armDiff: armDiff !== null ? Number(armDiff.toFixed(1)) : null,
     armRightRelaxed: armRightRelaxed > 0 ? armRightRelaxed : null,
     armLeftRelaxed: armLeftRelaxed > 0 ? armLeftRelaxed : null,
@@ -7886,6 +7956,33 @@ function getAnthropometricReferenceRanges(height, gender) {
           if (val <= 20) return { label: '🟢 نرمال سلامت', cls: 'lab-status-healthy' };
           return { label: '🔴 نیاز به چربی‌سوزی', cls: 'lab-status-attention' };
         }
+      }
+    },
+    neck: {
+      healthRange: isFemale ? '32.0 – 36.0 cm' : '37.0 – 41.0 cm',
+      goldenRange: isFemale ? '33.0 – 35.0 cm' : `${(H * 0.21).toFixed(1)} – ${(H * 0.23).toFixed(1)} cm (تثلیث استیو ریوز)`,
+      unit: 'cm',
+      evalStatus: (val) => {
+        if (!val) return null;
+        if (!isFemale) {
+          if (val >= H * 0.205 && val <= H * 0.235) return { label: '👑 تقارن طلایی کلاسیک', cls: 'lab-status-golden' };
+          if (val >= 36 && val <= 42) return { label: '🟢 نرمال سلامت پایه', cls: 'lab-status-healthy' };
+          return { label: '⚠️ خارج از رنج', cls: 'lab-status-attention' };
+        } else {
+          if (val >= 32 && val <= 36) return { label: '🟢 نرمال سلامت', cls: 'lab-status-healthy' };
+          return { label: '⚠️ بررسی بیشتر', cls: 'lab-status-attention' };
+        }
+      }
+    },
+    loveHandle: {
+      healthRange: '< 1.10',
+      goldenRange: '1.00 – 1.05 (بدون چربی پهلو 👑)',
+      unit: '',
+      evalStatus: (val) => {
+        if (!val) return null;
+        if (val <= 1.05) return { label: '👑 پهلوی تراشیده V-Cut', cls: 'lab-status-golden' };
+        if (val <= 1.11) return { label: '🟢 چربی خفیف پهلو', cls: 'lab-status-healthy' };
+        return { label: '⚠️ لاو هندل و چربی پهلو', cls: 'lab-status-attention' };
       }
     },
     swr: {
@@ -8278,11 +8375,13 @@ function renderBodyMetricsView() {
 
     const labRows = [
       { name: 'درصد چربی بدن (Navy BF%)', val: curSci.bodyFat, unit: '%', rangeObj: labRanges.bodyFat },
+      { name: 'دور گردن (Neck - شاخص سلامت و تقارن)', val: current.neck, unit: 'cm', rangeObj: labRanges.neck },
       { name: 'نسبت سرشانه به کمر (Adonis V-Taper)', val: curSci.swr, unit: '', rangeObj: labRanges.swr },
       { name: 'دور سینه (Chest)', val: current.chest, unit: 'cm', rangeObj: labRanges.chest },
       { name: 'دور بازوی منقبض (Flexed Biceps)', val: current.armRight || current.armLeft, unit: 'cm', rangeObj: labRanges.armFlexed },
       { name: 'دور بازوی ریلکس / عادی (Relaxed Arm)', val: current.armRightRelaxed || current.armLeftRelaxed, unit: 'cm', rangeObj: labRanges.armRelaxed },
       { name: 'دور کمر (Waist)', val: current.waist, unit: 'cm', rangeObj: labRanges.waist },
+      { name: 'شاخص لاو هندل و پهلو (Love Handle Ratio)', val: curSci.loveHandleRatio, unit: '', rangeObj: labRanges.loveHandle },
       { name: 'نسبت دور کمر به باسن (WHR)', val: curSci.whr, unit: '', rangeObj: labRanges.whr },
       { name: 'دور ران میانی (Mid-Thigh)', val: current.thighRight || current.thighLeft, unit: 'cm', rangeObj: labRanges.thigh },
       { name: 'دور ساق پا (Calves)', val: current.calves, unit: 'cm', rangeObj: labRanges.calves }
@@ -8306,6 +8405,95 @@ function renderBodyMetricsView() {
       `;
     }).join('');
 
+    // --- Special Diagnostic Box: Love Handles, Somatotype & Steve Reeves Golden Trinity ---
+    const isLoveHandleProminent = curSci.loveHandleStatus === 'prominent';
+    const trinityObj = curSci.reevesTrinity;
+    
+    const loveHandleBoxHtml = `
+      <div style="background:linear-gradient(145deg, #0e172a, #162035); border:1px solid ${isLoveHandleProminent ? 'rgba(244,63,94,0.35)' : 'rgba(56,189,248,0.35)'}; border-radius:var(--radius-lg); padding:16px; margin-bottom:16px; box-shadow:0 4px 20px rgba(0,0,0,0.35);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:8px; flex-wrap:wrap; gap:8px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:22px;">🎯</span>
+            <div>
+              <h3 style="font-size:14.5px; font-weight:900; color:${isLoveHandleProminent ? '#fb7185' : '#38bdf8'}; margin:0;">
+                آنالیز توزیع چربی موضعی (لاو هندل) و تقارن کلاسیک استیو ریوز
+              </h3>
+              <div style="font-size:11px; color:#94a3b8; margin-top:2px;">
+                تشخیص تیپ بدنی ساختاری (${prof.name}) و پروتکل هدفمند رفع بالشتک‌های پهلو
+              </div>
+            </div>
+          </div>
+          <span style="font-size:11px; background:${isLoveHandleProminent ? 'rgba(244,63,94,0.15)' : 'rgba(56,189,248,0.15)'}; color:${isLoveHandleProminent ? '#f43f5e' : '#38bdf8'}; border:1px solid ${isLoveHandleProminent ? 'rgba(244,63,94,0.3)' : 'rgba(56,189,248,0.3)'}; padding:3px 10px; border-radius:8px; font-weight:800;">
+            ${isLoveHandleProminent ? '⚠️ لاو هندل شناسایی شد' : '🟢 توزیع نرمال'}
+          </span>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:12px; margin-bottom:12px;">
+          <!-- Card 1: Love Handles Diagnosis -->
+          <div style="background:rgba(15,23,42,0.6); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <span style="font-size:12px; font-weight:800; color:#fb7185;">🍩 شاخص چربی پهلو و زیر شکم (Love Handle):</span>
+              <span style="font-size:15px; font-weight:900; color:${isLoveHandleProminent ? '#f43f5e' : '#34d399'};">${curSci.loveHandleRatio || '--'}</span>
+            </div>
+            <div style="font-size:11.5px; color:#cbd5e1; line-height:1.6;">
+              ${isLoveHandleProminent ? 
+                `دور پهلو و زیر شکم شما (<b>${curSci.flankCirc || 101}cm</b>) حدود <b>${curSci.loveHandleDelta || 13}cm</b> از دور کمر باریک (<b>${current.waist || 88}cm</b>) عریض‌تر است. این اختلاف نشان‌دهنده تجمع چربی موضعی سرسخت در بالای استخوان لگن (Love Handles) است.` :
+                `توزیع چربی در میان‌تنه یکنواخت است و چربی موضعی قابل‌توجهی در پهلوها دیده نمی‌شود.`}
+            </div>
+            <div style="margin-top:8px; background:rgba(0,0,0,0.25); border-radius:6px; padding:6px 10px; font-size:10.5px; color:#94a3b8;">
+              💡 <b>تیپ بدنی:</b> مزومورف - اندومورف عضلانی با گیرنده‌های آلفا-۲ آدرنرژیک در بافت پهلو که آخرین چربی‌های آب‌شونده در کات هستند.
+            </div>
+          </div>
+
+          <!-- Card 2: Somatotype & Steve Reeves Golden Trinity -->
+          <div style="background:rgba(15,23,42,0.6); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <span style="font-size:12px; font-weight:800; color:#facc15;">👑 تثلیث طلایی استیو ریوز (Neck / Arm / Calf):</span>
+              <span style="font-size:11px; color:#38bdf8;">هدف: برابری سه عضو</span>
+            </div>
+            <div style="display:flex; justify-content:space-around; align-items:center; background:rgba(0,0,0,0.25); border-radius:8px; padding:8px 4px; margin-bottom:8px;">
+              <div style="text-align:center;">
+                <div style="font-size:10px; color:#94a3b8;">گردن (Neck)</div>
+                <div style="font-size:14px; font-weight:900; color:#38bdf8;">${current.neck || '--'} <small style="font-size:9px;">cm</small></div>
+              </div>
+              <div style="color:var(--text-muted); font-size:12px;">vs</div>
+              <div style="text-align:center;">
+                <div style="font-size:10px; color:#94a3b8;">بازو (Arm)</div>
+                <div style="font-size:14px; font-weight:900; color:#34d399;">${current.armRight || current.armLeft || '--'} <small style="font-size:9px;">cm</small></div>
+              </div>
+              <div style="color:var(--text-muted); font-size:12px;">vs</div>
+              <div style="text-align:center;">
+                <div style="font-size:10px; color:#94a3b8;">ساق (Calf)</div>
+                <div style="font-size:14px; font-weight:900; color:#facc15;">${current.calves || '--'} <small style="font-size:9px;">cm</small></div>
+              </div>
+            </div>
+            <div style="font-size:11px; color:#cbd5e1; line-height:1.5;">
+              ${trinityObj ? `ساق پای شما (${trinityObj.calf}cm) از بازو (${trinityObj.arm}cm) جلوتر است. با افزایش ۲ تا ۳ سانتیمتر حجم بازو، تقارن کامل کلاسیک استیو ریوز حاصل می‌شود.` : 'اطلاعات دور گردن، بازو و ساق برای تحلیل تقارن کلاسیک محاسبه شد.'}
+            </div>
+          </div>
+        </div>
+
+        <!-- Strategy Box for Love Handles -->
+        <div style="background:rgba(15,23,42,0.8); border:1px solid rgba(245,158,11,0.25); border-radius:10px; padding:10px 14px; font-size:11px; color:#cbd5e1; line-height:1.6;">
+          🔥 <b>پروتکل مربیگری اختصاصی برای محو کردن لاو هندل (چربی پهلو):</b>
+          <div style="margin-top:4px; display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:8px;">
+            <div>
+              <span style="color:#facc15;">۱. تقویت عضلات مورب و ثبات هسته:</span>
+              حرکات ساید پلانک، پالووف پرس، و چوب‌بری سیمکش برای سفت کردن دیواره پهلو.
+            </div>
+            <div>
+              <span style="color:#38bdf8;">۲. افزایش جریان خون مویرگی پهلو:</span>
+              ۲۰ دقیقه پیاده‌روی شیب‌دار (LISS) ترجیحاً بلافاصله بعد از تمرین با وزنه.
+            </div>
+            <div>
+              <span style="color:#34d399;">۳. مدیریت نوسان انسولین:</span>
+              حفظ کسری ۵۰۰ کالری و پروتئین ۱۶۰-۱۷۰ گرم جهت سوزاندن ذخایر سرسخت چربی.
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
     const labReportBoxHtml = `
       <div class="lab-report-box">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid rgba(56,189,248,0.25); padding-bottom:8px; flex-wrap:wrap; gap:8px;">
@@ -8326,7 +8514,7 @@ function renderBodyMetricsView() {
           <span style="color:#facc15; margin-right:4px;">👑 <b>محدوده طلایی فیتنس:</b> اوج تناسب اندام نچرال و جذابیت کلاسیک (استیو ریوز و آدونیس). فراتر از این محدوده وارد فاز پرورش‌اندام سنگین مسابقه‌ای می‌شود.</span>
         </div>
 
-        <div class="table-container" style="overflow-x:auto; margin-bottom:16px;">
+        <div class="table-container" style="overflow-x:auto; -webkit-overflow-scrolling:touch; margin-bottom:16px;">
           <table class="lab-table">
             <thead>
               <tr>
@@ -8403,6 +8591,7 @@ function renderBodyMetricsView() {
       { label: 'دور کمر (باریک‌ترین نقطه)', key: 'waist', unit: 'cm', isFat: true, baseVal: baseline.waist, prevVal: prev?.waist, curVal: current.waist },
       { label: 'دور شکم (دقیقاً از روی ناف)', key: 'abdomen', unit: 'cm', isFat: true, baseVal: baseline.abdomen, prevVal: prev?.abdomen, curVal: current.abdomen },
       { label: 'دور زیر شکم (بالای استخوان لگن)', key: 'lowerBelly', unit: 'cm', isFat: true, baseVal: baseline.lowerBelly, prevVal: prev?.lowerBelly, curVal: current.lowerBelly },
+      { label: 'شاخص لاو هندل و پهلو (Love Handle Ratio)', key: 'loveHandleRatio', unit: '', isFat: true, baseVal: baseSci.loveHandleRatio, prevVal: prevSci?.loveHandleRatio, curVal: curSci.loveHandleRatio },
       { label: 'نسبت سرشانه به کمر (Adonis V-Taper)', key: 'swr', unit: '', isFat: false, baseVal: baseSci.swr, prevVal: prevSci?.swr, curVal: curSci.swr },
       { label: 'نسبت دور کمر به باسن (WHR)', key: 'whr', unit: '', isFat: true, baseVal: baseSci.whr, prevVal: prevSci?.whr, curVal: curSci.whr },
       { label: 'نسبت دور کمر به قد (WHtR)', key: 'whtr', unit: '', isFat: true, baseVal: baseSci.whtr, prevVal: prevSci?.whtr, curVal: curSci.whtr },
@@ -8440,7 +8629,7 @@ function renderBodyMetricsView() {
           </div>
         </div>
 
-        <div class="table-container" style="overflow-x:auto;">
+        <div class="table-container" style="overflow-x:auto; -webkit-overflow-scrolling:touch;">
           <table class="metrics-matrix-table">
             <thead>
               <tr>
@@ -8464,6 +8653,7 @@ function renderBodyMetricsView() {
       ${headerHtml}
       ${heroGridHtml}
       ${geneticPotentialHtml}
+      ${loveHandleBoxHtml}
       ${labReportBoxHtml}
       ${matrixTableHtml}
     `;
