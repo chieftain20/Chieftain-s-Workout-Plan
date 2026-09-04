@@ -7797,7 +7797,8 @@ function determineHeathCarterSomatotype(height, weight, wrist, bodyFat, waist, h
   return { nameFa, nameEn, descFa, endoScore, mesoScore, ectoScore, hwr: Number(hwr.toFixed(1)) };
 }
 
-function calculateAnthropometrics(m) {
+function calculateAnthropometrics(m, prof = null) {
+  const activeP = prof || (typeof getActiveProfile === 'function' ? getActiveProfile() : null);
   const weight = parseFloat(m.weight) || 0;
   const height = parseFloat(m.height) || 0;
   const waist = parseFloat(m.waist) || 0;
@@ -7901,9 +7902,27 @@ function calculateAnthropometrics(m) {
 
     if (leanMass !== null) {
       remainingMusclePotential = Math.max(0, Number((maxLeanMass - leanMass).toFixed(1)));
-      // Hossein trains 5 sessions a week (4 heavy lifting + 1 core stability)
-      // Realistic annual gains: ~3.8 kg/yr for intermediate/advanced with high adherence
-      yearsToPotential = Number((remainingMusclePotential / 3.8).toFixed(1));
+      
+      // Calculate realistic annual hypertrophy based on active workout program structure:
+      let gymCount = 0;
+      let homeCount = 0;
+      if (activeP && Array.isArray(activeP.days)) {
+        gymCount = activeP.days.filter(d => d.type === 'gym').length;
+        homeCount = activeP.days.filter(d => d.type === 'home').length;
+      } else {
+        gymCount = isFemale ? 3 : 4;
+        homeCount = isFemale ? 3 : 1;
+      }
+      
+      // McDonald & Aragon Natural Hypertrophy Model:
+      // Women build muscle at ~45-50% absolute kg rate of men due to endocrine/testosterone profile (~1.5-1.8 kg/yr vs ~3.2-3.8 kg/yr)
+      const baseAnnualGain = isFemale ? 1.65 : 3.5;
+      const volumeFactor = Math.min(1.15, Math.max(0.7, (gymCount * 0.22 + homeCount * 0.12)));
+      const realisticAnnualGain = Number((baseAnnualGain * volumeFactor).toFixed(2));
+
+      yearsToPotential = remainingMusclePotential > 0
+        ? Number((remainingMusclePotential / realisticAnnualGain).toFixed(1))
+        : 0;
     }
   }
 
@@ -7913,14 +7932,42 @@ function calculateAnthropometrics(m) {
   let tdee = null;
   let targetCalories = null;
   let targetProtein = null;
-  if (leanMass !== null) {
+  let proteinMin = null;
+  let proteinMax = null;
+  if (leanMass !== null && weight > 0) {
     bmr = Math.round(370 + (21.6 * leanMass));
-    // 5 structured workouts/week = activity multiplier ~ 1.55 (Moderately Active)
-    tdee = Math.round(bmr * 1.55);
-    // Body recomposition & fat loss with muscle preservation: 450-500 kcal deficit
-    targetCalories = tdee - 500;
-    // 2.2g protein per kg of Lean Mass (optimal for hypertrophy & fat loss)
-    targetProtein = Math.round(leanMass * 2.2);
+    
+    // Activity multiplier calibrated by weekly training frequency
+    let gymCount = 0;
+    let homeCount = 0;
+    if (activeP && Array.isArray(activeP.days)) {
+      gymCount = activeP.days.filter(d => d.type === 'gym').length;
+      homeCount = activeP.days.filter(d => d.type === 'home').length;
+    } else {
+      gymCount = isFemale ? 3 : 4;
+      homeCount = isFemale ? 3 : 1;
+    }
+    const totalWorkoutDays = gymCount + homeCount;
+    const actMultiplier = totalWorkoutDays >= 6 ? 1.55 : (totalWorkoutDays >= 4 ? 1.50 : 1.40);
+    tdee = Math.round(bmr * actMultiplier);
+    
+    // Deficit for steady fat loss while preserving/building lean mass:
+    // 350-400 kcal deficit for women, 450-500 kcal for men
+    const deficit = isFemale ? 400 : 500;
+    targetCalories = Math.max(1200, tdee - deficit);
+
+    // Protein Target: Gold standard for body recomposition in resistance training
+    // (Morton et al. 2018 BJSM meta-analysis & Helms et al. 2014 JISSN)
+    // Ensures at least 1.65 g/kg of total body weight, or 2.75 g/kg of Lean Body Mass
+    if (isFemale) {
+      targetProtein = Math.round(Math.max(weight * 1.65, leanMass * 2.75));
+      proteinMin = Math.round(weight * 1.55);
+      proteinMax = Math.round(weight * 1.85);
+    } else {
+      targetProtein = Math.round(Math.max(weight * 1.95, leanMass * 2.35));
+      proteinMin = Math.round(weight * 1.80);
+      proteinMax = Math.round(weight * 2.20);
+    }
   }
 
   let whr = null;
@@ -8009,6 +8056,8 @@ function calculateAnthropometrics(m) {
     tdee,
     targetCalories,
     targetProtein,
+    proteinMin,
+    proteinMax,
     whr,
     whtr,
     swr,
@@ -8288,9 +8337,9 @@ function renderBodyMetricsView() {
     const prev = list.length > 1 ? list[list.length - 2] : null;
     const baseline = list[0];
 
-    const curSci = calculateAnthropometrics(current);
-    const prevSci = prev ? calculateAnthropometrics(prev) : null;
-    const baseSci = calculateAnthropometrics(baseline);
+    const curSci = calculateAnthropometrics(current, prof);
+    const prevSci = prev ? calculateAnthropometrics(prev, prof) : null;
+    const baseSci = calculateAnthropometrics(baseline, prof);
 
     const diffWeightLast = prev ? (current.weight - prev.weight) : null;
     const diffWeightBase = current.weight - baseline.weight;
@@ -8400,6 +8449,14 @@ function renderBodyMetricsView() {
     else if (ffmiVal < 25) { ffmiLabel = 'بدنساز پیشرفته نچرال (Advanced)'; ffmiColor = '#facc15'; }
     else { ffmiLabel = '👑 سقف ژنتیکی طبیعی انسان (Genetic Limit)'; ffmiColor = '#f43f5e'; }
 
+    // Dynamic training days calculation from active profile
+    const gymDaysCount = (prof.days || []).filter(d => d.type === 'gym').length;
+    const homeDaysCount = (prof.days || []).filter(d => d.type === 'home').length;
+    const totalDaysCount = gymDaysCount + homeDaysCount;
+    const workoutStructureText = (gymDaysCount > 0 && homeDaysCount > 0)
+      ? `${gymDaysCount} روز باشگاه + ${homeDaysCount} روز خانه (${totalDaysCount} روز در هفته)`
+      : `${totalDaysCount} روز در هفته`;
+
     const geneticPotentialHtml = `
       <div style="background:#111a2e; border:1px solid rgba(99,102,241,0.35); border-radius:var(--radius-lg); padding:16px; margin-bottom:16px; box-shadow:0 4px 20px rgba(0,0,0,0.35);">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:8px; flex-wrap:wrap; gap:8px;">
@@ -8407,7 +8464,7 @@ function renderBodyMetricsView() {
             <span style="font-size:22px;">🧬</span>
             <div>
               <h3 style="font-size:14.5px; font-weight:900; color:#818cf8; margin:0;">پتانسیل ژنتیکی عضله نچرال و اهداف تغذیه (Genetic Limits & Macros)</h3>
-              <div style="font-size:11px; color:#94a3b8; margin-top:2px;">سقف ژنتیکی بدون دارو (مدل دکتر کیسی بات) کالیبره شده با برنامه تمرینی شما (۵ روز در هفته)</div>
+              <div style="font-size:11px; color:#94a3b8; margin-top:2px;">سقف ژنتیکی بدون دارو (مدل دکتر کیسی بات) کالیبره شده با برنامه تمرینی شما (${workoutStructureText})</div>
             </div>
           </div>
           <span style="font-size:11px; background:rgba(99,102,241,0.15); color:#a5b4fc; border:1px solid rgba(99,102,241,0.3); padding:3px 10px; border-radius:8px; font-weight:800;">🔬 Natural Ceiling</span>
@@ -8452,7 +8509,7 @@ function renderBodyMetricsView() {
               ~ ${curSci.yearsToPotential !== null ? curSci.yearsToPotential : '--'} <span style="font-size:12px; color:#94a3b8;">سال تمرین منظم</span>
             </div>
             <div style="font-size:11px; color:#94a3b8; line-height:1.5;">
-              محاسبه شده بر اساس ساختار برنامه شما: <b>۴ روز باشگاه + ۱ روز خانه (۵ روز در هفته)</b> با تغذیه و ریکاوری هدفمند.
+              محاسبه شده بر اساس ساختار برنامه اختصاصی شما: <b>${workoutStructureText}</b> و نرخ فیزیولوژیک هایپرتروفی طبیعی.
             </div>
           </div>
         </div>
@@ -8479,6 +8536,10 @@ function renderBodyMetricsView() {
               <div style="font-size:10px; color:#34d399;">پروتئین هدف روزانه</div>
               <div style="font-size:14px; font-weight:900; color:#34d399; margin-top:2px;">${curSci.targetProtein || '--'} <small style="font-size:10px;">گرم</small></div>
             </div>
+          </div>
+          <div style="margin-top:8px; background:rgba(0,0,0,0.2); border-radius:6px; padding:6px 10px; font-size:10.5px; color:#94a3b8; line-height:1.5;">
+            🔬 <b>مرجع علمی پروتئین بازسازی بدنی (Body Recomposition):</b>
+            هدف <b>${curSci.targetProtein || '--'} گرم</b> (بازه بهینه: <b>${curSci.proteinMin || '--'} تا ${curSci.proteinMax || '--'} گرم</b>) بر اساس معتبرترین متاآنالیز دنیا (مورتون و همکاران، ژورنال پزشکی ورزشی بریتانیا BJSM 2018) و راهنمای رسمی انجمن بین‌المللی تغذیه ورزشی (ISSN) برای ساخت همزمان عضله و چربی‌سوزی در رژیم کسر کالری معادل ۱.۶۵ تا ۲.۰ گرم پروتئین به ازای هر کیلوگرم وزن کل تنظیم شده است.
           </div>
         </div>
 
@@ -8534,6 +8595,58 @@ function renderBodyMetricsView() {
     const trinityObj = curSci.reevesTrinity;
     const somato = curSci.somatotype || { nameFa: 'مزومورف متناسب', nameEn: 'Athletic Mesomorph', descFa: '' };
 
+    // Dynamic calculations for Female Card 2 (Hourglass & Arm Balance)
+    const armVal = parseFloat(current.armRight || current.armLeft) || 0;
+    const femaleGoldenArmMin = Number((current.height * 0.165).toFixed(1));
+    const femaleGoldenArmMax = Number((current.height * 0.185).toFixed(1));
+    const isArmBulky = armVal > femaleGoldenArmMax;
+    const isArmGolden = armVal >= femaleGoldenArmMin && armVal <= femaleGoldenArmMax;
+    const isWhrHigh = curSci.whr > 0.80;
+    const isWhrGolden = curSci.whr >= 0.68 && curSci.whr <= 0.73;
+
+    let femaleArmSummaryHtml = '';
+    if (isArmBulky) {
+      const overCm = (armVal - femaleGoldenArmMax).toFixed(1);
+      femaleArmSummaryHtml = `
+        <div style="margin-top:6px; background:rgba(244,63,94,0.1); border:1px solid rgba(244,63,94,0.25); border-radius:6px; padding:6px 8px; font-size:11px; color:#fca5a5; line-height:1.5;">
+          ⚠️ <b>ارزیابی بازو (${armVal}cm):</b> حدود <b>${overCm}cm بالاتر</b> از سقف رنج ظرافت زنانه (${femaleGoldenArmMin} تا ${femaleGoldenArmMax}cm) است. با توجه به درصد چربی (${curSci.bodyFat || '--'}٪)، این حجم ناشی از بافت چربی زیرپوستی است؛ بنابراین نیازی به حجیم‌سازی بازو نیست و اولویت اصلی <b>چربی‌سوزی، سفت‌سازی و توند کردن بازوها</b> است.
+        </div>
+      `;
+    } else if (isArmGolden) {
+      femaleArmSummaryHtml = `
+        <div style="margin-top:6px; background:rgba(52,211,153,0.1); border:1px solid rgba(52,211,153,0.25); border-radius:6px; padding:6px 8px; font-size:11px; color:#6ee7b7; line-height:1.5;">
+          👑 <b>ارزیابی بازو (${armVal}cm):</b> کاملاً در محدوده استاندارد ظرافت و تناسب کلاسیک زنانه (${femaleGoldenArmMin} تا ${femaleGoldenArmMax}cm) قرار دارد.
+        </div>
+      `;
+    } else if (armVal > 0) {
+      femaleArmSummaryHtml = `
+        <div style="margin-top:6px; background:rgba(56,189,248,0.1); border:1px solid rgba(56,189,248,0.25); border-radius:6px; padding:6px 8px; font-size:11px; color:#bae6fd; line-height:1.5;">
+          🟢 <b>ارزیابی بازو (${armVal}cm):</b> لاغرتر از رنج ایده‌آل؛ پتانسیل عضله‌سازی ظریف و توند در خانه وجود دارد.
+        </div>
+      `;
+    }
+
+    let femaleWhrSummaryHtml = '';
+    if (isWhrHigh) {
+      femaleWhrSummaryHtml = `
+        <div style="font-size:11px; color:#cbd5e1; line-height:1.5;">
+          🌸 <b>تحلیل تناسب ساعت‌شنی:</b> نسبت فعلی (<b>${curSci.whr || '--'}</b>) بالاتر از استاندارد سلامت (زیر ۰.۸۰) و هدف طلایی دکتر سینگ (<b>۰.۶۸ تا ۰.۷۳</b>) است. با دور کمر فعلی (<b>${current.waist || '--'}cm</b>)، تمرکز اصلی روی <b>چربی‌سوزی میان‌تنه</b> در کنار حفظ و تقویت عضلات سرینی (Glutes) با تمرینات مقاومتی است تا تندیس ساعت‌شنی نمایان شود.
+        </div>
+      `;
+    } else if (isWhrGolden) {
+      femaleWhrSummaryHtml = `
+        <div style="font-size:11px; color:#cbd5e1; line-height:1.5;">
+          👑 <b>تحلیل تناسب ساعت‌شنی:</b> نسبت کمر به باسن (<b>${curSci.whr || '--'}</b>) دقیقاً در بازه طلایی دکتر سینگ (<b>۰.۶۸ تا ۰.۷۳</b>) است؛ اوج تعادل هورمون استروژن، سلامت بیولوژیک و جذابیت انحنای زنانه.
+        </div>
+      `;
+    } else {
+      femaleWhrSummaryHtml = `
+        <div style="font-size:11px; color:#cbd5e1; line-height:1.5;">
+          🟢 <b>تحلیل تناسب ساعت‌شنی:</b> نسبت کمر به باسن (<b>${curSci.whr || '--'}</b>) در محدوده نرمال سلامت است و با تداوم تقویت سرینی به فرم ساعت‌شنی طلایی نزدیک‌تر می‌شود.
+        </div>
+      `;
+    }
+
     // Dynamic Card 2 based on Gender
     const card2Html = isFemale ? `
       <!-- Card 2 Female: Devendra Singh Golden Hourglass & Feminine Tone -->
@@ -8555,12 +8668,11 @@ function renderBodyMetricsView() {
           <div style="color:var(--text-muted); font-size:12px;">نسبت:</div>
           <div style="text-align:center;">
             <div style="font-size:10px; color:#94a3b8;">قوس WHR</div>
-            <div style="font-size:14px; font-weight:900; color:#34d399;">${curSci.whr || '--'}</div>
+            <div style="font-size:14px; font-weight:900; color:${isWhrHigh ? '#f43f5e' : (isWhrGolden ? '#34d399' : '#38bdf8')};">${curSci.whr || '--'}</div>
           </div>
         </div>
-        <div style="font-size:11px; color:#cbd5e1; line-height:1.5;">
-          🌸 <b>معیار زیبایی فیتنس بانوان:</b> بر خلاف بدنسازی مردانه، بازوی خانم‌ها هرگز نباید اندازه ساق پا (۳۷cm) ضخیم شود! بازوی <b>${current.armRight || current.armLeft || 31} سانتی‌متری</b> شما با دور کمر باریک و باسن در نهایت ظرافت زنانه قرار دارد. هدف: لیفت عضلات سرینی (Glutes) و بازوهای کشیده و توند بدون حجم زمخت.
-        </div>
+        ${femaleWhrSummaryHtml}
+        ${femaleArmSummaryHtml}
       </div>
     ` : `
       <!-- Card 2 Male: Steve Reeves Classic Golden Trinity -->
@@ -8606,8 +8718,8 @@ function renderBodyMetricsView() {
             تمرینات با تکرار ۱۲ تا ۱۵ برای کشیدگی عضلات دست و شانه بدون افزایش حجم زمخت.
           </div>
           <div>
-            <span style="color:#34d399;">۳. تعادل هورمونی و درصد چربی ۱۸-۲۱٪:</span>
-            حفظ ذخایر چربی ضروری استروژنیک برای سلامت چرخه قائدگی، پوست و مو.
+            <span style="color:#34d399;">۳. مدیریت تغذیه رکمپ (${curSci.targetProtein || 110}g پروتئین):</span>
+            کسری ملایم ۳۰۰ تا ۴۰۰ کالری و پروتئین بالا برای چربی‌سوزی همزمان با حفظ کامل بافت خالص عضلانی.
           </div>
         </div>
       </div>
@@ -8632,13 +8744,23 @@ function renderBodyMetricsView() {
       </div>
     `;
 
+    let femaleBadgeText = '👑 ساعت‌شنی ظریف';
+    let femaleBadgeStyle = 'background:rgba(244,114,182,0.15); color:#f472b6; border:1px solid rgba(244,114,182,0.3);';
+    if (curSci.whr > 0.80 || (curSci.bodyFat && curSci.bodyFat >= 28) || isLoveHandleProminent) {
+      femaleBadgeText = '⚠️ نیاز به چربی‌سوزی میان‌تنه';
+      femaleBadgeStyle = 'background:rgba(244,63,94,0.15); color:#f43f5e; border:1px solid rgba(244,63,94,0.3);';
+    } else if (curSci.whr <= 0.73) {
+      femaleBadgeText = '👑 ساعت‌شنی ایده‌آل (دکتر سینگ)';
+      femaleBadgeStyle = 'background:rgba(52,211,153,0.15); color:#34d399; border:1px solid rgba(52,211,153,0.3);';
+    }
+
     const loveHandleBoxHtml = `
-      <div style="background:linear-gradient(145deg, #0e172a, #162035); border:1px solid ${isFemale ? 'rgba(244,114,182,0.35)' : (isLoveHandleProminent ? 'rgba(244,63,94,0.35)' : 'rgba(56,189,248,0.35)')}; border-radius:var(--radius-lg); padding:16px; margin-bottom:16px; box-shadow:0 4px 20px rgba(0,0,0,0.35);">
+      <div style="background:linear-gradient(145deg, #0e172a, #162035); border:1px solid ${isFemale ? (curSci.whr > 0.80 ? 'rgba(244,63,94,0.35)' : 'rgba(244,114,182,0.35)') : (isLoveHandleProminent ? 'rgba(244,63,94,0.35)' : 'rgba(56,189,248,0.35)')}; border-radius:var(--radius-lg); padding:16px; margin-bottom:16px; box-shadow:0 4px 20px rgba(0,0,0,0.35);">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:8px; flex-wrap:wrap; gap:8px;">
           <div style="display:flex; align-items:center; gap:8px;">
             <span style="font-size:22px;">${isFemale ? '🌸' : '🎯'}</span>
             <div>
-              <h3 style="font-size:14.5px; font-weight:900; color:${isFemale ? '#f472b6' : (isLoveHandleProminent ? '#fb7185' : '#38bdf8')}; margin:0;">
+              <h3 style="font-size:14.5px; font-weight:900; color:${isFemale ? (curSci.whr > 0.80 ? '#fb7185' : '#f472b6') : (isLoveHandleProminent ? '#fb7185' : '#38bdf8')}; margin:0;">
                 ${isFemale ? `آنالیز تناسب ساعت‌شنی، ظرافت زنانه و تیپ بدنی (${prof.name})` : `آنالیز توزیع چربی موضعی (لاو هندل) و تقارن کلاسیک مردانه (${prof.name})`}
               </h3>
               <div style="font-size:11px; color:#94a3b8; margin-top:2px;">
@@ -8646,8 +8768,8 @@ function renderBodyMetricsView() {
               </div>
             </div>
           </div>
-          <span style="font-size:11px; background:${isFemale ? 'rgba(244,114,182,0.15)' : (isLoveHandleProminent ? 'rgba(244,63,94,0.15)' : 'rgba(56,189,248,0.15)')}; color:${isFemale ? '#f472b6' : (isLoveHandleProminent ? '#f43f5e' : '#38bdf8')}; border:1px solid ${isFemale ? 'rgba(244,114,182,0.3)' : (isLoveHandleProminent ? 'rgba(244,63,94,0.3)' : 'rgba(56,189,248,0.3)')}; padding:3px 10px; border-radius:8px; font-weight:800;">
-            ${isFemale ? (isLoveHandleProminent ? '⚠️ چربی ملایم پهلو' : '👑 ساعت‌شنی ظریف') : (isLoveHandleProminent ? '⚠️ لاو هندل شناسایی شد' : '🟢 توزیع نرمال V-Taper')}
+          <span style="font-size:11px; ${isFemale ? femaleBadgeStyle : (isLoveHandleProminent ? 'background:rgba(244,63,94,0.15); color:#f43f5e; border:1px solid rgba(244,63,94,0.3);' : 'background:rgba(56,189,248,0.15); color:#38bdf8; border:1px solid rgba(56,189,248,0.3);')} padding:3px 10px; border-radius:8px; font-weight:800;">
+            ${isFemale ? femaleBadgeText : (isLoveHandleProminent ? '⚠️ لاو هندل شناسایی شد' : '🟢 توزیع نرمال V-Taper')}
           </span>
         </div>
 

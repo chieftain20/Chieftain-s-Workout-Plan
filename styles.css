@@ -190,15 +190,16 @@ nav::-webkit-scrollbar { display: none; }
   transition: width 0.3s ease;
 }
 
-/* Day Section */
+/* Day Section (Fast Native 120Hz Rendering) */
 .day-section {
   background: var(--bg-card); border: 1px solid var(--border-color);
   border-radius: var(--radius-lg); padding: 18px 14px; margin-bottom: 20px;
-  box-shadow: var(--shadow-card); scroll-margin-top: 110px; transition: border-color 0.2s ease;
+  scroll-margin-top: 110px; transition: border-color 0.2s ease;
+  content-visibility: auto; contain-intrinsic-size: 500px;
 }
 
 .day-section.today-highlight {
-  border-color: rgba(0, 242, 254, 0.4); box-shadow: var(--shadow-card), 0 0 20px rgba(0, 242, 254, 0.08);
+  border-color: rgba(0, 242, 254, 0.4);
 }
 
 .day-header {
@@ -227,7 +228,7 @@ nav::-webkit-scrollbar { display: none; }
   margin-bottom: 14px; display: flex; align-items: center; gap: 6px;
 }
 
-/* 100% Celebration Banner */
+/* 100% Celebration Banner (Static clean CSS) */
 .day-complete-banner {
   background: linear-gradient(135deg, rgba(16, 185, 129, 0.22), rgba(5, 150, 105, 0.12));
   border: 1px solid rgba(52, 211, 153, 0.45);
@@ -240,12 +241,6 @@ nav::-webkit-scrollbar { display: none; }
   color: #34d399;
   font-weight: 800;
   font-size: 12.5px;
-  animation: pulseGlow 2.5s infinite;
-}
-
-@keyframes pulseGlow {
-  0%, 100% { box-shadow: 0 0 15px rgba(16, 185, 129, 0.2); }
-  50% { box-shadow: 0 0 25px rgba(16, 185, 129, 0.45); }
 }
 
 /* Superset Block */
@@ -396,20 +391,21 @@ nav::-webkit-scrollbar { display: none; }
 .timer-fab:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(56, 189, 248, 0.4); }
 .timer-fab.running { background: linear-gradient(135deg, #10b981, #059669); border-color: #34d399; }
 
-/* Modals */
+/* Modals (Zero GPU overhead when closed) */
 .modal-overlay {
   position: fixed; inset: 0; z-index: 1000;
-  background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-  display: flex; align-items: center; justify-content: center; padding: 14px;
-  opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
+  background: rgba(0, 0, 0, 0.8);
+  display: none; align-items: center; justify-content: center; padding: 14px;
 }
 
-.modal-overlay.open { opacity: 1; pointer-events: auto; }
+.modal-overlay.open {
+  display: flex !important;
+}
 
 .modal-dialog {
   background: #0d1527; border: 1px solid var(--border-color);
   border-radius: var(--radius-lg); padding: 20px 16px; width: 100%; max-width: 600px;
-  max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+  max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9);
   position: relative;
 }
 
@@ -649,10 +645,373 @@ tr:nth-child(even) { background: rgba(255, 255, 255, 0.02); }
   .day-section, .summary-card { padding: 14px 10px; border-radius: 14px; margin-bottom: 16px; scroll-margin-top: 105px; }
   .timer-fab { bottom: 12px; left: 12px; padding: 8px 12px; font-size: 12px; }
   .modal-dialog { padding: 16px 12px; }
-  .table-container { display: none; }
+  .summary-card .table-container { display: none; }
   .summary-mobile-grid { display: grid; }
-  .exercise-card { padding: 10px 10px; }
+  .table-container { display: block !important; overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .exercise-name-fa { font-size: 13.5px; }
   .muscles-row { gap: 4px; margin-bottom: 8px; }
   .card-footer { gap: 6px; }
 }
+
+.table-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  margin-top: 10px;
+  width: 100%;
+}
+
+.lab-table, .metrics-matrix-table {
+  min-width: 520px;
+}
+
+/* Modern iOS/Cyber Style Switch */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 26px;
+  margin: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #334155;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: #ffffff;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+input:checked + .slider {
+  background-color: #10b981;
+  border-color: #34d399;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.45);
+}
+
+input:checked + .slider:before {
+  transform: translateX(22px);
+  background-color: #ffffff;
+}
+
+/* Reorder & Move Action Buttons in Workout Cards */
+.card-reorder-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.btn-move-action {
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  color: #cbd5e1;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  transition: all 0.15s ease;
+}
+
+.btn-move-action:hover {
+  background: #334155;
+  color: #00f2fe;
+  border-color: #00f2fe;
+  transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   Anthropometrics & Body Measurements Dashboard Styles
+   ========================================================================== */
+.body-metrics-view {
+  animation: fadeIn 0.25s ease;
+  margin-bottom: 24px;
+}
+
+.metrics-hero-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.metrics-hero-card {
+  background: linear-gradient(145deg, #111a2e, #16223b);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+
+.metrics-hero-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 40px;
+  height: 3px;
+  background: linear-gradient(90deg, #00f2fe, #00e599);
+  border-radius: 2px;
+}
+
+.metric-hero-label {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  font-weight: 700;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.metric-hero-val {
+  font-size: 22px;
+  font-weight: 900;
+  color: #fff;
+  margin: 6px 0 2px 0;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.metric-hero-val small {
+  font-size: 12px;
+  color: #38bdf8;
+  font-weight: 700;
+}
+
+.metric-hero-delta {
+  font-size: 11px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.metrics-matrix-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 12.5px;
+}
+
+.metrics-matrix-table th {
+  background: rgba(17, 26, 46, 0.95);
+  color: #38bdf8;
+  font-weight: 800;
+  padding: 10px 12px;
+  border-bottom: 2px solid var(--border-color);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.metrics-matrix-table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  vertical-align: middle;
+}
+
+.metrics-matrix-table tr:hover td {
+  background: rgba(22, 34, 59, 0.6);
+}
+
+.metrics-group-header td {
+  background: rgba(56, 189, 248, 0.08) !important;
+  color: #00f2fe;
+  font-weight: 900;
+  font-size: 11.5px;
+  padding: 7px 12px;
+  border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+}
+
+.delta-pill {
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-size: 10.5px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  direction: ltr;
+}
+
+.delta-pill.good {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(52, 211, 153, 0.3);
+}
+
+.delta-pill.bad {
+  background: rgba(244, 63, 94, 0.15);
+  color: #fb7185;
+  border: 1px solid rgba(244, 63, 94, 0.3);
+}
+
+.delta-pill.neutral {
+  background: rgba(148, 163, 184, 0.12);
+  color: #94a3b8;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+/* ==========================================================================
+   Drag and Drop Visual Mechanics
+   ========================================================================== */
+.card-drag-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  color: #64748b;
+  font-size: 14px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  user-select: none;
+  touch-action: none;
+  transition: all 0.15s ease;
+}
+
+.card-drag-handle:hover,
+.card-drag-handle:active {
+  color: #00f2fe;
+  background: rgba(0, 242, 254, 0.15);
+  cursor: grabbing;
+}
+
+.exercise-card.is-dragging,
+.superset-block.is-dragging {
+  opacity: 0.45;
+  border-color: #00f2fe !important;
+  box-shadow: 0 10px 25px rgba(0, 242, 254, 0.35);
+  transform: scale(0.98);
+}
+
+.drop-target-hover {
+  outline: 2px dashed #00f2fe !important;
+  outline-offset: 4px;
+  background: rgba(0, 242, 254, 0.05) !important;
+}
+
+/* ==========================================================================
+   Laboratory-Style Body Composition & Aesthetic Range Styles
+   ========================================================================== */
+.lab-report-box {
+  background: linear-gradient(145deg, #0e172a, #13223f);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.lab-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 12.5px;
+}
+
+.lab-table th {
+  background: rgba(15, 23, 42, 0.95);
+  color: #38bdf8;
+  font-weight: 800;
+  padding: 10px 12px;
+  border-bottom: 2px solid rgba(56, 189, 248, 0.3);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.lab-table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  vertical-align: middle;
+}
+
+.lab-table tr:hover td {
+  background: rgba(30, 41, 59, 0.5);
+}
+
+.range-pill-health {
+  background: rgba(16, 185, 129, 0.12);
+  color: #34d399;
+  border: 1px solid rgba(52, 211, 153, 0.3);
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-block;
+  direction: ltr;
+}
+
+.range-pill-golden {
+  background: rgba(234, 179, 8, 0.15);
+  color: #facc15;
+  border: 1px solid rgba(250, 204, 21, 0.4);
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 800;
+  display: inline-block;
+  direction: ltr;
+}
+
+.lab-status-badge {
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.lab-status-golden {
+  background: rgba(234, 179, 8, 0.2);
+  color: #fde047;
+  border: 1px solid rgba(250, 204, 21, 0.5);
+}
+
+.lab-status-healthy {
+  background: rgba(16, 185, 129, 0.18);
+  color: #34d399;
+  border: 1px solid rgba(52, 211, 153, 0.4);
+}
+
+.lab-status-attention {
+  background: rgba(244, 63, 94, 0.18);
+  color: #fb7185;
+  border: 1px solid rgba(244, 63, 94, 0.4);
+}
+
+
+

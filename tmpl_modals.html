@@ -1,0 +1,1032 @@
+<!-- Universal Rest & Isometric Timer Modal -->
+<div id="timerModal" class="modal-overlay">
+  <div class="modal-dialog" style="max-width: 400px; text-align: center;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+      <div style="font-size: 13.5px; font-weight: 800; color: #38bdf8; display:flex; align-items:center; gap:6px;">
+        <span>⏱️</span> <span>تنظیمات تایمر هوشمند</span>
+      </div>
+      <button class="modal-close-btn" onclick="closeTimerModal()" style="position: static; font-size: 18px; color: #94a3b8; background: rgba(255,255,255,0.06); border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.12); cursor: pointer; padding: 0;">✕</button>
+    </div>
+
+    <!-- Mode Switcher -->
+    <div class="timer-mode-tabs" style="margin-bottom: 12px;">
+      <button id="modeRestBtn" class="timer-mode-btn active" onclick="switchTimerMode('rest')">⏱️ استراحت بین ست‌ها</button>
+      <button id="modeIsoBtn" class="timer-mode-btn" onclick="switchTimerMode('iso')">🧘‍♂️ حرکات ایزومتریک</button>
+    </div>
+
+    <h3 id="timerModalTitle" style="font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 2px; justify-content: center;">⏱️ تایمر استراحت بین ست‌ها</h3>
+    <p id="timerModalDesc" style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 8px;">برای حفظ ریتم تمرین زمان استراحت را مدیریت کن</p>
+
+    <div class="timer-display" id="timerDisplay">01:30</div>
+
+    <!-- Presets (20s, 30s, 45s, 60s, 2m, 3m) -->
+    <div class="timer-presets" id="timerPresetsContainer">
+      <button class="preset-btn" onclick="setTimerDuration(20)">۲۰ ثانیه</button>
+      <button class="preset-btn" onclick="setTimerDuration(30)">۳۰ ثانیه</button>
+      <button class="preset-btn" onclick="setTimerDuration(45)">۴۵ ثانیه</button>
+      <button class="preset-btn" onclick="setTimerDuration(60)">۶۰ ثانیه</button>
+      <button class="preset-btn active" onclick="setTimerDuration(90)">۹۰ ثانیه</button>
+      <button class="preset-btn" onclick="setTimerDuration(120)">۲ دقیقه</button>
+      <button class="preset-btn" onclick="setTimerDuration(180)">۳ دقیقه</button>
+    </div>
+
+    <!-- Custom Time Setter -->
+    <div class="custom-time-row">
+      <span style="font-size: 12px; color: #cbd5e1; font-weight: 700;">⏳ زمان دلخواه:</span>
+      <div style="display:flex; align-items:center; gap:4px; direction:ltr;">
+        <input type="number" id="customMin" value="0" min="0" max="60" class="custom-time-input" placeholder="دقیقه" title="دقیقه">
+        <span style="color:#fff; font-weight:800;">:</span>
+        <input type="number" id="customSec" value="45" min="0" max="59" class="custom-time-input" placeholder="ثانیه" title="ثانیه">
+      </div>
+      <button class="preset-btn" style="background:rgba(56,189,248,0.2); border-color:#38bdf8; color:#fff;" onclick="applyCustomTimer()">
+        تنظیم ⚡
+      </button>
+    </div>
+
+    <div class="timer-controls" style="margin-top: 14px;">
+      <button id="startTimerBtn" class="timer-ctl-btn btn-start" onclick="toggleTimer()">شروع ⚡</button>
+      <button class="timer-ctl-btn btn-reset" onclick="resetTimer()">ریست ↺</button>
+    </div>
+  </div>
+</div>
+
+<!-- Password / PIN Access Modal -->
+<div id="pinModal" class="modal-overlay">
+  <div class="modal-dialog" style="max-width: 380px; text-align: center;">
+    <button class="modal-close-btn" onclick="closePinModal()">✕</button>
+    <div style="font-size: 32px; margin-bottom: 6px;">🔒</div>
+    <h3 id="pinModalTitle" style="justify-content: center; margin-bottom: 4px;">ورود به بخش اختصاصی برنامه</h3>
+    <p id="pinModalDesc" style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
+      این برنامه محافظت‌شده است. لطفاً رمز عبور را وارد کنید:
+    </p>
+
+    <div class="form-group">
+      <input type="password" id="profilePinInput" class="form-input" placeholder="رمز عبور برنامه..." style="text-align: center; font-size: 16px; letter-spacing: 2px;" onkeydown="if(event.key==='Enter') confirmProfilePin()">
+      <div id="pinErrorMsg" style="color: #f87171; font-size: 11.5px; margin-top: 6px; display: none;">❌ رمز عبور اشتباه است!</div>
+    </div>
+
+    <div style="display: flex; gap: 8px;">
+      <button class="btn-header-action btn-action-primary" style="flex: 2; justify-content: center; padding: 11px; font-weight: 800;" onclick="confirmProfilePin()">
+        تایید و باز کردن قفل 🔓
+      </button>
+      <button class="btn-header-action" style="flex: 1; justify-content: center; padding: 11px;" onclick="closePinModal()">
+        انصراف ✕
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Workout Logger Modal (Weight / Reps / RIR) -->
+<div id="logModal" class="modal-overlay">
+  <div class="modal-dialog" style="max-width: 480px;">
+    <button class="modal-close-btn" onclick="closeLogModal()">✕</button>
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+      <span style="font-size:22px;">📝</span>
+      <h3 id="logModalTitle" style="margin:0;">ثبت لاگ وزنه و تکرار</h3>
+    </div>
+    <p id="logModalSubtitle" style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
+      ثبت دقیق وزنه و RIR برای اعمال اضافه بار تدریجی (Progressive Overload)
+    </p>
+
+    <div id="logSetsContainer" style="margin-bottom:14px;"></div>
+
+    <div class="form-group">
+      <label class="form-label">یادداشت این جلسه (اختیاری)</label>
+      <input type="text" id="logNoteInput" class="form-input" placeholder="مثلاً: فرم عالی بود، جلسه بعد ۲.۵ کیلو اضافه شود">
+    </div>
+
+    <div style="display:flex; gap:8px;">
+      <button class="btn-header-action btn-action-success" style="flex:1; justify-content:center; padding:11px; font-weight:800;" onclick="saveExerciseLog()">
+        💾 ذخیره لاگ جلسه
+      </button>
+      <button class="btn-header-action" onclick="openOverloadChartFromLog()" style="padding:11px 14px; color:#c084fc; border-color:#c084fc55;">
+        📈 مشاهده نمودار
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Progressive Overload Chart & History Modal -->
+<div id="overloadChartModal" class="modal-overlay">
+  <div class="modal-dialog" style="max-width: 650px;">
+    <button class="modal-close-btn" onclick="closeOverloadChartModal()">✕</button>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px;">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="font-size:24px;">📈</span>
+        <h3 id="chartModalTitle" style="margin:0;">نمودار پیشرفت و اضافه بار تدریجی</h3>
+      </div>
+      <button class="btn-header-action btn-action-primary" onclick="openLogModalFromChart()" style="padding:4px 9px; font-size:11.5px;">+ ثبت جلسه جدید</button>
+    </div>
+    <p id="chartModalSubtitle" style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
+      روند افزایش قدرت، رکورد وزنه و حجم تمرینی نسبت به جلسه اول
+    </p>
+
+    <!-- Stats Row -->
+    <div class="overload-stats-row">
+      <div class="overload-stat-card">
+        <div class="overload-stat-label">🏆 بیشترین وزنه</div>
+        <div id="statMaxWeight" class="overload-stat-num">۰ kg</div>
+      </div>
+      <div class="overload-stat-card">
+        <div class="overload-stat-label">🚀 رشد نسبت به جلسه اول</div>
+        <div id="statOverloadPct" class="overload-stat-num" style="color:#10b981;">۰٪</div>
+      </div>
+      <div class="overload-stat-card">
+        <div class="overload-stat-label">📊 حجم کل آخرین جلسه</div>
+        <div id="statLastVolume" class="overload-stat-num" style="color:#c084fc;">۰ kg</div>
+      </div>
+    </div>
+
+    <!-- Interactive SVG Chart -->
+    <div class="chart-svg-container" id="chartSvgWrapper">
+      <div id="chartEmptyNotice" style="text-align:center; padding:30px 10px; color:var(--text-muted); font-size:12.5px;">
+        هنوز لاگی برای این حرکت ثبت نشده است. با زدن «ثبت جلسه جدید» اولین وزنه و تکرار خود را ثبت کنید تا نمودار هوشمند فعال شود!
+      </div>
+      <svg id="overloadSvg" viewBox="0 0 500 180" style="width:100%; height:180px; display:none;"></svg>
+    </div>
+
+    <!-- History Table -->
+    <div style="font-size:13px; font-weight:800; color:#cbd5e1; margin-bottom:6px;">📋 تاریخچه جلسات ثبت‌شده:</div>
+    <div class="table-container" style="max-height: 180px; overflow-y: auto;">
+      <table id="logHistoryTable">
+        <thead>
+          <tr>
+            <th>تاریخ</th>
+            <th>ست‌ها (وزنه × تکرار)</th>
+            <th>RIR</th>
+            <th>حجم کل</th>
+            <th>یادداشت</th>
+          </tr>
+        </thead>
+        <tbody id="logHistoryTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Master Exercise Library Explorer Modal -->
+<div id="libraryModal" class="modal-overlay">
+  <div class="modal-dialog">
+    <button class="modal-close-btn" onclick="closeLibraryModal()">✕</button>
+    <h3>📚 بانک جامع حرکات ورزشی (با تمام ویدیوها)</h3>
+    <p style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 12px;">
+      مرجع کامل تمام ۷۵+ حرکت تمرینی به همراه ویدیوهای آموزشی یوتیوب
+    </p>
+
+    <div style="display:flex; gap:8px; margin-bottom:12px;">
+      <input type="text" id="librarySearchInput" class="form-input" placeholder="جستجو در بانک حرکات (مثلاً: اسکوات، پرس، لت، صدف)..." oninput="filterLibrary(this.value)">
+      <button class="btn-header-action btn-action-primary" onclick="openCustomExerciseModal()">+ حرکت دلخواه</button>
+    </div>
+
+    <div id="libraryCategoryFilter" style="display:flex; gap:5px; flex-wrap:wrap; margin-bottom:12px;">
+      <button class="btn-header-action" onclick="filterLibraryCat('all')" style="padding:4px 9px; font-size:11.5px">همه</button>
+      <button class="btn-header-action" onclick="filterLibraryCat('gym')" style="padding:4px 9px; font-size:11.5px">🏋️ باشگاه</button>
+      <button class="btn-header-action" onclick="filterLibraryCat('home')" style="padding:4px 9px; font-size:11.5px">🏠 خانه / Core</button>
+      <button class="btn-header-action" onclick="filterLibraryCat('سینه')" style="padding:4px 9px; font-size:11.5px">سینه</button>
+      <button class="btn-header-action" onclick="filterLibraryCat('پا')" style="padding:4px 9px; font-size:11.5px">پا / باسن</button>
+      <button class="btn-header-action" onclick="filterLibraryCat('پشت')" style="padding:4px 9px; font-size:11.5px">پشت / زیر بغل</button>
+      <button class="btn-header-action" onclick="filterLibraryCat('سرشانه')" style="padding:4px 9px; font-size:11.5px">سرشانه</button>
+    </div>
+
+    <div id="libraryListContainer" class="library-grid"></div>
+
+    <div style="margin-top:16px; padding:12px; background:#141f33; border:1px dashed var(--border-light); border-radius:12px; text-align:center;">
+      <div style="font-size:13px; font-weight:700; color:#38bdf8; margin-bottom:4px;">حرکت مورد نظرت رو پیدا نکردی؟</div>
+      <p style="font-size:11.5px; color:var(--text-muted); margin-bottom:8px;">می‌تونی در مرجع جهانی MuscleWiki نقشه آناتومی بدن و ویدیوهای تمام حرکات دنیا رو ببینی:</p>
+      <button class="btn-header-action btn-action-primary" style="margin:0 auto; justify-content:center;" onclick="openMuscleWikiModal()">
+        🌐 باز کردن بانک جهانی MuscleWiki
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MuscleWiki Integration Modal -->
+<div id="muscleWikiModal" class="modal-overlay">
+  <div class="modal-dialog" style="max-width: 520px;">
+    <button class="modal-close-btn" onclick="closeMuscleWikiModal()">✕</button>
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+      <span style="font-size:24px;">🌐</span>
+      <h3 style="margin:0;">بانک جهانی حرکات MuscleWiki & ویدیوها</h3>
+    </div>
+    <p style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 14px;">
+      دسترسی به نقشه آناتومی تعاملی بدن و ویدیوی آموزشی تمام حرکات بدنسازی دنیا:
+    </p>
+
+    <!-- Interactive MuscleWiki Portal Button -->
+    <a href="https://musclewiki.com/" target="_blank" rel="noopener" class="btn-header-action btn-action-primary" style="justify-content:center; padding:12px; font-size:13.5px; text-decoration:none; margin-bottom:14px; box-shadow:0 4px 15px rgba(14,165,233,0.35);">
+      <span>🔥</span>
+      <span>ورود به نقشه تعاملی بدن در MuscleWiki.com ↗</span>
+    </a>
+
+    <!-- Smart Exercise Search -->
+    <div style="background:#152033; border:1px solid var(--border-color); border-radius:12px; padding:12px; margin-bottom:14px;">
+      <label class="form-label">🔍 جستجوی نام حرکت برای دریافت فوری ویدیو و آموزش:</label>
+      <div style="margin-bottom:8px;">
+        <input type="text" id="mwSearchQuery" class="form-input" placeholder="نام فارسی یا انگلیسی حرکت (مثلاً: هیپ تراست، Hip Thrust)..." style="direction:rtl">
+      </div>
+      <div style="display:flex; gap:6px;">
+        <button class="btn-header-action btn-action-primary" onclick="searchYouTubeDirect()" style="flex:1; justify-content:center;">
+          <span>▶</span> <span>ویدیو در یوتیوب</span>
+        </button>
+        <button class="btn-header-action" onclick="searchMuscleWikiDirect()" style="flex:1; justify-content:center;">
+          <span>🌐</span> <span>سرچ MuscleWiki</span>
+        </button>
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-color); padding-top:12px;">
+      <button class="btn-header-action" onclick="closeMuscleWikiModal()">بستن</button>
+      <button class="btn-header-action btn-action-primary" onclick="closeMuscleWikiModal(); openCustomExerciseModal();">
+        + ثبت حرکت جدید در برنامه
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Exercise Creator Modal -->
+<div id="customExerciseModal" class="modal-overlay">
+  <div class="modal-dialog" style="max-width: 460px;">
+    <button class="modal-close-btn" onclick="closeCustomExerciseModal()">✕</button>
+    <h3>➕ ثبت حرکت تمرینی دلخواه جدید</h3>
+    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
+      حرکت جدید خود را به بانک حرکات اضافه کنید تا در برنامه‌ها قابل انتخاب باشد.
+    </p>
+
+    <div class="form-group">
+      <label class="form-label">نام فارسی حرکت *</label>
+      <input type="text" id="custFaName" class="form-input" placeholder="مثلاً: پرس بالا سینه دمبل موازی">
+    </div>
+
+    <div class="form-group">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+        <label class="form-label" style="margin:0;">نام انگلیسی حرکت (اختیاری)</label>
+        <a href="javascript:void(0)" onclick="searchVideosForCustom()" style="font-size:11.5px; color:#38bdf8; text-decoration:none;">🔍 یافتن ویدیو آموزشی</a>
+      </div>
+      <input type="text" id="custEnName" class="form-input" placeholder="e.g. Incline Neutral Dumbbell Press" style="direction:ltr">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">محیط تمرین</label>
+      <select id="custCategory" class="form-select">
+        <option value="gym">🏋️ باشگاه</option>
+        <option value="home">🏠 خانه / بدون وسیله</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">عضلات هدف</label>
+      <input type="text" id="custMuscles" class="form-input" placeholder="مثلاً: بالا سینه، پشت بازو">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">ست و تکرار پیشنهادی</label>
+      <input type="text" id="custReps" class="form-input" placeholder="مثلاً: 3 × 10–12" style="direction:ltr">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">لینک‌های ویدیو آموزشی (یوتیوب / اینستاگرام / MuscleWiki) - هر لینک در یک خط</label>
+      <textarea id="custVideos" class="form-input" rows="3" placeholder="https://youtube.com/shorts/...&#10;https://musclewiki.com/..." style="direction:ltr"></textarea>
+    </div>
+
+    <button class="btn-header-action btn-action-primary" style="width:100%; justify-content:center; padding:11px;" onclick="saveCustomExercise()">
+      💾 ذخیره حرکت در بانک حرکات
+    </button>
+  </div>
+</div>
+
+<!-- New Profile / Plan Modal -->
+<div id="newProfileModal" class="modal-overlay">
+  <div class="modal-dialog" style="max-width: 440px;">
+    <button class="modal-close-btn" onclick="closeNewProfileModal()">✕</button>
+    <h3>👤 ایجاد کاربر یا برنامه تمرینی جدید</h3>
+    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
+      یک پروفایل مجزا بسازید تا برنامه، ست‌ها، لاگ‌ها و روزهای شخصی خود را داشته باشید.
+    </p>
+
+    <div class="form-group">
+      <label class="form-label">نام کاربر یا عنوان برنامه *</label>
+      <input type="text" id="newProfileName" class="form-input" placeholder="مثلاً: برنامه اختصاصی مروارید، برنامه حجم ۴ روزه">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">قالب اولیه برنامه</label>
+      <select id="newProfileTemplate" class="form-select">
+        <option value="clone">کپی از برنامه Hossein Chieftain</option>
+        <option value="morvarid">کپی از برنامه تخصصی مروارید (باشگاه + خانه)</option>
+        <option value="empty">شروع از برنامه خالی (صفحه سفید)</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">رمز عبور برای قفل برنامه و لاگ‌ها (اختیاری)</label>
+      <input type="password" id="newProfilePin" class="form-input" placeholder="مثلاً: 1234 یا رمز دلخواه">
+    </div>
+
+    <button class="btn-header-action btn-action-primary" style="width:100%; justify-content:center; padding:11px;" onclick="saveNewProfile()">
+      ✨ ساخت برنامه شخصی جدید
+    </button>
+  </div>
+</div>
+
+<!-- Detailed Routine & Exercise Builder Modal -->
+<div id="editPlanModal" class="modal-overlay">
+  <div class="modal-dialog" style="max-width: 720px;">
+    <button class="modal-close-btn" onclick="closeEditPlanModal()">✕</button>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+      <h3 style="margin: 0;">✏️ ویرایش کامل و همه‌جانبه برنامه</h3>
+      <div style="display:flex; gap:6px; align-items:center;">
+        <span id="editPlanProfileBadge" style="font-size: 12px; background: rgba(56, 189, 248, 0.15); color: #38bdf8; padding: 3px 10px; border-radius: 20px; border: 1px solid rgba(56,189,248,0.3);"></span>
+        <button class="btn-header-action btn-action-success" onclick="applyAndSavePlanEdits()" style="padding:4px 10px; font-size:12px;">💾 اعمال تغییرات</button>
+      </div>
+    </div>
+    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
+      امکان تغییر حرکت با جستجو، تفکیک/ساخت سوپرست، ویرایش تعداد ست و تکرار در اختیار شماست:
+    </p>
+
+    <!-- Change PIN Box -->
+    <div style="background:#152033; border:1px solid var(--border-color); border-radius:12px; padding:10px 14px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+      <div style="font-size:12px; color:#cbd5e1;">🔒 رمز عبور ویرایش و لاگ‌های این برنامه:</div>
+      <div style="display:flex; gap:6px;">
+        <input type="text" id="editProfilePinInput" class="form-input" style="width:110px; padding:6px 10px; font-size:12px;" placeholder="رمز جدید...">
+        <button class="btn-header-action" onclick="updateProfilePin()" style="padding:6px 10px; font-size:11.5px;">ذخیره رمز</button>
+      </div>
+    </div>
+
+    <!-- Days & Exercises Full List -->
+    <div id="editPlanDaysList"></div>
+
+    <!-- Actions Footer -->
+    <div style="display:flex; gap:8px; margin-top:16px; flex-wrap:wrap;">
+      <button class="btn-header-action btn-action-success" onclick="applyAndSavePlanEdits()" style="flex:2; justify-content:center; font-weight:800; padding:11px;">
+        💾 اعمال و ذخیره نهایی ویرایش‌ها
+      </button>
+      <button class="btn-header-action btn-action-primary" onclick="addNewDayToActiveProfile()" style="flex:1; justify-content:center;">
+        + افزودن روز جدید
+      </button>
+      <button class="btn-header-action" onclick="exportActiveProfile()" style="padding:10px 14px;" title="خروجی گرفتن فایل JSON برنامه">
+        📥 خروجی (JSON)
+      </button>
+      <button id="factoryResetBtn" class="btn-header-action" onclick="factoryResetActiveProfile()" style="color:#fcd34d; border-color:#fcd34d55;" title="بازنشانی برنامه به تنظیمات اولیه کارخانه">
+        🔄 بازنشانی روزهای اصلی
+      </button>
+      <button id="deleteProfileBtn" class="btn-header-action" onclick="deleteActiveProfile()" style="color:#f87171; border-color:#f8717155;" title="حذف این پروفایل">
+        🗑️ حذف برنامه
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Exercise or Superset to Day Modal with Search Picker -->
+<div id="addExToDayModal" class="modal-overlay">
+  <div class="modal-dialog" style="max-width: 500px;">
+    <button class="modal-close-btn" onclick="closeAddExToDayModal()">✕</button>
+    <h3 id="addExModalTitle">➕ افزودن حرکت به روز تمرین</h3>
+
+    <div class="form-group">
+      <label class="form-label">نوع افزودن</label>
+      <select id="addExType" class="form-select" onchange="onAddExTypeChange(this.value)">
+        <option value="single">حرکت تکی</option>
+        <option value="superset">سوپرست (۲ حرکت متوالی)</option>
+      </select>
+    </div>
+
+    <!-- Searchable Picker 1 -->
+    <div class="form-group">
+      <label class="form-label">🔍 جستجو و انتخاب حرکت اول *</label>
+      <div class="search-picker-box">
+        <input type="text" id="pickerSearch1" class="form-input" placeholder="تایپ نام حرکت برای جستجوی سریع..." oninput="filterPickerOptions(1, this.value)">
+        <div id="pickerList1" class="search-picker-list"></div>
+      </div>
+      <input type="hidden" id="addExSelect1Val">
+      <div id="pickerSelectedDisplay1" style="font-size:12px; color:#38bdf8; font-weight:700; margin-top:4px;">انتخاب شده: ددلیفت رومانیایی</div>
+    </div>
+
+    <div style="display:flex; gap:8px;">
+      <div class="form-group" style="flex:2;">
+        <label class="form-label">ست و تکرار حرکت اول</label>
+        <input type="text" id="addExReps1" class="form-input" value="3 × 8–12" style="direction:ltr">
+      </div>
+      <div class="form-group" style="flex:1;">
+        <label class="form-label">تعداد ست</label>
+        <select id="addExSets1" class="form-select">
+          <option value="1">۱ ست</option>
+          <option value="2">۲ ست</option>
+          <option value="3" selected>۳ ست</option>
+          <option value="4">۴ ست</option>
+          <option value="5">۵ ست</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="supersetSecondExGroup" style="display:none; border-top:1px dashed var(--border-color); padding-top:12px; margin-top:12px;">
+      <div class="form-group">
+        <label class="form-label">عنوان سوپرست</label>
+        <input type="text" id="addSupersetTitle" class="form-input" placeholder="مثلاً: A1 + A2 · پرس پا + ریورس پک‌دک">
+      </div>
+
+      <!-- Searchable Picker 2 -->
+      <div class="form-group">
+        <label class="form-label">🔍 جستجو و انتخاب حرکت دوم *</label>
+        <div class="search-picker-box">
+          <input type="text" id="pickerSearch2" class="form-input" placeholder="تایپ نام حرکت دوم..." oninput="filterPickerOptions(2, this.value)">
+          <div id="pickerList2" class="search-picker-list"></div>
+        </div>
+        <input type="hidden" id="addExSelect2Val">
+        <div id="pickerSelectedDisplay2" style="font-size:12px; color:#38bdf8; font-weight:700; margin-top:4px;">انتخاب شده: -</div>
+      </div>
+
+      <div style="display:flex; gap:8px;">
+        <div class="form-group" style="flex:2;">
+          <label class="form-label">ست و تکرار حرکت دوم</label>
+          <input type="text" id="addExReps2" class="form-input" value="3 × 12–20" style="direction:ltr">
+        </div>
+        <div class="form-group" style="flex:1;">
+          <label class="form-label">تعداد ست</label>
+          <select id="addExSets2" class="form-select">
+            <option value="1">۱ ست</option>
+            <option value="2">۲ ست</option>
+            <option value="3" selected>۳ ست</option>
+            <option value="4">۴ ست</option>
+            <option value="5">۵ ست</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-header-action btn-action-primary" style="width:100%; justify-content:center; padding:11px; margin-top:10px;" onclick="confirmAddExerciseToDay()">
+      ➕ اضافه کردن به برنامه
+    </button>
+  </div>
+</div>
+
+<!-- Convert Single Exercise to Superset Modal with Search Picker -->
+<div id="convertSingleModal" class="modal-overlay">
+  <div class="modal-dialog" style="max-width: 480px;">
+    <button class="modal-close-btn" onclick="closeConvertSingleModal()">✕</button>
+    <h3>⚡ تبدیل حرکت تکی به سوپرست</h3>
+    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
+      حرکت اول در سوپرست قرار می‌گیرد، لطفاً حرکت دوم را انتخاب نمایید:
+    </p>
+
+    <div class="form-group">
+      <label class="form-label">حرکت اول (موجود)</label>
+      <input type="text" id="convertSingleName1" class="form-input" readonly style="opacity:0.8; font-weight:700;">
+    </div>
+
+    <!-- Searchable Picker Convert -->
+    <div class="form-group">
+      <label class="form-label">🔍 جستجو و انتخاب حرکت دوم برای جفت شدن *</label>
+      <div class="search-picker-box">
+        <input type="text" id="pickerSearchConvert" class="form-input" placeholder="تایپ نام حرکت دوم..." oninput="filterPickerOptions('Convert', this.value)">
+        <div id="pickerListConvert" class="search-picker-list"></div>
+      </div>
+      <input type="hidden" id="convertSingleSelect2Val">
+      <div id="pickerSelectedDisplayConvert" style="font-size:12px; color:#38bdf8; font-weight:700; margin-top:4px;">انتخاب شده: -</div>
+    </div>
+
+    <div style="display:flex; gap:8px;">
+      <div class="form-group" style="flex:2;">
+        <label class="form-label">ست و تکرار حرکت دوم</label>
+        <input type="text" id="convertSingleReps2" class="form-input" value="3 × 10–15" style="direction:ltr">
+      </div>
+      <div class="form-group" style="flex:1;">
+        <label class="form-label">تعداد ست</label>
+        <select id="convertSingleSets2" class="form-select">
+          <option value="1">۱ ست</option>
+          <option value="2">۲ ست</option>
+          <option value="3" selected>۳ ست</option>
+          <option value="4">۴ ست</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">عنوان سوپرست</label>
+      <input type="text" id="convertSingleTitle" class="form-input" placeholder="عنوان دلخواه سوپرست...">
+    </div>
+
+    <button class="btn-header-action btn-action-primary" style="width:100%; justify-content:center; padding:11px;" onclick="confirmConvertSingleToSuperset()">
+      ⚡ ساخت سوپرست دوتایی
+    </button>
+  </div>
+</div>
+
+<!-- Quick Single Exercise Editor Modal -->
+<div id="quickEditExModal" class="modal-overlay">
+  <div class="modal-dialog" style="max-width: 480px;">
+    <button class="modal-close-btn" onclick="closeQuickEditExModal()">✕</button>
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+      <span style="font-size:22px;">✏️</span>
+      <h3 id="quickEditExModalTitle" style="margin:0;">ویرایش حرکت تمرینی</h3>
+    </div>
+    <p id="quickEditExModalSubtitle" style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
+      تغییر حرکت، تعداد ست‌ها، دامنه تکرار یا حذف از برنامه
+    </p>
+
+    <!-- Searchable Picker Quick Edit -->
+    <div class="form-group">
+      <label class="form-label">🔍 انتخاب حرکت (با جستجوی سریع)</label>
+      <div class="search-picker-box">
+        <input type="text" id="pickerSearchQuickEdit" class="form-input" placeholder="تایپ نام حرکت برای جایگزینی..." oninput="filterPickerOptions('QuickEdit', this.value)">
+        <div id="pickerListQuickEdit" class="search-picker-list"></div>
+      </div>
+      <input type="hidden" id="quickEditExSelectVal">
+      <div id="pickerSelectedDisplayQuickEdit" style="font-size:12px; color:#38bdf8; font-weight:700; margin-top:4px;">حرکت فعلی: -</div>
+    </div>
+
+    <div style="display:flex; gap:8px;">
+      <div class="form-group" style="flex:2;">
+        <label class="form-label">متن ست و تکرار</label>
+        <input type="text" id="quickEditExReps" class="form-input" value="3 × 8–12" style="direction:ltr">
+      </div>
+      <div class="form-group" style="flex:1;">
+        <label class="form-label">تعداد ست</label>
+        <select id="quickEditExSets" class="form-select">
+          <option value="1">۱ ست</option>
+          <option value="2">۲ ست</option>
+          <option value="3" selected>۳ ست</option>
+          <option value="4">۴ ست</option>
+          <option value="5">۵ ست</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Custom Display Name -->
+    <div class="form-group" style="margin-top:6px;">
+      <label class="form-label">🏷️ نام نمایشی اختصاصی برای این حرکت (اختیاری):</label>
+      <input type="text" id="quickEditExCustomName" class="form-input" placeholder="مثلاً: جلوبازو لاری هالتر EZ یا نام دلخواه شما...">
+      <div style="font-size:10.5px; color:#94a3b8; margin-top:2px;">اگر در باشگاه یا برنامه‌تان این حرکت را با نام دیگری صدا می‌زنید، اینجا بنویسید تا در کارت حرکت نمایش یابد.</div>
+    </div>
+
+    <!-- Custom Default Timer Duration -->
+    <div class="form-group" style="margin-top:6px;">
+      <label class="form-label">⏱️ زمان پیش‌فرض تایمر برای این حرکت (ثانیه):</label>
+      <input type="number" id="quickEditExIsoDuration" class="form-input" placeholder="مثلاً: 30 یا 45 یا 60 ثانیه" style="direction:ltr; text-align:center; font-weight:800; color:#38bdf8;">
+      <div style="font-size:10.5px; color:#94a3b8; margin-top:2px;">با وارد کردن عدد دلخواه، دکمه سریع تایمر روی کارت این حرکت دقیقاً با همین ثانیه باز می‌شود.</div>
+    </div>
+
+    <!-- Superset Conversion / Split Option in Quick Edit -->
+    <div id="quickEditSupersetSection" style="background:#152033; border:1px solid var(--border-color); border-radius:10px; padding:10px 12px; margin-top:12px;">
+      <div id="quickEditNotSupersetBox">
+        <div style="font-size:12px; font-weight:800; color:#00f2fe; margin-bottom:4px;">⚡ ترکیب و سوپرست کردن این حرکت</div>
+        <p style="font-size:11px; color:#94a3b8; margin-bottom:8px;">می‌توانید این حرکت را با یک یا چند حرکت دیگر از بانک حرکات جفت و سوپرست کنید:</p>
+        <button class="btn-header-action btn-action-primary" style="width:100%; justify-content:center; padding:8px; font-size:12px; font-weight:800;" onclick="startSupersetFromQuickEdit()">
+          ⚡ تبدیل به سوپرست دوتایی
+        </button>
+      </div>
+
+      <div id="quickEditIsSupersetBox" style="display:none;">
+        <div style="font-size:12px; font-weight:800; color:#fcd34d; margin-bottom:4px;">⚡ این حرکت در حال حاضر درون یک سوپرست است</div>
+        <p style="font-size:11px; color:#94a3b8; margin-bottom:8px;">می‌توانید حرکت دیگری به این سوپرست اضافه کنید (ساخت تری‌ست یا جاینت‌ست) یا آن را تفکیک کنید:</p>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          <button class="btn-header-action btn-action-primary" style="flex:1; justify-content:center; padding:8px; font-size:11.5px; font-weight:800;" onclick="addExerciseToThisSupersetFromQuickEdit()">
+            ➕ افزودن حرکت دیگر به این سوپرست
+          </button>
+          <button class="btn-header-action" style="flex:1; justify-content:center; padding:8px; font-size:11.5px; font-weight:800; border-color:#fcd34d88; color:#fcd34d;" onclick="splitSupersetFromQuickEdit()">
+            ✂️ تفکیک به حرکت تکی
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:8px; margin-top:14px;">
+      <button class="btn-header-action btn-action-success" style="flex:2; justify-content:center; padding:11px; font-weight:800;" onclick="saveQuickEditExercise()">
+        💾 اعمال و ذخیره تغییرات
+      </button>
+      <button class="btn-header-action" style="flex:1; justify-content:center; color:#f87171; border-color:#f8717155;" onclick="deleteQuickEditExercise()">
+        🗑️ حذف حرکت
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Exercise to Existing Superset Modal (Tri-Set & Giant-Set Support) -->
+<div id="addExToSupersetModal" class="modal-overlay">
+  <div class="modal-dialog" style="max-width: 480px;">
+    <button class="modal-close-btn" onclick="closeAddExToSupersetModal()">✕</button>
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+      <span style="font-size:22px;">⚡</span>
+      <h3 id="addExToSupersetTitle" style="margin:0;">افزودن حرکت به سوپرست</h3>
+    </div>
+    <p id="addExToSupersetSubtitle" style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
+      افزودن حرکت ۳، ۴ یا بیشتر برای ایجاد تری‌ست (Tri-Set) یا جاینت‌ست (Giant Set)
+    </p>
+
+    <!-- Searchable Picker -->
+    <div class="form-group">
+      <label class="form-label">🔍 انتخاب حرکت جدید برای اضافه شدن به این سوپرست *</label>
+      <div class="search-picker-box">
+        <input type="text" id="pickerSearchAddToSS" class="form-input" placeholder="تایپ نام حرکت..." oninput="filterPickerOptions('AddToSS', this.value)">
+        <div id="pickerListAddToSS" class="search-picker-list"></div>
+      </div>
+      <input type="hidden" id="addExToSSSelectVal">
+      <div id="pickerSelectedDisplayAddToSS" style="font-size:12px; color:#38bdf8; font-weight:700; margin-top:4px;">انتخاب شده: -</div>
+    </div>
+
+    <div style="display:flex; gap:8px;">
+      <div class="form-group" style="flex:2;">
+        <label class="form-label">ست و تکرار حرکت</label>
+        <input type="text" id="addExToSSReps" class="form-input" value="3 × 10–15" style="direction:ltr">
+      </div>
+      <div class="form-group" style="flex:1;">
+        <label class="form-label">تعداد ست</label>
+        <select id="addExToSSSets" class="form-select">
+          <option value="1">۱ ست</option>
+          <option value="2">۲ ست</option>
+          <option value="3" selected>۳ ست</option>
+          <option value="4">۴ ست</option>
+          <option value="5">۵ ست</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">نام نمایشی اختصاصی (اختیاری)</label>
+      <input type="text" id="addExToSSCustomName" class="form-input" placeholder="مثلاً: نام دلخواه حرکت...">
+    </div>
+
+    <button class="btn-header-action btn-action-primary" style="width:100%; justify-content:center; padding:11px; margin-top:8px;" onclick="confirmAddExerciseToSuperset()">
+      ⚡ اضافه کردن به این سوپرست
+    </button>
+  </div>
+</div>
+
+<!-- High-Res Exercise Image Modal -->
+<div id="imageModal" class="modal-overlay">
+  <div class="modal-dialog" style="max-width: 550px; text-align: center;">
+    <button class="modal-close-btn" onclick="closeImageModal()">✕</button>
+    <h3 id="imageModalTitle" style="justify-content: center; margin-bottom: 12px;">🖼️ تصویر نحوه اجرای صحیح حرکت</h3>
+    <div style="background:#090d16; border-radius:12px; overflow:hidden; border:1px solid var(--border-color); padding:4px;">
+      <img id="imageModalImg" src="" style="width:100%; height:auto; display:block; border-radius:8px;">
+    </div>
+  </div>
+</div>
+
+<!-- Detailed Muscle Group Breakdown Modal -->
+<div id="muscleDetailModal" class="modal-overlay">
+  <div class="modal-dialog" style="max-width: 520px;">
+    <button class="modal-close-btn" onclick="closeMuscleDetailModal()">✕</button>
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+      <span style="font-size:24px;">📊</span>
+      <h3 id="muscleDetailModalTitle" style="margin:0;">تحلیل آناتومیک و تفکیک حجم</h3>
+    </div>
+    <p id="muscleDetailModalSubtitle" style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+      تفکیک علمی ست‌های پرفشار باشگاه و حرکات ثبات و فعال‌سازی در خانه
+    </p>
+
+    <!-- Quick Stats Summary Row -->
+    <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; margin-bottom:12px;" id="muscleDetailStatsRow"></div>
+
+    <div style="font-size:12px; font-weight:800; color:#38bdf8; margin-bottom:6px;">
+      📋 لیست کامل حرکات درگیر در طول هفته:
+    </div>
+
+    <div id="muscleDetailExercisesList" style="max-height:320px; overflow-y:auto; display:flex; flex-direction:column; gap:6px; padding-right:2px;"></div>
+
+    <div style="margin-top:14px; text-align:center;">
+      <button class="btn-header-action" style="width:100%; justify-content:center; padding:9px;" onclick="closeMuscleDetailModal()">
+        بستن ✕
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Sync & Cloud Backup / Restore Modal -->
+<div id="syncBackupModal" class="modal-overlay">
+  <div class="modal-dialog" style="max-width: 520px;">
+    <button class="modal-close-btn" onclick="closeSyncBackupModal()">✕</button>
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+      <span style="font-size:24px;">☁️</span>
+      <h3 style="margin:0;">پایگاه ابری اختصاصی و همگام‌سازی خودکار</h3>
+    </div>
+    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+      برنامه تمرینی شما بدون نیاز به هیچ فایلی، به طور زنده و خودکار بین تمام دستگاه‌ها و مرورگرها همگام می‌شود:
+    </p>
+
+    <!-- Cloud Sync Database System -->
+    <div style="background:#152033; border:1px solid rgba(0,242,254,0.35); border-radius:12px; padding:14px; margin-bottom:12px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <span style="font-size:13px; font-weight:800; color:#00f2fe;">☁️ حساب ابری همگام‌سازی (<bdi>Live Cloud Sync</bdi>)</span>
+        <span id="cloudStatusBadge" style="font-size:10.5px; padding:2px 8px; border-radius:10px; background:rgba(16,185,129,0.15); color:#34d399; font-weight:800;">🟢 آماده اتصال</span>
+      </div>
+
+      <div class="form-group" style="margin-bottom:10px;">
+        <label class="form-label" style="font-size:11.5px;">شناسه اختصاصی شما در سرور ابری (<bdi>Cloud Sync Key</bdi>):</label>
+        <div style="display:flex; gap:6px;">
+          <input type="text" id="cloudSyncKeyInput" class="form-input" placeholder="نام یا شناسه شما مثلا hossein..." style="font-size:13px; font-weight:800; direction:ltr; text-align:center; color:#38bdf8; letter-spacing:1px;">
+          <button class="btn-header-action" style="flex-shrink:0; padding:8px 12px;" onclick="generateRandomSyncKey()" title="تولید شناسه رندوم جدید">🎲</button>
+        </div>
+        <div style="font-size:10.5px; color:#94a3b8; margin-top:3px;">
+          💡 فقط کافیست همین شناسه را در گوشی یا هر مرورگر دیگری وارد کنید تا برنامه‌تان متصل شود.
+        </div>
+      </div>
+
+      <div style="display:flex; gap:8px; margin-bottom:8px;">
+        <button class="btn-header-action btn-action-primary" style="flex:1; justify-content:center; padding:10px; font-weight:800;" onclick="pushToCloudStorage()">
+          ☁️ ذخیره در سرور ابری
+        </button>
+        <button class="btn-header-action btn-action-success" style="flex:1; justify-content:center; padding:10px; font-weight:800;" onclick="pullFromCloudStorage()">
+          📥 دریافت از سرور ابری
+        </button>
+      </div>
+
+      <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-light); border-radius:10px; padding:10px 12px; display:flex; align-items:center; justify-content:space-between;">
+        <div>
+          <div style="font-size:12px; color:#f8fafc; font-weight:800; display:flex; align-items:center; gap:6px;">
+            <span>⚡ همگام‌سازی خودکار در پس‌زمینه</span>
+            <span id="autoSyncStateBadge" style="font-size:10.5px; padding:1px 6px; border-radius:8px; background:rgba(16,185,129,0.2); color:#34d399; font-weight:800;">🟢 روشن و فعال</span>
+          </div>
+          <div style="font-size:10.5px; color:#94a3b8; margin-top:2px;">
+            هر تغییری در برنامه بدهید، خودکار و بدون نیاز به کلیک در سرور ابری ذخیره می‌شود.
+          </div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="autoCloudSyncToggle" onchange="toggleAutoCloudSync(this.checked)" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Backup JSON / Direct JSON Paste Section -->
+    <div style="background:#152033; border:1px solid var(--border-color); border-radius:12px; padding:12px; margin-bottom:10px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <span style="font-size:12.5px; font-weight:800; color:#fbbf24;">💾 پشتیبان‌گیری و بارگذاری فایل / متن (<bdi>JSON</bdi>)</span>
+        <div style="display:flex; gap:6px;">
+          <button class="btn-header-action" style="padding:4px 8px; font-size:10.5px;" onclick="downloadBackupJson()">📥 دانلود فایل</button>
+          <button class="btn-header-action" style="padding:4px 8px; font-size:10.5px; border-color:#fcd34d88; color:#fcd34d;" onclick="document.getElementById('restoreFileInput').click()">📁 انتخاب فایل</button>
+          <input type="file" id="restoreFileInput" accept=".json" style="display:none;" onchange="handleRestoreFile(this)">
+        </div>
+      </div>
+      <div style="margin-top:6px;">
+        <div style="font-size:11px; color:#cbd5e1; margin-bottom:4px;">یا متن / کد JSON برنامه را در کادر زیر پیست کرده و دکمه اعمال را بزنید:</div>
+        <div style="display:flex; gap:6px;">
+          <input type="text" id="pasteJsonInput" class="form-input" placeholder='{"app":"Chieftain Workout PWA", ...}' style="font-size:11px; direction:ltr; text-align:left;">
+          <button class="btn-header-action btn-action-success" style="flex-shrink:0; padding:6px 12px; font-weight:800; font-size:11.5px;" onclick="applyPastedJson()">
+            ⚡ اعمال کد
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:12px; text-align:center;">
+      <button class="btn-header-action" style="width:100%; justify-content:center; padding:8px;" onclick="closeSyncBackupModal()">
+        بستن ✕
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Move to Another Day Modal -->
+<div id="moveDayModal" class="modal-overlay">
+  <div class="modal-dialog" style="max-width: 440px;">
+    <button class="modal-close-btn" onclick="closeMoveDayModal()">✕</button>
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+      <span style="font-size:24px;">📅</span>
+      <h3 style="margin:0;">انتقال حرکت / سوپرست به روز دیگر</h3>
+    </div>
+    <p id="moveDayTargetLabel" style="font-size:12px; color:var(--text-muted); margin-bottom:14px;">
+      انتخاب روز مقصد برای انتقال:
+    </p>
+
+    <div class="form-group" style="margin-bottom:14px;">
+      <label class="form-label">انتقال به روز:</label>
+      <select id="moveDaySelect" class="form-select" style="font-weight:700; font-size:13px;">
+        <!-- Dynamically populated -->
+      </select>
+    </div>
+
+    <div style="display:flex; gap:8px;">
+      <button class="btn-header-action btn-action-primary" style="flex:1; justify-content:center; padding:10px; font-weight:800;" onclick="executeMoveDay()">
+        🚀 انتقال فوری
+      </button>
+      <button class="btn-header-action" style="flex-shrink:0; padding:10px 14px;" onclick="closeMoveDayModal()">
+        انصراف
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Add / Edit Body Metric Modal -->
+<div id="addBodyMetricModal" class="modal-overlay">
+  <div class="modal-dialog" style="max-width: 540px; max-height: 90vh; overflow-y: auto;">
+    <button class="modal-close-btn" onclick="closeAddBodyMetricModal()">✕</button>
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+      <span style="font-size:24px;">📏</span>
+      <h3 id="addBodyMetricModalTitle" style="margin:0;">ثبت اندازه‌گیری و آنتروپومتری جدید</h3>
+    </div>
+    <p style="font-size:11.5px; color:var(--text-muted); margin-bottom:12px;">
+      ثبت دقیق ابعاد بدنی با متر نواری (به سانتی‌متر) جهت محاسبه هوشمند درصد چربی و تقارن عضلانی
+    </p>
+
+    <input type="hidden" id="metricRecordId" value="">
+
+    <!-- Row 1: Date & Time & Condition -->
+    <div style="background:rgba(56,189,248,0.06); border:1px solid rgba(56,189,248,0.2); border-radius:12px; padding:10px; margin-bottom:12px;">
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:8px;">
+        <div>
+          <label class="form-label" style="font-size:11px;">📅 تاریخ ثبت</label>
+          <input type="text" id="metricDateInput" class="form-input" placeholder="مثلاً: ۱۴۰۳/۰۶/۱۰" style="font-size:12px; text-align:center;">
+        </div>
+        <div>
+          <label class="form-label" style="font-size:11px;">⏰ ساعت / نوبت</label>
+          <input type="text" id="metricTimeInput" class="form-input" placeholder="مثلاً: ۰۸:۳۰" style="font-size:12px; text-align:center;">
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+        <div>
+          <label class="form-label" style="font-size:11px;">☀️ شرایط اندازه‌گیری</label>
+          <select id="metricConditionSelect" class="form-select" style="font-size:11.5px; padding:6px 8px;">
+            <option value="fasted_morning">ناشتا صبح اول وقت (استاندارد ☀️)</option>
+            <option value="post_workout">بعد از تمرین (پمپ عضلانی 🏋️)</option>
+            <option value="evening">عصر / پایان روز 🌙</option>
+            <option value="other">سایر شرایط 📋</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label" style="font-size:11px;">👤 جنسیت (برای فرمول چربی)</label>
+          <select id="metricGenderSelect" class="form-select" style="font-size:11.5px; padding:6px 8px;">
+            <option value="male">آقا (Male)</option>
+            <option value="female">خانم (Female)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 2: Weight, Height & Age -->
+    <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px; margin-bottom:12px;">
+      <div style="background:#162035; border:1px solid var(--border-color); border-radius:10px; padding:8px;">
+        <label class="form-label" style="color:#00f2fe; font-weight:800; font-size:11px;">⚖️ وزن بدن (kg)</label>
+        <input type="number" step="0.1" id="metricWeightInput" class="form-input" placeholder="مثلاً: 91.0" style="text-align:center; font-size:14px; font-weight:800; padding:6px;">
+      </div>
+      <div style="background:#162035; border:1px solid var(--border-color); border-radius:10px; padding:8px;">
+        <label class="form-label" style="color:#38bdf8; font-weight:800; font-size:11px;">📐 قد (cm)</label>
+        <input type="number" step="0.5" id="metricHeightInput" class="form-input" placeholder="مثلاً: 184" style="text-align:center; font-size:14px; font-weight:800; padding:6px;">
+      </div>
+      <div style="background:#162035; border:1px solid var(--border-color); border-radius:10px; padding:8px;">
+        <label class="form-label" style="color:#a78bfa; font-weight:800; font-size:11px;">🎂 سن (سال)</label>
+        <input type="number" step="1" id="metricAgeInput" class="form-input" placeholder="مثلاً: 35" style="text-align:center; font-size:14px; font-weight:800; padding:6px;">
+      </div>
+    </div>
+
+    <!-- Section: Upper Body Circumferences -->
+    <div style="border-top:1px solid rgba(255,255,255,0.08); padding-top:10px; margin-bottom:10px;">
+      <div style="font-size:12px; font-weight:800; color:#38bdf8; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+        <span>📐</span> <span>ابعاد بالاتنه (سانتی‌متر)</span>
+      </div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px; margin-bottom:8px;">
+        <div>
+          <label class="form-label" style="font-size:10.5px;">دور گردن (Neck 🎖️)</label>
+          <input type="number" step="0.1" id="metricNeckInput" class="form-input" placeholder="مثلاً: 39.0" style="text-align:center; font-weight:700;">
+        </div>
+        <div>
+          <label class="form-label" style="font-size:10.5px;">دور سرشانه (Shoulder 👑)</label>
+          <input type="number" step="0.1" id="metricShouldersInput" class="form-input" placeholder="مثلاً: 122.0" style="text-align:center; font-weight:700;">
+        </div>
+        <div>
+          <label class="form-label" style="font-size:10.5px;">دور سینه (Chest)</label>
+          <input type="number" step="0.1" id="metricChestInput" class="form-input" placeholder="مثلاً: 104.5" style="text-align:center; font-weight:700;">
+        </div>
+      </div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:8px;">
+        <div>
+          <label class="form-label" style="font-size:11px;">💪 بازوی راست منقبض (Flexed)</label>
+          <input type="number" step="0.1" id="metricArmRightInput" class="form-input" placeholder="مثلاً: 38.5" style="text-align:center; font-weight:700;">
+        </div>
+        <div>
+          <label class="form-label" style="font-size:11px;">🖐️ بازوی راست ریلکس / عادی (Relaxed)</label>
+          <input type="number" step="0.1" id="metricArmRightRelaxedInput" class="form-input" placeholder="مثلاً: 35.0" style="text-align:center; font-weight:700;">
+        </div>
+      </div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+        <div>
+          <label class="form-label" style="font-size:11px;">💪 بازوی چپ منقبض (Flexed)</label>
+          <input type="number" step="0.1" id="metricArmLeftInput" class="form-input" placeholder="مثلاً: 38.0" style="text-align:center; font-weight:700;">
+        </div>
+        <div>
+          <label class="form-label" style="font-size:11px;">🖐️ بازوی چپ ریلکس / عادی (Relaxed)</label>
+          <input type="number" step="0.1" id="metricArmLeftRelaxedInput" class="form-input" placeholder="مثلاً: 34.5" style="text-align:center; font-weight:700;">
+        </div>
+      </div>
+    </div>
+
+    <!-- Section: Core & Waist Circumferences -->
+    <div style="border-top:1px solid rgba(255,255,255,0.08); padding-top:10px; margin-bottom:10px;">
+      <div style="font-size:12px; font-weight:800; color:#facc15; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+        <span>🎯</span> <span>ابعاد میان‌تنه و شکم (سانتی‌متر)</span>
+      </div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px;">
+        <div>
+          <label class="form-label" style="font-size:10.5px;">کمر (باریک‌ترین نقطه)</label>
+          <input type="number" step="0.1" id="metricWaistInput" class="form-input" placeholder="مثلاً: 84.0" style="text-align:center; font-weight:700;">
+        </div>
+        <div>
+          <label class="form-label" style="font-size:10.5px;">شکم (روی ناف)</label>
+          <input type="number" step="0.1" id="metricAbdomenInput" class="form-input" placeholder="مثلاً: 88.0" style="text-align:center; font-weight:700;">
+        </div>
+        <div>
+          <label class="form-label" style="font-size:10.5px;">زیر شکم (لگن)</label>
+          <input type="number" step="0.1" id="metricLowerBellyInput" class="form-input" placeholder="مثلاً: 91.0" style="text-align:center; font-weight:700;">
+        </div>
+      </div>
+    </div>
+
+    <!-- Section: Lower Body Circumferences -->
+    <div style="border-top:1px solid rgba(255,255,255,0.08); padding-top:10px; margin-bottom:10px;">
+      <div style="font-size:12px; font-weight:800; color:#34d399; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+        <span>🦵</span> <span>ابعاد پایین‌تنه (سانتی‌متر)</span>
+      </div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:8px;">
+        <div>
+          <label class="form-label" style="font-size:11px;">باسن / سرینی (Hips/Glutes)</label>
+          <input type="number" step="0.1" id="metricHipsInput" class="form-input" placeholder="مثلاً: 100.0" style="text-align:center; font-weight:700;">
+        </div>
+        <div>
+          <label class="form-label" style="font-size:11px;">دور ساق پا (Calves)</label>
+          <input type="number" step="0.1" id="metricCalvesInput" class="form-input" placeholder="مثلاً: 38.0" style="text-align:center; font-weight:700;">
+        </div>
+      </div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+        <div>
+          <label class="form-label" style="font-size:11px;">ران راست میانی (نقطه وسط زانو تا باسن 🎯)</label>
+          <input type="number" step="0.1" id="metricThighRightInput" class="form-input" placeholder="مثلاً: 59.0" style="text-align:center; font-weight:700;">
+        </div>
+        <div>
+          <label class="form-label" style="font-size:11px;">ران چپ میانی (نقطه وسط زانو تا باسن 🎯)</label>
+          <input type="number" step="0.1" id="metricThighLeftInput" class="form-input" placeholder="مثلاً: 58.5" style="text-align:center; font-weight:700;">
+        </div>
+      </div>
+    </div>
+
+    <!-- Section: Bone Structure & Genetic Potential Anchors -->
+    <div style="border-top:1px solid rgba(255,255,255,0.08); padding-top:10px; margin-bottom:12px; background:rgba(99,102,241,0.06); padding:10px; border-radius:10px; border:1px solid rgba(99,102,241,0.25);">
+      <div style="font-size:12px; font-weight:800; color:#a5b4fc; margin-bottom:4px; display:flex; align-items:center; gap:6px;">
+        <span>🧬</span> <span>اسکلت استخوانی و سقف ژنتیکی نچرال (Casey Butt Model)</span>
+      </div>
+      <div style="font-size:10.5px; color:#94a3b8; margin-bottom:8px; line-height:1.4;">ضخامت استخوان‌های مچ برای محاسبه حداکثر پتانسیل ساخت عضله بدون دارو و زمان رسیدن به آن:</div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+        <div>
+          <label class="form-label" style="font-size:11px;">دور مچ دست باریک (Wrist cm)</label>
+          <input type="number" step="0.1" id="metricWristInput" class="form-input" placeholder="مثلاً: 18.0" style="text-align:center; font-weight:700;">
+        </div>
+        <div>
+          <label class="form-label" style="font-size:11px;">دور مچ پا باریک (Ankle cm)</label>
+          <input type="number" step="0.1" id="metricAnkleInput" class="form-input" placeholder="مثلاً: 24.0" style="text-align:center; font-weight:700;">
+        </div>
+      </div>
+    </div>
+
+    <!-- Section: Notes & InBody Optional -->
+    <div style="display:grid; grid-template-columns: 1fr 2fr; gap:8px; margin-bottom:14px;">
+      <div>
+        <label class="form-label" style="font-size:11px;">درصد چربی دستگاه (اختیاری)</label>
+        <input type="number" step="0.1" id="metricBodyFatManualInput" class="form-input" placeholder="InBody / کالیپر %" style="text-align:center; font-weight:700;">
+      </div>
+      <div>
+        <label class="form-label" style="font-size:11px;">یادداشت یا توضیحات دوره</label>
+        <input type="text" id="metricNotesInput" class="form-input" placeholder="مثلاً: شروع مکمل کراتین، خواب عالی">
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div style="display:flex; gap:8px;">
+      <button class="btn-header-action btn-action-success" style="flex:2; justify-content:center; padding:12px; font-weight:800;" onclick="saveBodyMetricRecord()">
+        💾 ثبت و محاسبه آنتروپومتری
+      </button>
+      <button class="btn-header-action" style="flex:1; justify-content:center; padding:12px;" onclick="closeAddBodyMetricModal()">
+        انصراف
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Body Metrics History List Modal -->
+<div id="bodyMetricHistoryModal" class="modal-overlay">
+  <div class="modal-dialog" style="max-width: 600px; max-height: 85vh; overflow-y: auto;">
+    <button class="modal-close-btn" onclick="closeBodyMetricHistoryModal()">✕</button>
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+      <span style="font-size:24px;">📜</span>
+      <h3 style="margin:0;">تاریخچه کامل ثبت ابعاد و سایزگیری</h3>
+    </div>
+    <p style="font-size:12px; color:var(--text-muted); margin-bottom:14px;">
+      مشاهده، ویرایش یا حذف رکوردهای ثبت‌شده در دوره‌های مختلف
+    </p>
+
+    <div id="metricHistoryListContainer" style="display:flex; flex-direction:column; gap:8px; margin-bottom:14px;">
+      <!-- Populated via JS -->
+    </div>
+
+    <div style="text-align:center;">
+      <button class="btn-header-action" style="width:100%; justify-content:center; padding:9px;" onclick="closeBodyMetricHistoryModal()">
+        بستن ✕
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Floating Toast Message Container -->
+<div id="toastMsg" class="toast-msg">
+  <span>✅</span>
+  <span id="toastText">تغییرات با موفقیت ذخیره و اعمال شد!</span>
+</div>
+

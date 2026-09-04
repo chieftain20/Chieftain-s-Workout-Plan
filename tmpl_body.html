@@ -1,0 +1,124 @@
+<div class="container">
+  <!-- Header -->
+  <header>
+    <div class="header-top">
+      <div class="brand-title">
+        <div class="brand-logo" title="لوگوی برنامه تمرینی Chieftain">
+          <!-- Dumbbell with Heart Vector Logo -->
+          <svg viewBox="0 0 512 512" style="width:34px; height:34px;">
+            <g fill="#090d16">
+              <rect x="140" y="244" width="70" height="24" rx="12"/>
+              <rect x="302" y="244" width="70" height="24" rx="12"/>
+              <rect x="74" y="200" width="22" height="112" rx="11"/>
+              <rect x="104" y="170" width="24" height="172" rx="12"/>
+              <rect x="136" y="146" width="26" height="220" rx="13"/>
+              <rect x="168" y="226" width="16" height="60" rx="8"/>
+              <rect x="328" y="226" width="16" height="60" rx="8"/>
+              <rect x="350" y="146" width="26" height="220" rx="13"/>
+              <rect x="384" y="170" width="24" height="172" rx="12"/>
+              <rect x="416" y="200" width="22" height="112" rx="11"/>
+              <path d="M 256, 328 C 256, 328 184, 276 184, 218 C 184, 186 208, 164 238, 164 C 256, 164 256, 178 256, 178 C 256, 178 256, 164 274, 164 C 304, 164 328, 186 328, 218 C 328, 276 256, 328 256, 328 Z" fill="none" stroke="#090d16" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+            </g>
+          </svg>
+        </div>
+        <div>
+          <h1 id="appTitle">برنامه تمرینی Hossein Chieftain</h1>
+          <div class="header-subtitle" id="greetingText">برنامه تخصصی هایپرتروفی، ثبات مفاصل و کنترل تنه</div>
+        </div>
+      </div>
+
+      <div class="header-controls">
+        <div class="profile-selector-wrap">
+          <span style="font-size:12px; color:var(--text-muted)">👤 کاربر:</span>
+          <select id="profileSelect" class="profile-select" onchange="onProfileChange(this.value)">
+            <option value="hossein_chieftain">Hossein Chieftain (پیش‌فرض)</option>
+            <option value="morvarid">مروارید</option>
+          </select>
+        </div>
+        <button id="headerInstallBtn" class="btn-header-action">
+          <span>📲</span>
+          <span>نصب اپ</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="header-badges" id="headerBadges">
+      <div class="header-badge">🏋️ شنبه، دوشنبه، پنجشنبه: باشگاه</div>
+      <div class="header-badge">🏠 یکشنبه، سه‌شنبه، جمعه: خانه</div>
+      <div class="header-badge">🛌 چهارشنبه: استراحت کامل</div>
+    </div>
+  </header>
+
+  <!-- Actions Toolbar -->
+  <div class="action-row">
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" class="search-input" placeholder="جستجوی حرکت یا عضله هدف در برنامه...">
+    </div>
+    
+    <button class="btn-header-action" onclick="openLibraryModal()" title="مشاهده بانک کامل تمام حرکات با ویدیو">
+      <span>📚</span>
+      <span>بانک حرکات</span>
+    </button>
+
+    <button class="btn-header-action" onclick="openMuscleWikiModal()" title="دسترسی به بانک جهانی و ویدیوهای تمام حرکات در MuscleWiki" style="border-color:#38bdf888; color:#38bdf8;">
+      <span>🌐</span>
+      <span>MuscleWiki</span>
+    </button>
+
+    <button class="btn-header-action" onclick="openNewProfileModal()" title="ایجاد کاربر یا برنامه شخصی جدید">
+      <span>➕</span>
+      <span>برنامه جدید</span>
+    </button>
+
+    <button id="editPlanBtn" class="btn-header-action btn-action-primary" onclick="requestEditPlanAccess()" title="ویرایش و افزودن حرکات به این برنامه (نیازمند رمز عبور)">
+      <span>🔒</span>
+      <span>ویرایش برنامه</span>
+    </button>
+
+    <button class="btn-header-action" onclick="resetCurrentSets()" title="ریست کردن تیک تمام ست‌های انجام‌شده برای جلسه جدید" style="color:#fcd34d; border-color:#fcd34d55;">
+      <span>🔄</span>
+      <span>ریست ست‌ها</span>
+    </button>
+
+    <button class="btn-header-action" onclick="openSyncBackupModal()" title="پایگاه ابری زنده و همگام‌سازی خودکار بین تمام گوشی‌ها و مرورگرها" style="border-color:#00f2fe88; color:#00f2fe; background:rgba(0,242,254,0.12);">
+      <span>☁️</span>
+      <span>همگام‌سازی ابری</span>
+    </button>
+
+    <button id="quickRefreshCloudBtn" class="btn-header-action" onclick="forceSyncAndHardRefresh(this)" title="دریافت آخرین نسخه از سرور ابری و رفرش کامل بدون کش" style="border-color:#10b98188; color:#34d399; background:rgba(16,185,129,0.08);">
+      <span>🔄</span>
+      <span>به‌روزرسانی و رفرش</span>
+    </button>
+
+    <button class="btn-header-action" onclick="switchMainTab('metrics')" title="ثبت، مقایسه و تحلیل علمی ابعاد بدنی و آنتروپومتری" style="border-color:#38bdf8; color:#38bdf8; background:rgba(56,189,248,0.12);">
+      <span>📏</span>
+      <span>سایز و بادی‌آنالیز</span>
+    </button>
+
+    <button id="todayJumpBtn" class="btn-header-action" title="پرش به روز جاری">
+      <span>🎯</span>
+      <span>امروز</span>
+    </button>
+  </div>
+
+  <!-- Day Navigation Bar with Sticky Progress Fill -->
+  <div class="nav-container">
+    <nav id="dayNav"></nav>
+    <div class="sticky-progress-container" title="میزان پیشرفت روز فعال">
+      <div id="globalStickyProgress" class="sticky-progress-fill"></div>
+    </div>
+  </div>
+
+  <!-- Main Workout Content -->
+  <main id="workoutContent"></main>
+
+  <!-- Body Measurements & Anthropometrics View -->
+  <section id="bodyMetricsView" class="body-metrics-view" style="display:none;"></section>
+</div>
+
+<!-- Floating Universal Timer Button -->
+<button id="openTimerBtn" class="timer-fab" title="باز کردن تایمر استراحت و ایزومتریک">
+  <span>⏱️</span>
+  <span id="fabTimerLabel">تایمر تمرین</span>
+</button>
