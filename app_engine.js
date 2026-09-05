@@ -2,6 +2,7 @@
 let customExercises = [];
 let allProfiles = [];
 let activeProfileId = 'hossein_chieftain';
+let activeMainTab = 'workout'; // 'workout' | 'metrics'
 let activeDayForAdding = null;
 let convertTargetDayIdx = null;
 let convertTargetSingleIdx = null;
@@ -124,24 +125,34 @@ function renderApp(preserveScroll = true, targetCardExId = null) {
     ? preserveScroll 
     : (preserveScroll ? (window.scrollY || document.documentElement.scrollTop) : 0);
 
-  renderProfileSelect();
-  renderHeader();
-  renderDayNav();
-  renderWorkoutDays();
-  loadSavedSets();
-  updateAllProgressBars();
-  setupSectionObserver();
-  setupDragAndDropEngine();
+  // Always ensure proper display visibility of main containers
+  const workoutContent = document.getElementById('workoutContent');
+  const metricsView = document.getElementById('bodyMetricsView');
 
   if (activeMainTab === 'metrics') {
-    const workoutContent = document.getElementById('workoutContent');
-    const metricsView = document.getElementById('bodyMetricsView');
     if (workoutContent) workoutContent.style.display = 'none';
     if (metricsView) {
       metricsView.style.display = 'block';
-      renderBodyMetricsView();
+      try {
+        renderBodyMetricsView();
+      } catch(e) {
+        console.error('Error in renderBodyMetricsView:', e);
+      }
     }
+  } else {
+    activeMainTab = 'workout';
+    if (metricsView) metricsView.style.display = 'none';
+    if (workoutContent) workoutContent.style.display = 'block';
   }
+
+  try { renderProfileSelect(); } catch(e) { console.error('Error in renderProfileSelect:', e); }
+  try { renderHeader(); } catch(e) { console.error('Error in renderHeader:', e); }
+  try { renderDayNav(); } catch(e) { console.error('Error in renderDayNav:', e); }
+  try { renderWorkoutDays(); } catch(e) { console.error('Error in renderWorkoutDays:', e); }
+  try { loadSavedSets(); } catch(e) { console.error('Error in loadSavedSets:', e); }
+  try { updateAllProgressBars(); } catch(e) { console.error('Error in updateAllProgressBars:', e); }
+  try { setupSectionObserver(); } catch(e) {}
+  try { setupDragAndDropEngine(); } catch(e) {}
 
   // If a specific card was edited/moved, keep it precisely in view
   if (targetCardExId) {
@@ -311,7 +322,7 @@ function closeImageModal() {
   document.getElementById('imageModal')?.classList.remove('open');
 }
 
-function renderExerciseCard(item, dayId, isSuperset = false, singleIdx = -1, totalSingles = 0, ssIdx = -1, exIdx = -1, totalSSExercises = 0) {
+function renderExerciseCard(item, dayId, isSuperset = false, singleIdx = -1, totalSingles = 0, ssIdx = -1, exIdx = -1, totalSSExercises = 0, seqNum = null, totalDayExercises = 0) {
   const ex = findExerciseById(item.exId);
   const reps = item.reps || ex.defaultReps || '3 × 8–12';
   const setsCount = parseSetsFromReps(reps, item.sets);
@@ -319,6 +330,10 @@ function renderExerciseCard(item, dayId, isSuperset = false, singleIdx = -1, tot
   const originalSubtext = item.customName && item.customName !== ex.fa 
     ? `<div class="exercise-name-en" style="color:#94a3b8; font-size:11px;">حرکت پایه: ${ex.fa}</div>` 
     : (ex.en ? `<div class="exercise-name-en">${ex.en}</div>` : '');
+
+  const seqBadgeHtml = (seqNum && seqNum > 0)
+    ? `<span class="exercise-seq-badge" title="حرکت ${seqNum} از ${totalDayExercises}">حرکت ${seqNum}</span>`
+    : '';
 
   const setBtns = Array.from({length: setsCount}, (_, i) => 
     `<button class="set-btn" onclick="handleSetClick(this)">${i+1}</button>`
@@ -382,6 +397,7 @@ function renderExerciseCard(item, dayId, isSuperset = false, singleIdx = -1, tot
       <div class="exercise-header">
         <div style="display:flex; align-items:center; gap:8px;">
           <span class="card-drag-handle" title="لمس یا کشیدن برای جابجایی سریع">⠿</span>
+          ${seqBadgeHtml}
           <div>
             <div class="exercise-name-fa">${displayNameFa}</div>
             ${originalSubtext}
@@ -962,33 +978,45 @@ function renderDynamicWeeklySummary(prof) {
   `;
 }
 
-function renderDaySupersetsHTML(day) {
+function renderDaySupersetsHTML(day, startSeqNum = 0, totalDayExercises = 0) {
   if (!day.supersets || day.supersets.length === 0) return '';
   const totalSS = day.supersets.length;
-  return day.supersets.map((ss, ssIdx) => `
-    <div class="superset-block" id="ss_${day.id}_${ssIdx}" data-day-id="${day.id}" data-ss-idx="${ssIdx}">
-      <div class="superset-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
-        <div style="display:flex; align-items:center; gap:8px;">
-          <span class="card-drag-handle" title="لمس یا کشیدن برای جابجایی کل سوپرست">⠿</span>
-          <span>⚡ ${ss.title}</span>
-          <span style="font-size:10.5px; background:rgba(0,242,254,0.15); color:#00f2fe; padding:2px 8px; border-radius:10px; border:1px solid rgba(0,242,254,0.3); font-weight:700;">${ss.exercises.length} حرکت</span>
+  let currentSeq = startSeqNum;
+  return day.supersets.map((ss, ssIdx) => {
+    const ssExercisesHtml = ss.exercises.map((item, exIdx) => {
+      currentSeq++;
+      return renderExerciseCard(item, day.id, true, -1, 0, ssIdx, exIdx, ss.exercises.length, currentSeq, totalDayExercises);
+    }).join('');
+
+    return `
+      <div class="superset-block" id="ss_${day.id}_${ssIdx}" data-day-id="${day.id}" data-ss-idx="${ssIdx}">
+        <div class="superset-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="card-drag-handle" title="لمس یا کشیدن برای جابجایی کل سوپرست">⠿</span>
+            <span>⚡ ${ss.title}</span>
+            <span style="font-size:10.5px; background:rgba(0,242,254,0.15); color:#00f2fe; padding:2px 8px; border-radius:10px; border:1px solid rgba(0,242,254,0.3); font-weight:700;">${ss.exercises.length} حرکت</span>
+          </div>
+          <div class="card-reorder-toolbar" style="margin-top:0;">
+            <button class="btn-move-action" style="color:#38bdf8; border-color:rgba(56,189,248,0.4);" onclick="openAddExerciseToSupersetModal('${day.id}', ${ssIdx})" title="افزودن حرکت دیگر به این سوپرست (ساخت تری‌ست یا جاینت‌ست)">+ حرکت به سوپرست</button>
+            ${ssIdx > 0 ? `<button class="btn-move-action" onclick="moveSupersetItem('${day.id}', ${ssIdx}, -1)" title="انتقال کل سوپرست به بالا">⬆️ بالا</button>` : ''}
+            ${ssIdx < totalSS - 1 ? `<button class="btn-move-action" onclick="moveSupersetItem('${day.id}', ${ssIdx}, 1)" title="انتقال کل سوپرست به پایین">⬇️ پایین</button>` : ''}
+            <button class="btn-move-action" style="color:#fcd34d; border-color:rgba(252,211,77,0.3);" onclick="openMoveDayModal('superset', '${day.id}', ${ssIdx})" title="انتقال کل سوپرست به روز دیگر">📅 انتقال به روز دیگر</button>
+          </div>
         </div>
-        <div class="card-reorder-toolbar" style="margin-top:0;">
-          <button class="btn-move-action" style="color:#38bdf8; border-color:rgba(56,189,248,0.4);" onclick="openAddExerciseToSupersetModal('${day.id}', ${ssIdx})" title="افزودن حرکت دیگر به این سوپرست (ساخت تری‌ست یا جاینت‌ست)">+ حرکت به سوپرست</button>
-          ${ssIdx > 0 ? `<button class="btn-move-action" onclick="moveSupersetItem('${day.id}', ${ssIdx}, -1)" title="انتقال کل سوپرست به بالا">⬆️ بالا</button>` : ''}
-          ${ssIdx < totalSS - 1 ? `<button class="btn-move-action" onclick="moveSupersetItem('${day.id}', ${ssIdx}, 1)" title="انتقال کل سوپرست به پایین">⬇️ پایین</button>` : ''}
-          <button class="btn-move-action" style="color:#fcd34d; border-color:rgba(252,211,77,0.3);" onclick="openMoveDayModal('superset', '${day.id}', ${ssIdx})" title="انتقال کل سوپرست به روز دیگر">📅 انتقال به روز دیگر</button>
-        </div>
+        ${ssExercisesHtml}
       </div>
-      ${ss.exercises.map((item, exIdx) => renderExerciseCard(item, day.id, true, -1, 0, ssIdx, exIdx, ss.exercises.length)).join('')}
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
-function renderDaySinglesHTML(day) {
+function renderDaySinglesHTML(day, startSeqNum = 0, totalDayExercises = 0) {
   if (!day.singles || day.singles.length === 0) return '';
   const totalSingles = day.singles.length;
-  return day.singles.map((item, sIdx) => renderExerciseCard(item, day.id, false, sIdx, totalSingles)).join('');
+  let currentSeq = startSeqNum;
+  return day.singles.map((item, sIdx) => {
+    currentSeq++;
+    return renderExerciseCard(item, day.id, false, sIdx, totalSingles, -1, -1, 0, currentSeq, totalDayExercises);
+  }).join('');
 }
 
 function renderWorkoutDays() {
@@ -1008,8 +1036,18 @@ function renderWorkoutDays() {
       'rest': '<span class="day-location-badge badge-rest">🛌 استراحت کامل</span>'
     }[day.type] || '';
 
-    const supersetsHtml = renderDaySupersetsHTML(day);
-    const singlesHtml = renderDaySinglesHTML(day);
+    let totalDayExercises = (day.singles ? day.singles.length : 0);
+    if (day.supersets) {
+      day.supersets.forEach(ss => {
+        totalDayExercises += (ss.exercises ? ss.exercises.length : 0);
+      });
+    }
+
+    let runningSeqNum = 0;
+    const supersetsHtml = renderDaySupersetsHTML(day, runningSeqNum, totalDayExercises);
+    const ssExCount = (day.supersets || []).reduce((acc, ss) => acc + (ss.exercises ? ss.exercises.length : 0), 0);
+    runningSeqNum += ssExCount;
+    const singlesHtml = renderDaySinglesHTML(day, runningSeqNum, totalDayExercises);
 
     let restHtml = '';
     if (day.type === 'rest') {
@@ -1032,12 +1070,17 @@ function renderWorkoutDays() {
       `;
     }
 
+    const countBadgeHtml = (totalDayExercises > 0 && day.type !== 'rest')
+      ? `<span class="day-total-badge">🎯 ${totalDayExercises} حرکت</span>`
+      : '';
+
     return `
       <section id="${day.id}" class="day-section">
         <div class="day-header">
           <div class="day-title-wrap">
             <h2 class="day-title">${day.title}</h2>
             ${typeBadge}
+            ${countBadgeHtml}
           </div>
           <div class="day-progress-wrap">
             <div class="day-progress-bar"><div class="day-progress-fill" id="prog-${day.id}"></div></div>
@@ -1318,6 +1361,9 @@ function resetCurrentSets() {
     document.querySelectorAll('.exercise-card').forEach(card => card.classList.remove('completed'));
     updateAllProgressBars();
     showToast('تمام ست‌ها ریست شدند. آماده تمرین جدید! 💪');
+    if (typeof pushToCloudStorage === 'function' && isAutoCloudSyncEnabled()) {
+      pushToCloudStorage(true);
+    }
   }
 }
 
@@ -1936,34 +1982,55 @@ function closeLogModal() {
 }
 
 function saveExerciseLog() {
-  const { exId, exFa, setsCount, isIso } = currentLogTarget;
-  const sets = [];
-  let totalVolume = 0;
+  try {
+    const { exId, exFa, setsCount, isIso } = currentLogTarget;
+    if (!exId) {
+      closeLogModal();
+      return;
+    }
+    const sets = [];
+    let totalVolume = 0;
 
-  for (let i = 1; i <= setsCount; i++) {
-    const w = parseFloat(document.getElementById(`logWeight_${i}`)?.value) || 0;
-    const r = parseInt(document.getElementById(`logReps_${i}`)?.value) || 0;
-    const rir = document.getElementById(`logRir_${i}`)?.value || '2';
-    sets.push({ setNum: i, weight: w, reps: r, rir: rir });
-    totalVolume += (isIso ? r : (w * r));
+    for (let i = 1; i <= (setsCount || 3); i++) {
+      const w = parseFloat(document.getElementById(`logWeight_${i}`)?.value) || 0;
+      const r = parseInt(document.getElementById(`logReps_${i}`)?.value) || 0;
+      const rir = document.getElementById(`logRir_${i}`)?.value || '2';
+      sets.push({ setNum: i, weight: w, reps: r, rir: rir });
+      totalVolume += (isIso ? r : (w * r));
+    }
+
+    const note = document.getElementById('logNoteInput')?.value?.trim() || '';
+    let dateStr = '';
+    try {
+      dateStr = new Intl.DateTimeFormat('fa-IR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date());
+    } catch(e) {
+      const d = new Date();
+      dateStr = `${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${d.getMinutes()}`;
+    }
+
+    const logs = getExerciseLogs(exId);
+    logs.push({
+      timestamp: Date.now(),
+      date: dateStr,
+      sets: sets,
+      totalVolume: totalVolume,
+      isIso: isIso,
+      note: note
+    });
+
+    saveExerciseLogsList(exId, logs);
+    closeLogModal();
+    showToast(isIso ? `✅ لاگ ایزومتریک "${exFa}" ثبت شد! (${totalVolume} ثانیه مجموع انقباض)` : `✅ لاگ تمرین برای "${exFa}" ثبت شد! (حجم کل: ${totalVolume} kg)`);
+
+    // Auto-sync to cloud immediately so progress is never lost across devices
+    if (typeof pushToCloudStorage === 'function' && isAutoCloudSyncEnabled()) {
+      pushToCloudStorage(true);
+    }
+  } catch(err) {
+    console.error('Error saving exercise log:', err);
+    closeLogModal();
+    showToast('⚠️ لاگ در این دستگاه ثبت شد.');
   }
-
-  const note = document.getElementById('logNoteInput').value.trim();
-  const dateStr = new Intl.DateTimeFormat('fa-IR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date());
-
-  const logs = getExerciseLogs(exId);
-  logs.push({
-    timestamp: Date.now(),
-    date: dateStr,
-    sets: sets,
-    totalVolume: totalVolume,
-    isIso: isIso,
-    note: note
-  });
-
-  saveExerciseLogsList(exId, logs);
-  closeLogModal();
-  showToast(isIso ? `✅ لاگ ایزومتریک "${exFa}" ثبت شد! (${totalVolume} ثانیه مجموع انقباض)` : `✅ لاگ تمرین برای "${exFa}" ثبت شد! (حجم کل: ${totalVolume} kg)`);
 }
 
 function openOverloadChartFromLog() {
@@ -1991,7 +2058,7 @@ function openOverloadChart(exId, exFa) {
   if (logs.length === 0) {
     emptyNotice.style.display = 'block';
     svg.style.display = 'none';
-    tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:12px;">هنوز لاگی ثبت نشده است.</td></tr>`;
+    tableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:12px;">هنوز لاگی ثبت نشده است.</td></tr>`;
     document.getElementById('statMaxWeight').innerText = isIso ? '۰ ثانیه' : '۰ kg';
     document.getElementById('statOverloadPct').innerText = '۰٪';
     document.getElementById('statLastVolume').innerText = isIso ? '۰ ثانیه' : '۰ kg';
@@ -2014,7 +2081,7 @@ function openOverloadChart(exId, exFa) {
     document.getElementById('statOverloadPct').innerText = `${overloadPct >= 0 ? '+' : ''}${overloadPct}٪`;
     document.getElementById('statLastVolume').innerText = isIso ? `${lastVol} ثانیه` : `${lastVol} kg`;
 
-    // Render Table
+    // Render Table with delete button
     tableBody.innerHTML = logs.slice().reverse().map(l => {
       const setsStr = l.sets.map(s => isIso ? (s.weight > 0 ? `${s.weight}kg + ${s.reps}ث` : `${s.reps} ثانیه`) : `${s.weight}kg × ${s.reps}`).join(' | ');
       const rirStr = l.sets.map(s => isIso ? `TIR ${s.rir}` : `RIR ${s.rir}`).join('، ');
@@ -2025,6 +2092,9 @@ function openOverloadChart(exId, exFa) {
           <td>${rirStr}</td>
           <td><b>${l.totalVolume} ${isIso ? 'ثانیه' : 'kg'}</b></td>
           <td style="font-size:11px; color:#94a3b8;">${l.note || '—'}</td>
+          <td style="text-align:center;">
+            <button class="btn-move-action" style="color:#f87171; border-color:rgba(248,113,113,0.3); padding:2px 6px; font-size:11px;" onclick="deleteExerciseLogItem('${exId}', ${l.timestamp})" title="حذف این رکورد">🗑️</button>
+          </td>
         </tr>
       `;
     }).join('');
@@ -2034,6 +2104,17 @@ function openOverloadChart(exId, exFa) {
   }
 
   document.getElementById('overloadChartModal').classList.add('open');
+}
+
+function deleteExerciseLogItem(exId, timestamp) {
+  if (!confirm('آیا از حذف این لاگ تمرین اطمینان دارید؟')) return;
+  const logs = getExerciseLogs(exId).filter(l => l.timestamp !== timestamp);
+  saveExerciseLogsList(exId, logs);
+  openOverloadChart(currentLogTarget.exId, currentLogTarget.exFa);
+  showToast('لاگ حذف شد.');
+  if (typeof pushToCloudStorage === 'function' && isAutoCloudSyncEnabled()) {
+    pushToCloudStorage(true);
+  }
 }
 
 function closeOverloadChartModal() {
@@ -2321,6 +2402,9 @@ function saveSetsState() {
     sets: state
   };
   localStorage.setItem(stateKey, JSON.stringify(payload));
+  if (typeof pushToCloudStorage === 'function' && isAutoCloudSyncEnabled()) {
+    pushToCloudStorage(true);
+  }
 }
 
 function loadSavedSets() {
@@ -2774,6 +2858,84 @@ function restoreProfilesMetricsMap(metricsMap) {
   }
 }
 
+function getAllProfilesLogsMap() {
+  const logsMap = {};
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('chieftain_logs_')) {
+        try {
+          logsMap[key] = JSON.parse(localStorage.getItem(key));
+        } catch(e) {}
+      }
+    }
+  } catch(e) {}
+  return logsMap;
+}
+
+function restoreProfilesLogsMap(logsMap) {
+  if (!logsMap || typeof logsMap !== 'object') return;
+  Object.keys(logsMap).forEach(key => {
+    if (key && key.startsWith('chieftain_logs_')) {
+      try {
+        const remoteLogs = logsMap[key];
+        if (Array.isArray(remoteLogs)) {
+          const localRaw = localStorage.getItem(key);
+          const localLogs = localRaw ? JSON.parse(localRaw) : [];
+          const seenTimestamps = new Set(localLogs.map(l => l.timestamp));
+          remoteLogs.forEach(r => {
+            if (r && r.timestamp && !seenTimestamps.has(r.timestamp)) {
+              localLogs.push(r);
+              seenTimestamps.add(r.timestamp);
+            }
+          });
+          localLogs.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+          localStorage.setItem(key, JSON.stringify(localLogs));
+        }
+      } catch(e) {}
+    }
+  });
+}
+
+function getAllProfilesSetsMap() {
+  const setsMap = {};
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('chieftain_sets_')) {
+        try {
+          setsMap[key] = JSON.parse(localStorage.getItem(key));
+        } catch(e) {}
+      }
+    }
+  } catch(e) {}
+  return setsMap;
+}
+
+function restoreProfilesSetsMap(setsMap) {
+  if (!setsMap || typeof setsMap !== 'object') return;
+  Object.keys(setsMap).forEach(key => {
+    if (key && key.startsWith('chieftain_sets_')) {
+      try {
+        const remoteData = setsMap[key];
+        if (remoteData && typeof remoteData === 'object') {
+          const localRaw = localStorage.getItem(key);
+          if (!localRaw) {
+            localStorage.setItem(key, JSON.stringify(remoteData));
+          } else {
+            const localData = JSON.parse(localRaw);
+            const remoteTime = remoteData.updatedAt || 0;
+            const localTime = localData.updatedAt || 0;
+            if (remoteTime >= localTime) {
+              localStorage.setItem(key, JSON.stringify(remoteData));
+            }
+          }
+        }
+      } catch(e) {}
+    }
+  });
+}
+
 async function pushToCloudStorage(silent = false) {
   const keyInput = document.getElementById('cloudSyncKeyInput');
   if (keyInput && keyInput.value) {
@@ -2788,13 +2950,15 @@ async function pushToCloudStorage(silent = false) {
   }
 
   const payload = {
-    version: 'v8',
+    version: 'v9',
     syncKey: syncKey,
     updatedAt: new Date().toISOString(),
     activeId: activeProfileId,
     profiles: allProfiles,
     custom: customExercises,
-    metrics: getAllProfilesMetricsMap()
+    metrics: getAllProfilesMetricsMap(),
+    logs: getAllProfilesLogsMap(),
+    sets: getAllProfilesSetsMap()
   };
 
   try {
@@ -2810,7 +2974,7 @@ async function pushToCloudStorage(silent = false) {
         badge.style.color = '#34d399';
       }
       if (!silent) {
-        showToast('☁️ تمام برنامه‌ها و تغییرات با موفقیت در سرور ابری ذخیره شدند!');
+        showToast('☁️ تمام برنامه‌ها، لاگ‌ها و تغییرات با موفقیت در سرور ابری ذخیره شدند!');
       }
     } else {
       if (badge) {
@@ -2858,6 +3022,8 @@ async function pullFromCloudStorage(silent = false) {
         }
 
         if (data.metrics) restoreProfilesMetricsMap(data.metrics);
+        if (data.logs) restoreProfilesLogsMap(data.logs);
+        if (data.sets) restoreProfilesSetsMap(data.sets);
         localStorage.setItem('chieftain_profiles_v9', JSON.stringify(allProfiles));
         saveCustomExercises();
         renderApp();
@@ -2868,7 +3034,7 @@ async function pullFromCloudStorage(silent = false) {
           badge.style.color = '#34d399';
         }
         if (!silent) {
-          showToast('✅ آخرین نسخه برنامه و ابعاد بدنی با موفقیت از سرور ابری دریافت شد!');
+          showToast('✅ آخرین نسخه برنامه، لاگ‌ها و ابعاد بدنی با موفقیت دریافت شد!');
         }
         return true;
       }
@@ -2947,11 +3113,13 @@ function openSyncBackupModal() {
   const syncInput = document.getElementById('syncUrlDisplayInput');
   try {
     const payload = {
-      version: 'v8',
+      version: 'v9',
       activeId: activeProfileId,
       profiles: allProfiles,
       custom: customExercises,
       metrics: getAllProfilesMetricsMap(),
+      logs: getAllProfilesLogsMap(),
+      sets: getAllProfilesSetsMap(),
       timestamp: Date.now()
     };
     const jsonStr = JSON.stringify(payload);
@@ -3018,10 +3186,12 @@ function checkUrlSyncData() {
           activeProfileId = allProfiles[0].id;
         }
         if (payload.metrics) restoreProfilesMetricsMap(payload.metrics);
+        if (payload.logs) restoreProfilesLogsMap(payload.logs);
+        if (payload.sets) restoreProfilesSetsMap(payload.sets);
         localStorage.setItem('chieftain_profiles_v9', JSON.stringify(allProfiles));
         saveCustomExercises();
         history.replaceState(null, document.title, window.location.pathname);
-        showToast('🎉 برنامه‌ها، تغییرات و ابعاد بدنی با موفقیت همگام‌سازی و ذخیره شدند!');
+        showToast('🎉 برنامه‌ها، تغییرات، لاگ‌ها و ابعاد بدنی با موفقیت همگام‌سازی و ذخیره شدند!');
       }
     }
   } catch(e) {
@@ -3033,12 +3203,14 @@ function downloadBackupJson() {
   try {
     const payload = {
       app: 'Chieftain Workout PWA',
-      version: 'v8',
+      version: 'v9',
       exportDate: new Date().toISOString(),
       activeProfileId: activeProfileId,
       profiles: allProfiles,
       customExercises: customExercises,
-      metrics: getAllProfilesMetricsMap()
+      metrics: getAllProfilesMetricsMap(),
+      logs: getAllProfilesLogsMap(),
+      sets: getAllProfilesSetsMap()
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -3441,7 +3613,6 @@ if ('serviceWorker' in navigator) {
 // ==========================================================================
 // 📏 Anthropometrics & Body Measurements Tracking Engine
 // ==========================================================================
-let activeMainTab = 'workout'; // 'workout' | 'metrics'
 
 function getProfileBodyMetrics(profId = activeProfileId) {
   try {
@@ -4386,7 +4557,12 @@ function renderBodyMetricsView() {
           </div>
           <div style="margin-top:8px; background:rgba(0,0,0,0.2); border-radius:6px; padding:6px 10px; font-size:10.5px; color:#94a3b8; line-height:1.5;">
             🔬 <b>مرجع علمی پروتئین بازسازی بدنی (Body Recomposition):</b>
-            هدف <b>${curSci.targetProtein || '--'} گرم</b> (بازه بهینه: <b>${curSci.proteinMin || '--'} تا ${curSci.proteinMax || '--'} گرم</b>) بر اساس معتبرترین متاآنالیز دنیا (مورتون و همکاران، ژورنال پزشکی ورزشی بریتانیا BJSM 2018) و راهنمای رسمی انجمن بین‌المللی تغذیه ورزشی (ISSN) برای ساخت همزمان عضله و چربی‌سوزی در رژیم کسر کالری معادل ۱.۶۵ تا ۲.۰ گرم پروتئین به ازای هر کیلوگرم وزن کل تنظیم شده است.
+            هدف <b>${curSci.targetProtein || '--'} گرم</b> (بازه بهینه: <b>${curSci.proteinMin || '--'} تا ${curSci.proteinMax || '--'} گرم</b>)
+            ${isFemale ? `
+              بر اساس راهنمای رسمی انجمن بین‌المللی تغذیه ورزشی (ISSN) و متاآنالیز BJSM 2018، بر پایه <b>۱.۶۵ گرم پروتئین</b> به ازای هر کیلوگرم وزن کل (فرمول: <b>${current.weight}kg × 1.65 = ${curSci.targetProtein}g</b>) یا ۲.۷۵ گرم بر کیلوگرم توده عضلانی خالص (LBM) کالیبره شده است تا عضلات حین چربی‌سوزی سفت، خوش‌فرم و کشیده شوند.
+            ` : `
+              بر اساس معتبرترین متاآنالیز دنیا (مورتون و همکاران، ژورنال پزشکی ورزشی بریتانیا BJSM 2018 و هلمز/ISSN 2014) برای هایپرتروفی و حفظ کامل عضله در رژیم کسر کالری، بر پایه <b>۱.۹۵ گرم پروتئین به ازای هر کیلوگرم وزن کل</b> (فرمول: <b>${current.weight}kg × 1.95 = ${curSci.targetProtein} گرم</b>) در بازه بهینه ۱.۸ تا ۲.۲ گرم بر کیلوگرم وزن تنظیم شده است تا حداکثر سنتز پروتئین عضلانی (MPS) فعال بماند.
+            `}
           </div>
         </div>
 

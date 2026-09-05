@@ -1013,5 +1013,30 @@ input:checked + .slider:before {
   border: 1px solid rgba(244, 63, 94, 0.4);
 }
 
+.exercise-seq-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(56, 189, 248, 0.12);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 7px;
+  white-space: nowrap;
+  letter-spacing: -0.2px;
+}
 
-
+.day-total-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(99, 102, 241, 0.15);
+  color: #a5b4fc;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 8px;
+}
