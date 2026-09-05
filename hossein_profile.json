@@ -1,0 +1,504 @@
+{
+  "id": "hossein_chieftain",
+  "name": "Hossein Chieftain",
+  "isDefault": true,
+  "pin": "gym",
+  "days": [
+    {
+      "id": "d1",
+      "title": "شنبه",
+      "type": "gym",
+      "badge": "🏋️ باشگاه",
+      "note": "۷۵ دقیقه تمرین با وزنه + ۱۵ دقیقه تردمیل در انتهای جلسه · حرکات اصلی حدود 2 RIR",
+      "treadmill": true,
+      "supersets": [
+        {
+          "title": "A1 + A2 · هک اسکوات + نشر جانب دستگاه",
+          "exercises": [
+            {
+              "exId": "hack_squat",
+              "reps": "3 × 8–12",
+              "sets": 3
+            },
+            {
+              "exId": "standing_lateral_raise_machine",
+              "reps": "3 × 12–20",
+              "sets": 3
+            }
+          ]
+        },
+        {
+          "title": "B1 + B2 · پرس بالا سینه اسمیت + پشت پا دستگاه",
+          "exercises": [
+            {
+              "exId": "smith_incline_bench_press",
+              "reps": "3 × 6–10",
+              "sets": 3
+            },
+            {
+              "exId": "leg_curl",
+              "reps": "3 × 10–15",
+              "sets": 3
+            }
+          ]
+        },
+        {
+          "title": "C1 + C2 + C3 · یوفو زیر بغل + پشت بازو طناب + اصلاحی کتف راست",
+          "exercises": [
+            {
+              "exId": "ufo_linear_row_machine",
+              "reps": "3 × 8–12",
+              "sets": 3
+            },
+            {
+              "exId": "rope_triceps_pushdown",
+              "reps": "3 × 10–15",
+              "sets": 3
+            },
+            {
+              "exId": "single_arm_pronated_scapular_correction",
+              "reps": "3 × 10–12",
+              "sets": 3
+            }
+          ]
+        },
+        {
+          "title": "D1 + D2 · جلو بازو لاری + ساق با هک اسکوات",
+          "exercises": [
+            {
+              "exId": "preacher_curls",
+              "reps": "3 × 8–12",
+              "sets": 3
+            },
+            {
+              "exId": "standing_calf_raise_hack",
+              "reps": "3 × 10–15",
+              "sets": 3
+            }
+          ]
+        },
+        {
+          "title": "E1 + E2 · ابداکشن ایستاده با صفحه + اسکوات قزاقی",
+          "exercises": [
+            {
+              "exId": "standing_plate_hip_abduction",
+              "reps": "3 × 12–15 هر طرف",
+              "sets": 3
+            },
+            {
+              "exId": "cossack_squat",
+              "reps": "3 × 8–12 هر طرف",
+              "sets": 3
+            }
+          ]
+        },
+        {
+          "title": "F1 + F2 · بک اکستنشن / فیله + فیس پول با سیم‌کش",
+          "exercises": [
+            {
+              "exId": "back_extension",
+              "reps": "3 × 10–15",
+              "sets": 3
+            },
+            {
+              "exId": "face_pull",
+              "reps": "3 × 12–15",
+              "sets": 3
+            }
+          ]
+        },
+        {
+          "title": "G1 + G2 · کرانچ ایستاده کابل + جلو پا دستگاه",
+          "exercises": [
+            {
+              "exId": "standing_cable_crunch",
+              "reps": "3 × 10–15",
+              "sets": 3
+            },
+            {
+              "exId": "leg_extension",
+              "reps": "3 × 10–15",
+              "sets": 3
+            }
+          ]
+        }
+      ],
+      "singles": []
+    },
+    {
+      "id": "d2",
+      "title": "یکشنبه",
+      "type": "home",
+      "badge": "🏠 خانه",
+      "note": "تمرکز بر پایداری ستون فقرات، تقویت عضلات Core و کنترل ایزومتریک در خانه",
+      "treadmill": false,
+      "supersets": [],
+      "singles": [
+        {
+          "exId": "dead_bug_iso",
+          "reps": "3 × 20–30 ثانیه",
+          "sets": 3
+        },
+        {
+          "exId": "side_plank_iso",
+          "reps": "3 × 20–40 ثانیه هر طرف",
+          "sets": 3
+        },
+        {
+          "exId": "wall_sit",
+          "reps": "3 × 30–60 ثانیه",
+          "sets": 3
+        },
+        {
+          "exId": "iso_bird_dog",
+          "reps": "3 × 20–30 ثانیه هر طرف",
+          "sets": 3
+        },
+        {
+          "exId": "push_up_plus",
+          "reps": "3 × 8–15",
+          "sets": 3
+        }
+      ]
+    },
+    {
+      "id": "d3",
+      "title": "دوشنبه",
+      "type": "gym",
+      "badge": "🏋️ باشگاه",
+      "note": "۷۵ دقیقه تمرین با وزنه + ۱۵ دقیقه تردمیل در انتهای جلسه · حرکات اصلی حدود 2 RIR",
+      "treadmill": true,
+      "supersets": [
+        {
+          "title": "A1 + A2 · پرس پا + ریورس پک‌دک",
+          "exercises": [
+            {
+              "exId": "leg_press",
+              "reps": "3 × 8–12",
+              "sets": 3
+            },
+            {
+              "exId": "reverse_peck_deck_fly",
+              "reps": "3 × 12–20",
+              "sets": 3
+            }
+          ]
+        },
+        {
+          "title": "B1 + B2 · پرس سینه دستگاه + جلو پا دستگاه",
+          "exercises": [
+            {
+              "exId": "seated_chest_press_machine",
+              "reps": "3 × 8–12",
+              "sets": 3
+            },
+            {
+              "exId": "leg_extension",
+              "reps": "3 × 10–15",
+              "sets": 3
+            }
+          ]
+        },
+        {
+          "title": "C1 + C2 + C3 · لت سیم‌کش + پشت بازو بالای سر طناب + اصلاحی کتف راست",
+          "exercises": [
+            {
+              "exId": "lat_pulldown",
+              "reps": "3 × 8–12",
+              "sets": 3
+            },
+            {
+              "exId": "overhead_triceps_extension",
+              "reps": "3 × 10–15",
+              "sets": 3
+            },
+            {
+              "exId": "single_arm_pronated_scapular_correction",
+              "reps": "3 × 10–12",
+              "sets": 3
+            }
+          ]
+        },
+        {
+          "title": "D1 + D2 · همر کرل روی لاری + پرس سرشانه دستگاه",
+          "exercises": [
+            {
+              "exId": "preacher_hammer_curl",
+              "reps": "3 × 8–12",
+              "sets": 3
+            },
+            {
+              "exId": "plate_loaded_shoulder_press",
+              "reps": "3 × 8–12",
+              "sets": 3
+            }
+          ]
+        },
+        {
+          "title": "E1 + E2 + E3 · پک‌دک فلای + پک‌دک تک‌دست + ساق پا نشسته روی دستگاه همسترینگ",
+          "exercises": [
+            {
+              "exId": "peck_deck_fly",
+              "reps": "3 × 10–15",
+              "sets": 3
+            },
+            {
+              "exId": "single_arm_peck_deck_fly",
+              "reps": "3 × 10–15 هر طرف",
+              "sets": 3
+            },
+            {
+              "exId": "seated_calf_raise_hamstring_machine",
+              "reps": "3 × 10–15",
+              "sets": 3
+            }
+          ]
+        },
+        {
+          "title": "F1 + F2 · بک اکستنشن / فیله + فیس پول با سیم‌کش",
+          "exercises": [
+            {
+              "exId": "back_extension",
+              "reps": "3 × 10–15",
+              "sets": 3
+            },
+            {
+              "exId": "face_pull",
+              "reps": "3 × 12–15",
+              "sets": 3
+            }
+          ]
+        },
+        {
+          "title": "G1 + G2 · کرانچ نیمکت + ابداکشن ایستاده با صفحه",
+          "exercises": [
+            {
+              "exId": "bench_crunch",
+              "reps": "3 × 12–20",
+              "sets": 3
+            },
+            {
+              "exId": "standing_plate_hip_abduction",
+              "reps": "3 × 10–15",
+              "sets": 3
+            }
+          ]
+        }
+      ],
+      "singles": []
+    },
+    {
+      "id": "d4",
+      "title": "سه‌شنبه",
+      "type": "home",
+      "badge": "🏠 خانه",
+      "note": "تمرکز بر کنترل کتف، سلامت کمربند شانه‌ای و ثبات زنجیره خلفی در خانه",
+      "treadmill": false,
+      "supersets": [],
+      "singles": [
+        {
+          "exId": "wall_slide",
+          "reps": "3 × 8–12",
+          "sets": 3
+        },
+        {
+          "exId": "prone_itwy",
+          "reps": "3 × 8–12",
+          "sets": 3
+        },
+        {
+          "exId": "push_up_plus",
+          "reps": "3 × 8–15",
+          "sets": 3
+        },
+        {
+          "exId": "side_plank_iso",
+          "reps": "3 × 20–40 ثانیه هر طرف",
+          "sets": 3
+        },
+        {
+          "exId": "dead_bug",
+          "reps": "3 × 6–10 هر طرف",
+          "sets": 3
+        },
+        {
+          "exId": "glute_bridge_iso",
+          "reps": "3 × 20–40 ثانیه",
+          "sets": 3
+        }
+      ]
+    },
+    {
+      "id": "d5",
+      "title": "چهارشنبه",
+      "type": "rest",
+      "badge": "🛌 استراحت کامل",
+      "note": "استراحت کامل، تغذیه با کیفیت و ریکاوری بافت‌های عضلانی",
+      "treadmill": false,
+      "supersets": [],
+      "singles": []
+    },
+    {
+      "id": "d6",
+      "title": "پنجشنبه",
+      "type": "gym",
+      "badge": "🏋️ باشگاه",
+      "note": "۷۵ دقیقه تمرین با وزنه + ۱۵ دقیقه تردمیل در انتهای جلسه · حرکات اصلی حدود 2 RIR",
+      "treadmill": true,
+      "supersets": [
+        {
+          "title": "A1 + A2 · هک اسکوات + نشر جانب دستگاه",
+          "exercises": [
+            {
+              "exId": "hack_squat",
+              "reps": "3 × 8–12",
+              "sets": 3
+            },
+            {
+              "exId": "standing_lateral_raise_machine",
+              "reps": "3 × 12–20",
+              "sets": 3
+            }
+          ]
+        },
+        {
+          "title": "B1 + B2 · ددلیفت رومانیایی + پشت بازو طناب",
+          "exercises": [
+            {
+              "exId": "rdl",
+              "reps": "3 × 8–12",
+              "sets": 3
+            },
+            {
+              "exId": "rope_triceps_pushdown",
+              "reps": "3 × 12–15 هر طرف",
+              "sets": 3
+            }
+          ]
+        },
+        {
+          "title": "C1 + C2 + C3 · روئینگ ایزولترال دستگاه + اسکوات قزاقی + اصلاحی کتف راست",
+          "exercises": [
+            {
+              "exId": "iso_lateral_row",
+              "reps": "3 × 8–12",
+              "sets": 3
+            },
+            {
+              "exId": "cossack_squat",
+              "reps": "3 × 10–15",
+              "sets": 3
+            },
+            {
+              "exId": "single_arm_pronated_scapular_correction",
+              "reps": "3 × 10–12",
+              "sets": 3
+            }
+          ]
+        },
+        {
+          "title": "D1 + D2 · جلو بازو لاری + شراگ دمبل",
+          "exercises": [
+            {
+              "exId": "preacher_curls",
+              "reps": "3 × 8–12",
+              "sets": 3
+            },
+            {
+              "exId": "dumbbell_shrugs",
+              "reps": "3 × 10–15",
+              "sets": 3
+            }
+          ]
+        },
+        {
+          "title": "E1 + E2 · قایقی سیم‌کش + پشت پا دستگاه",
+          "exercises": [
+            {
+              "exId": "cable_row",
+              "reps": "3 × 8–12",
+              "sets": 3
+            },
+            {
+              "exId": "leg_curl",
+              "reps": "3 × 10–15",
+              "sets": 3
+            }
+          ]
+        },
+        {
+          "title": "F1 + F2 · پک‌دک فلای + کرانچ ایستاده کابل",
+          "exercises": [
+            {
+              "exId": "peck_deck_fly",
+              "reps": "3 × 10–15",
+              "sets": 3
+            },
+            {
+              "exId": "standing_cable_crunch",
+              "reps": "3 × 10–15",
+              "sets": 3
+            }
+          ]
+        },
+        {
+          "title": "G1 + G2 · بک اکستنشن / فیله + فیس پول با سیم‌کش",
+          "exercises": [
+            {
+              "exId": "back_extension",
+              "reps": "3 × 10–15",
+              "sets": 3
+            },
+            {
+              "exId": "face_pull",
+              "reps": "3 × 12–15",
+              "sets": 3
+            }
+          ]
+        }
+      ],
+      "singles": []
+    },
+    {
+      "id": "d7",
+      "title": "جمعه",
+      "type": "home",
+      "badge": "🏠 خانه",
+      "note": "پایان هفته با تمرینات ثبات عضلات مرکزی، کنترل کمربند شانه‌ای و تمرکز ایزومتریک در خانه",
+      "treadmill": false,
+      "supersets": [],
+      "singles": [
+        {
+          "exId": "wall_sit",
+          "reps": "3 × 30–60 ثانیه",
+          "sets": 3
+        },
+        {
+          "exId": "side_plank_iso",
+          "reps": "3 × 20–40 ثانیه هر طرف",
+          "sets": 3
+        },
+        {
+          "exId": "dead_bug_iso",
+          "reps": "3 × 20–30 ثانیه",
+          "sets": 3
+        },
+        {
+          "exId": "iso_bird_dog",
+          "reps": "3 × 20–30 ثانیه هر طرف",
+          "sets": 3
+        },
+        {
+          "exId": "wall_slide",
+          "reps": "2 × 10–12",
+          "sets": 2
+        },
+        {
+          "exId": "push_up_plus",
+          "reps": "3 × 8–15",
+          "sets": 3
+        }
+      ]
+    }
+  ]
+}
