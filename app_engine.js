@@ -19,7 +19,7 @@ function loadAppData() {
   } catch(e) { customExercises = []; }
 
   try {
-    const rawProfiles = localStorage.getItem('chieftain_profiles_v8') || localStorage.getItem('chieftain_profiles_v7') || localStorage.getItem('chieftain_profiles_v6');
+    const rawProfiles = localStorage.getItem('chieftain_profiles_v9') || localStorage.getItem('chieftain_profiles_v8') || localStorage.getItem('chieftain_profiles_v7') || localStorage.getItem('chieftain_profiles_v6');
     if (rawProfiles) {
       allProfiles = JSON.parse(rawProfiles);
     } else {
@@ -37,7 +37,7 @@ function loadAppData() {
     allProfiles.unshift(hProf);
   } else {
     hProf.pin = 'gym';
-    if (!localStorage.getItem('chieftain_profiles_v8')) {
+    if (!localStorage.getItem('chieftain_profiles_v9')) {
       hProf.days = JSON.parse(JSON.stringify(HOSSEIN_PROFILE.days));
     }
   }
@@ -51,7 +51,7 @@ function loadAppData() {
   } else {
     mProf.name = 'مروارید';
     if (!mProf.pin) mProf.pin = 'inci';
-    if (!localStorage.getItem('chieftain_profiles_v8') || !mProf.days || mProf.days.length === 0) {
+    if (!localStorage.getItem('chieftain_profiles_v9') || !mProf.days || mProf.days.length === 0) {
       mProf.days = JSON.parse(JSON.stringify(MORVARID_PROFILE.days));
     }
   }
@@ -67,7 +67,7 @@ function loadAppData() {
 }
 
 function saveProfiles() {
-  localStorage.setItem('chieftain_profiles_v8', JSON.stringify(allProfiles));
+  localStorage.setItem('chieftain_profiles_v9', JSON.stringify(allProfiles));
   if (typeof pushToCloudStorage === 'function' && isAutoCloudSyncEnabled()) {
     pushToCloudStorage(true);
   }
@@ -680,6 +680,7 @@ const EXERCISE_MUSCLE_MAPPING = {
   'incline_chest_fly': ['سینه'],
   'seated_cable_pec_fly': ['سینه'],
   'cable_fly': ['سینه'],
+  'single_arm_peck_deck_fly': ['سینه'],
 
   // Lats & Back (زیر بغل و پشت)
   'lat_pulldown': ['پشت'],
@@ -691,6 +692,7 @@ const EXERCISE_MUSCLE_MAPPING = {
   'ufo_linear_row_machine': ['پشت'],
   'dumbbell_row': ['پشت'],
   'lat_pulldown_underhand': ['پشت'],
+  'single_arm_pronated_scapular_correction': ['پشت', 'سرشانه'],
 
   // Shoulders (سرشانه و دلتوئید)
   'machine_lateral_raise': ['سرشانه'],
@@ -775,12 +777,14 @@ const EXERCISE_MUSCLE_MAPPING = {
   'standing_calf_raise_hack': ['ساق'],
   'standing_calf_raise_machine': ['ساق'],
   'seated_calf_raise': ['ساق'],
+  'seated_calf_raise_hamstring_machine': ['ساق'],
 
   // Lower Back (فیله و پایین کمر)
   'back_extension': ['فیله', 'باسن'],
   'dumbbell_incline_row_low_back': ['فیله', 'پشت'],
 
   // Core & Abs (شکم و عضلات مرکزی)
+  'ab_crunch_machine': ['شکم'],
   'standing_cable_crunch': ['شکم'],
   'cable_oblique_crunch': ['شکم'],
   'bench_crunch': ['شکم'],
@@ -2285,6 +2289,22 @@ function toggleSet(btn) {
   updateGreetingText();
 }
 
+/**
+ * Calculates the unique Iranian calendar week identifier (Saturday to Friday).
+ * For any given date, returns `IR_WEEK_YYYY-MM-DD` where YYYY-MM-DD is the Saturday
+ * that started the current week.
+ */
+function getIranianWeekKey(date = new Date()) {
+  const d = new Date(date);
+  const day = d.getDay(); // 0 = Sun, 1 = Mon, ..., 5 = Fri, 6 = Sat
+  const daysSinceSaturday = (day + 1) % 7;
+  const sat = new Date(d.getFullYear(), d.getMonth(), d.getDate() - daysSinceSaturday);
+  const yyyy = sat.getFullYear();
+  const mm = String(sat.getMonth() + 1).padStart(2, '0');
+  const dd = String(sat.getDate()).padStart(2, '0');
+  return `IR_WEEK_${yyyy}-${mm}-${dd}`;
+}
+
 function saveSetsState() {
   const stateKey = 'chieftain_sets_' + activeProfileId;
   const state = {};
@@ -2294,29 +2314,89 @@ function saveSetsState() {
       state[exId] = Array.from(card.querySelectorAll('.set-btn')).map(b => b.classList.contains('done'));
     }
   });
-  localStorage.setItem(stateKey, JSON.stringify(state));
+  const currentWeek = getIranianWeekKey();
+  const payload = {
+    weekKey: currentWeek,
+    updatedAt: Date.now(),
+    sets: state
+  };
+  localStorage.setItem(stateKey, JSON.stringify(payload));
 }
 
 function loadSavedSets() {
   try {
     const stateKey = 'chieftain_sets_' + activeProfileId;
     const raw = localStorage.getItem(stateKey);
-    if (!raw) return;
-    const state = JSON.parse(raw);
+    const currentWeek = getIranianWeekKey();
+
+    // Reset card completed classes and button done states in DOM first
+    document.querySelectorAll('.set-btn').forEach(btn => btn.classList.remove('done'));
+    document.querySelectorAll('.exercise-card').forEach(card => card.classList.remove('completed'));
+
+    if (!raw) {
+      return;
+    }
+
+    let savedWeek = null;
+    let setsState = null;
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object' && parsed.weekKey) {
+        savedWeek = parsed.weekKey;
+        setsState = parsed.sets || {};
+      } else if (parsed && typeof parsed === 'object') {
+        // Legacy format without weekKey - from previous session/week
+        savedWeek = null;
+        setsState = parsed;
+      }
+    } catch(e) {
+      return;
+    }
+
+    // If new Iranian week has arrived (or legacy data from previous week without weekKey):
+    if (!savedWeek || savedWeek !== currentWeek) {
+      console.log(`[Chieftain] New Iranian week detected (${currentWeek} vs saved ${savedWeek}). Resetting weekly checklist.`);
+      localStorage.setItem(stateKey, JSON.stringify({
+        weekKey: currentWeek,
+        updatedAt: Date.now(),
+        sets: {}
+      }));
+      return;
+    }
+
+    // Restore checkmarks for current week
     document.querySelectorAll('.exercise-card').forEach(card => {
       const exId = card.getAttribute('data-ex-id');
-      if (state[exId]) {
+      if (setsState && setsState[exId]) {
         const btns = card.querySelectorAll('.set-btn');
         btns.forEach((btn, idx) => {
-          if (state[exId][idx]) btn.classList.add('done');
+          if (setsState[exId][idx]) btn.classList.add('done');
         });
         if (btns.length && Array.from(btns).every(b => b.classList.contains('done'))) {
           card.classList.add('completed');
         }
       }
     });
-  } catch(e) {}
+  } catch(e) {
+    console.error('Error loading saved sets:', e);
+  }
 }
+
+// Auto-check Iranian week change on tab focus / visibility
+let lastCheckedIranianWeek = getIranianWeekKey();
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) {
+    const curW = getIranianWeekKey();
+    if (curW !== lastCheckedIranianWeek) {
+      lastCheckedIranianWeek = curW;
+      loadSavedSets();
+      updateAllProgressBars();
+      if (typeof showToast === 'function') {
+        showToast('📅 هفته تمرینی جدید آغاز شد! پیشرفت هفتگی به صورت خودکار بازنشانی شد.');
+      }
+    }
+  }
+});
 
 function updateDayProgress(daySec) {
   if (!daySec) return;
@@ -2778,7 +2858,7 @@ async function pullFromCloudStorage(silent = false) {
         }
 
         if (data.metrics) restoreProfilesMetricsMap(data.metrics);
-        localStorage.setItem('chieftain_profiles_v8', JSON.stringify(allProfiles));
+        localStorage.setItem('chieftain_profiles_v9', JSON.stringify(allProfiles));
         saveCustomExercises();
         renderApp();
 
@@ -2938,7 +3018,7 @@ function checkUrlSyncData() {
           activeProfileId = allProfiles[0].id;
         }
         if (payload.metrics) restoreProfilesMetricsMap(payload.metrics);
-        localStorage.setItem('chieftain_profiles_v8', JSON.stringify(allProfiles));
+        localStorage.setItem('chieftain_profiles_v9', JSON.stringify(allProfiles));
         saveCustomExercises();
         history.replaceState(null, document.title, window.location.pathname);
         showToast('🎉 برنامه‌ها، تغییرات و ابعاد بدنی با موفقیت همگام‌سازی و ذخیره شدند!');

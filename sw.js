@@ -1,4 +1,4 @@
-const CACHE_NAME = 'chieftain-workout-v9.3';
+const CACHE_NAME = 'chieftain-workout-v9.4';
 const STATIC_ASSETS = [
   './',
   './index.html',

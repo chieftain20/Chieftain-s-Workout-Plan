@@ -43,7 +43,7 @@
           ]
         },
         {
-          "title": "C1 + C2 · یوفو زیر بغل + پشت بازو طناب",
+          "title": "C1 + C2 + C3 · یوفو زیر بغل + پشت بازو طناب + اصلاحی کتف راست",
           "exercises": [
             {
               "exId": "ufo_linear_row_machine",
@@ -53,6 +53,11 @@
             {
               "exId": "rope_triceps_pushdown",
               "reps": "3 × 10–15",
+              "sets": 3
+            },
+            {
+              "exId": "single_arm_pronated_scapular_correction",
+              "reps": "3 × 10–12",
               "sets": 3
             }
           ]
@@ -195,7 +200,7 @@
           ]
         },
         {
-          "title": "C1 + C2 · لت سیم‌کش + پشت بازو بالای سر طناب",
+          "title": "C1 + C2 + C3 · لت سیم‌کش + پشت بازو بالای سر طناب + اصلاحی کتف راست",
           "exercises": [
             {
               "exId": "lat_pulldown",
@@ -205,6 +210,11 @@
             {
               "exId": "overhead_triceps_extension",
               "reps": "3 × 10–15",
+              "sets": 3
+            },
+            {
+              "exId": "single_arm_pronated_scapular_correction",
+              "reps": "3 × 10–12",
               "sets": 3
             }
           ]
@@ -225,7 +235,7 @@
           ]
         },
         {
-          "title": "E1 + E2 · پک‌دک فلای + ساق با هک اسکوات",
+          "title": "E1 + E2 + E3 · پک‌دک فلای + پک‌دک تک‌دست + ساق پا نشسته روی دستگاه همسترینگ",
           "exercises": [
             {
               "exId": "peck_deck_fly",
@@ -233,7 +243,12 @@
               "sets": 3
             },
             {
-              "exId": "standing_calf_raise_hack",
+              "exId": "single_arm_peck_deck_fly",
+              "reps": "3 × 10–15 هر طرف",
+              "sets": 3
+            },
+            {
+              "exId": "seated_calf_raise_hamstring_machine",
               "reps": "3 × 10–15",
               "sets": 3
             }
@@ -362,7 +377,7 @@
           ]
         },
         {
-          "title": "C1 + C2 · روئینگ ایزولترال دستگاه + اسکوات قزاقی",
+          "title": "C1 + C2 + C3 · روئینگ ایزولترال دستگاه + اسکوات قزاقی + اصلاحی کتف راست",
           "exercises": [
             {
               "exId": "iso_lateral_row",
@@ -372,6 +387,11 @@
             {
               "exId": "cossack_squat",
               "reps": "3 × 10–15",
+              "sets": 3
+            },
+            {
+              "exId": "single_arm_pronated_scapular_correction",
+              "reps": "3 × 10–12",
               "sets": 3
             }
           ]

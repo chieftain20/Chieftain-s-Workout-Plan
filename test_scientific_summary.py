@@ -15,6 +15,7 @@ EXERCISE_MUSCLE_MAPPING = {
     'incline_chest_fly': ['سینه'],
     'seated_cable_pec_fly': ['سینه'],
     'cable_fly': ['سینه'],
+    'single_arm_peck_deck_fly': ['سینه'],
 
     # Lats & Back (زیر بغل و پشت)
     'lat_pulldown': ['پشت'],
@@ -26,6 +27,7 @@ EXERCISE_MUSCLE_MAPPING = {
     'ufo_linear_row_machine': ['پشت'],
     'dumbbell_row': ['پشت'],
     'lat_pulldown_underhand': ['پشت'],
+    'single_arm_pronated_scapular_correction': ['پشت', 'سرشانه'],
 
     # Shoulders (سرشانه و دلتوئید)
     'machine_lateral_raise': ['سرشانه'],
@@ -110,12 +112,14 @@ EXERCISE_MUSCLE_MAPPING = {
     'standing_calf_raise_hack': ['ساق'],
     'standing_calf_raise_machine': ['ساق'],
     'seated_calf_raise': ['ساق'],
+    'seated_calf_raise_hamstring_machine': ['ساق'],
 
     # Lower Back (فیله و پایین کمر)
     'back_extension': ['فیله', 'باسن'],
     'dumbbell_incline_row_low_back': ['فیله', 'پشت'],
 
     # Core & Abs (شکم و عضلات مرکزی)
+    'ab_crunch_machine': ['شکم'],
     'standing_cable_crunch': ['شکم'],
     'cable_oblique_crunch': ['شکم'],
     'bench_crunch': ['شکم'],
