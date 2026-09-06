@@ -1054,3 +1054,86 @@ input:checked + .slider:before {
   font-weight: 800;
   padding: 3px 8px;
 }
+
+/* ==========================================================================
+   🎯 SIMPLE MODE (حالت خلوت، ساده و مینیمال باشگاهی)
+   ========================================================================== */
+body.simple-mode .search-box,
+body.simple-mode #newPlanBtn,
+body.simple-mode #editPlanBtn,
+body.simple-mode #headerInstallBtn,
+body.simple-mode .header-badges,
+body.simple-mode .btn-header-action[onclick*="switchMainTab"],
+body.simple-mode .btn-header-action[onclick*="openSyncBackupModal"],
+body.simple-mode .card-drag-handle,
+body.simple-mode .card-reorder-toolbar,
+body.simple-mode .muscle-tag,
+body.simple-mode .quick-iso-btn,
+body.simple-mode .chart-btn,
+body.simple-mode .edit-card-btn,
+body.simple-mode .video-links-group,
+body.simple-mode .superset-header button,
+body.simple-mode .dynamic-summary-card,
+body.simple-mode .session-note,
+body.simple-mode .exercise-name-en {
+  display: none !important;
+}
+
+body.simple-mode .action-row {
+  margin-bottom: 10px;
+  gap: 6px;
+}
+
+body.simple-mode .exercise-card {
+  padding: 9px 12px !important;
+  margin-bottom: 8px !important;
+  border-radius: 10px !important;
+  background: rgba(15, 23, 42, 0.78) !important;
+  border-color: rgba(56, 189, 248, 0.16) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25) !important;
+}
+
+body.simple-mode .exercise-header {
+  margin-bottom: 4px !important;
+  align-items: center !important;
+}
+
+body.simple-mode .exercise-name-fa {
+  font-size: 14.5px !important;
+  font-weight: 800 !important;
+  color: #fff !important;
+  letter-spacing: -0.2px;
+}
+
+body.simple-mode .muscles-row {
+  margin-bottom: 3px !important;
+}
+
+body.simple-mode .card-footer {
+  border-top: none !important;
+  padding-top: 0 !important;
+  margin-top: 2px !important;
+  justify-content: space-between !important;
+}
+
+body.simple-mode .superset-block {
+  padding: 8px 10px !important;
+  margin-bottom: 8px !important;
+  background: rgba(10, 18, 34, 0.45) !important;
+  border-radius: 10px !important;
+}
+
+body.simple-mode .superset-title-wrap {
+  font-size: 12px !important;
+  font-weight: 800 !important;
+}
+
+body.simple-mode .day-section {
+  padding: 12px 10px !important;
+  margin-bottom: 14px !important;
+}
+
+body.simple-mode .day-header {
+  margin-bottom: 10px !important;
+  padding-bottom: 8px !important;
+}

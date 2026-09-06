@@ -149,6 +149,7 @@ function renderApp(preserveScroll = true, targetCardExId = null) {
   try { renderHeader(); } catch(e) { console.error('Error in renderHeader:', e); }
   try { renderDayNav(); } catch(e) { console.error('Error in renderDayNav:', e); }
   try { renderWorkoutDays(); } catch(e) { console.error('Error in renderWorkoutDays:', e); }
+  try { applyUiMode(); } catch(e) {}
 
   // Self-healing safety check: ensure workoutContent is NEVER blank when activeMainTab is workout
   if (activeMainTab === 'workout' && workoutContent) {
@@ -2802,6 +2803,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   renderApp(false);
+  try { applyUiMode(); } catch(e) {}
 
   // Background Auto-Sync from Cloud on startup
   if (navigator.onLine && isAutoCloudSyncEnabled()) {
@@ -3132,12 +3134,30 @@ async function pullFromCloudStorage(silent = false) {
 
 async function forceSyncAndHardRefresh(btn) {
   if (btn) {
-    btn.style.opacity = '0.5';
-    btn.innerHTML = '<span>🔄</span> <span>در حال دریافت...</span>';
+    btn.style.opacity = '0.6';
+    btn.innerHTML = '<span>⏳</span> <span>در حال دریافت از سرور ابری و پاک‌سازی کش...</span>';
   }
-  showToast('🔄 در حال استعلام آخرین تغییرات از سرور ابری...');
+  showToast('🔄 در حال دریافت آخرین اطلاعات از سرور ابری و پاک‌سازی کش مرورگر...');
 
-  // 1. Force update Service Worker cache if online
+  // 1. Pull latest from Cloud KV DB first so no data is missed
+  let cloudSuccess = false;
+  try {
+    cloudSuccess = await pullFromCloudStorage(true);
+  } catch(e) {
+    console.error('Cloud pull error during refresh:', e);
+  }
+
+  // 2. Clear all Service Worker caches and CacheStorage
+  if ('caches' in window) {
+    try {
+      const cacheNames = await caches.keys();
+      for (const cName of cacheNames) {
+        await caches.delete(cName);
+      }
+    } catch(e) {}
+  }
+
+  // 3. Force update Service Worker registrations
   if ('serviceWorker' in navigator) {
     try {
       const regs = await navigator.serviceWorker.getRegistrations();
@@ -3147,26 +3167,27 @@ async function forceSyncAndHardRefresh(btn) {
     } catch(e) {}
   }
 
-  // 2. Pull latest from Cloud KV DB
+  // 4. Reload local data and UI
   try {
-    const success = await pullFromCloudStorage(true);
-    if (success) {
-      showToast('🎉 آخرین نسخه برنامه از سرور ابری دریافت و رفرش شد!');
-    } else {
-      loadAppData();
-      renderApp();
-      showToast('✅ صفحه با موفقیت به‌روزرسانی و رفرش شد!');
-    }
-  } catch(e) {
     loadAppData();
     renderApp();
-    showToast('✅ رفرش محلی انجام شد.');
+  } catch(e) {}
+
+  if (cloudSuccess) {
+    showToast('🎉 اطلاعات از سرور ابری دریافت و کش مرورگر پاک شد! در حال رفرش نهایی... 🟢');
+  } else {
+    showToast('✅ کش مرورگر پاک شد و نسخه محلی رفرش گردید. در حال رفرش نهایی...');
   }
 
-  if (btn) {
-    btn.style.opacity = '1';
-    btn.innerHTML = '<span>🔄</span> <span>به‌روزرسانی و رفرش</span>';
-  }
+  // 5. Force hard-reload the window bypassing browser cache
+  setTimeout(() => {
+    try {
+      const cleanUrl = window.location.origin + window.location.pathname;
+      window.location.replace(cleanUrl + '?cache_bust=' + Date.now() + window.location.hash);
+    } catch(e) {
+      window.location.reload();
+    }
+  }, 500);
 }
 
 async function quickCloudSyncAction(btn) {
@@ -3191,6 +3212,60 @@ async function quickCloudSyncAction(btn) {
       btn.innerHTML = '<span>☁️</span> <span>همگام‌سازی ابری</span>';
     }
   }
+}
+
+// ==========================================================================
+// 🎯 UI Display Mode: Simple Mode vs Advanced Mode
+// ==========================================================================
+function isSimpleMode() {
+  try {
+    return localStorage.getItem('chieftain_ui_mode') === 'simple';
+  } catch(e) {
+    return false;
+  }
+}
+
+function applyUiMode() {
+  const isSimple = isSimpleMode();
+  const body = document.body;
+  const btnText = document.getElementById('uiModeToggleText');
+  const btnIcon = document.getElementById('uiModeToggleIcon');
+  const btn = document.getElementById('uiModeToggleBtn');
+  
+  if (isSimple) {
+    body.classList.add('simple-mode');
+    if (btnText) btnText.innerText = 'حالت پیشرفته';
+    if (btnIcon) btnIcon.innerText = '⚡';
+    if (btn) {
+      btn.title = 'تغییر به حالت پیشرفته (نمایش ویدیوها، عضلات، آنالیزها و امکانات کامل)';
+      btn.style.borderColor = '#10b981aa';
+      btn.style.color = '#34d399';
+      btn.style.background = 'rgba(16,185,129,0.15)';
+    }
+  } else {
+    body.classList.remove('simple-mode');
+    if (btnText) btnText.innerText = 'حالت ساده';
+    if (btnIcon) btnIcon.innerText = '🎯';
+    if (btn) {
+      btn.title = 'تغییر به حالت ساده (خلوت و سریع مخصوص باشگاه، فقط نام حرکات و ست‌ها)';
+      btn.style.borderColor = '#a855f7aa';
+      btn.style.color = '#d8b4fe';
+      btn.style.background = 'rgba(168,85,247,0.14)';
+    }
+  }
+}
+
+function toggleUiMode() {
+  const current = isSimpleMode();
+  const next = !current;
+  try {
+    localStorage.setItem('chieftain_ui_mode', next ? 'simple' : 'advanced');
+  } catch(e) {}
+  applyUiMode();
+  showToast(next 
+    ? '🎯 حالت ساده فعال شد (خلوت و بدون شلوغی برای باشگاه)' 
+    : '⚡ حالت پیشرفته فعال شد (نمایش تمام امکانات و ویدیوها)'
+  );
 }
 
 // --- Sync Modal UI Handlers ---
