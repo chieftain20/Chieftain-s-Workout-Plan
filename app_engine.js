@@ -38,7 +38,7 @@ function loadAppData() {
     allProfiles.unshift(hProf);
   } else {
     hProf.pin = 'gym';
-    if (!localStorage.getItem('chieftain_profiles_v9')) {
+    if (!hProf.days || !Array.isArray(hProf.days) || hProf.days.length === 0) {
       hProf.days = JSON.parse(JSON.stringify(HOSSEIN_PROFILE.days));
     }
   }
@@ -52,7 +52,7 @@ function loadAppData() {
   } else {
     mProf.name = 'مروارید';
     if (!mProf.pin) mProf.pin = 'inci';
-    if (!localStorage.getItem('chieftain_profiles_v9') || !mProf.days || mProf.days.length === 0) {
+    if (!mProf.days || !Array.isArray(mProf.days) || mProf.days.length === 0) {
       mProf.days = JSON.parse(JSON.stringify(MORVARID_PROFILE.days));
     }
   }
@@ -149,6 +149,22 @@ function renderApp(preserveScroll = true, targetCardExId = null) {
   try { renderHeader(); } catch(e) { console.error('Error in renderHeader:', e); }
   try { renderDayNav(); } catch(e) { console.error('Error in renderDayNav:', e); }
   try { renderWorkoutDays(); } catch(e) { console.error('Error in renderWorkoutDays:', e); }
+
+  // Self-healing safety check: ensure workoutContent is NEVER blank when activeMainTab is workout
+  if (activeMainTab === 'workout' && workoutContent) {
+    if (!workoutContent.innerHTML || workoutContent.innerHTML.trim() === '') {
+      console.warn('[Chieftain] Detected empty workoutContent. Self-healing from built-in profile...');
+      const prof = getActiveProfile();
+      if (prof.id === 'hossein_chieftain') {
+        prof.days = JSON.parse(JSON.stringify(HOSSEIN_PROFILE.days));
+      } else if (prof.id === 'morvarid') {
+        prof.days = JSON.parse(JSON.stringify(MORVARID_PROFILE.days));
+      }
+      saveProfiles();
+      try { renderWorkoutDays(); } catch(err) {}
+    }
+  }
+
   try { loadSavedSets(); } catch(e) { console.error('Error in loadSavedSets:', e); }
   try { updateAllProgressBars(); } catch(e) { console.error('Error in updateAllProgressBars:', e); }
   try { setupSectionObserver(); } catch(e) {}
@@ -251,10 +267,14 @@ function renderDayNav() {
   const nav = document.getElementById('dayNav');
   if (!nav) return;
   
+  const todaySecId = (typeof getTodaySectionId === 'function') ? getTodaySectionId() : 'd1';
+
   const tabsHtml = prof.days.map((d, idx) => {
     const typeLabel = d.type === 'gym' ? 'باشگاه' : (d.type === 'home' ? 'خانه' : 'استراحت');
+    const isToday = (d.id === todaySecId);
+    const isActive = (activeMainTab === 'workout') && (isToday || (!prof.days.some(x => x.id === todaySecId) && idx === 0));
     return `
-      <a href="javascript:void(0)" onclick="navigateToDaySection(event, '${d.id}')" class="nav-tab ${activeMainTab === 'workout' && idx === 0 ? 'active' : ''}" data-day="${idx}" data-target-id="${d.id}">
+      <a href="javascript:void(0)" onclick="navigateToDaySection(event, '${d.id}')" class="nav-tab ${isActive ? 'active' : ''} ${isToday ? 'is-today' : ''}" data-day="${idx}" data-target-id="${d.id}">
         <span>${d.title}</span>
         <span class="tab-badge">${typeLabel}</span>
         <span id="nav-pill-${d.id}" class="tab-prog-pill" style="display:none;">۰٪</span>
@@ -323,12 +343,13 @@ function closeImageModal() {
 }
 
 function renderExerciseCard(item, dayId, isSuperset = false, singleIdx = -1, totalSingles = 0, ssIdx = -1, exIdx = -1, totalSSExercises = 0, seqNum = null, totalDayExercises = 0) {
-  const ex = findExerciseById(item.exId);
-  const reps = item.reps || ex.defaultReps || '3 × 8–12';
+  if (!item || !item.exId) return '';
+  const ex = findExerciseById(item.exId) || { id: item.exId, fa: item.exId, en: '', muscles: 'عمومی', videos: [] };
+  const reps = String(item.reps || ex.defaultReps || '3 × 8–12');
   const setsCount = parseSetsFromReps(reps, item.sets);
-  const displayNameFa = item.customName ? item.customName : ex.fa;
+  const displayNameFa = item.customName ? item.customName : (ex.fa || item.exId);
   const originalSubtext = item.customName && item.customName !== ex.fa 
-    ? `<div class="exercise-name-en" style="color:#94a3b8; font-size:11px;">حرکت پایه: ${ex.fa}</div>` 
+    ? `<div class="exercise-name-en" style="color:#94a3b8; font-size:11px;">حرکت پایه: ${ex.fa || item.exId}</div>` 
     : (ex.en ? `<div class="exercise-name-en">${ex.en}</div>` : '');
 
   const seqBadgeHtml = (seqNum && seqNum > 0)
@@ -341,10 +362,11 @@ function renderExerciseCard(item, dayId, isSuperset = false, singleIdx = -1, tot
 
   // Isometric Quick Button check (Only for true isometric holds, NOT rep-based variations)
   let isoBtnHtml = '';
-  const lowerFa = ex.fa.toLowerCase();
-  const lowerEn = (ex.en || '').toLowerCase();
+  const lowerFa = String(ex.fa || '').toLowerCase();
+  const lowerEn = String(ex.en || '').toLowerCase();
+  const repsStr = String(reps || '');
   const isExcluded = lowerFa.includes('خرسی') || lowerFa.includes('پایک') || lowerFa.includes('کیک') || lowerEn.includes('bear') || lowerEn.includes('pike') || lowerEn.includes('kickback');
-  const isIso = !isExcluded && (ex.isIsometric === true || ((lowerFa.includes('ایزومتریک') || lowerFa.includes('پلانک آرنج') || lowerFa.includes('ساید پلانک') || lowerFa.includes('وال سیت') || lowerEn.includes('wall sit') || reps.includes('ثانیه')) && !reps.includes('تکرار')));
+  const isIso = !isExcluded && (ex.isIsometric === true || ((lowerFa.includes('ایزومتریک') || lowerFa.includes('پلانک آرنج') || lowerFa.includes('ساید پلانک') || lowerFa.includes('وال سیت') || lowerEn.includes('wall sit') || repsStr.includes('ثانیه')) && !repsStr.includes('تکرار')));
 
   if (isIso || item.isoDuration) {
     let defaultSeconds = item.isoDuration || 30;
@@ -850,15 +872,24 @@ function renderDynamicWeeklySummary(prof) {
     };
   });
 
-  prof.days.forEach(day => {
-    if (day.type === 'rest') return;
+  (prof.days || []).forEach(day => {
+    if (!day || day.type === 'rest') return;
 
     const dayItems = [];
-    if (day.singles) day.singles.forEach(s => dayItems.push(s));
-    if (day.supersets) day.supersets.forEach(ss => ss.exercises.forEach(s => dayItems.push(s)));
+    if (Array.isArray(day.singles)) {
+      day.singles.forEach(s => { if (s && s.exId) dayItems.push(s); });
+    }
+    if (Array.isArray(day.supersets)) {
+      day.supersets.forEach(ss => {
+        if (ss && Array.isArray(ss.exercises)) {
+          ss.exercises.forEach(s => { if (s && s.exId) dayItems.push(s); });
+        }
+      });
+    }
 
     dayItems.forEach(item => {
-      const ex = findExerciseById(item.exId);
+      if (!item || !item.exId) return;
+      const ex = findExerciseById(item.exId) || { id: item.exId, fa: item.exId, en: '' };
       const sets = parseSetsFromReps(item.reps, item.sets);
       const assignedMuscles = EXERCISE_MUSCLE_MAPPING[item.exId] || [];
       const isGym = (day.type === 'gym');
@@ -979,11 +1010,13 @@ function renderDynamicWeeklySummary(prof) {
 }
 
 function renderDaySupersetsHTML(day, startSeqNum = 0, totalDayExercises = 0) {
-  if (!day.supersets || day.supersets.length === 0) return '';
+  if (!day || !day.supersets || !Array.isArray(day.supersets) || day.supersets.length === 0) return '';
   const totalSS = day.supersets.length;
   let currentSeq = startSeqNum;
   return day.supersets.map((ss, ssIdx) => {
+    if (!ss || !Array.isArray(ss.exercises)) return '';
     const ssExercisesHtml = ss.exercises.map((item, exIdx) => {
+      if (!item || !item.exId) return '';
       currentSeq++;
       return renderExerciseCard(item, day.id, true, -1, 0, ssIdx, exIdx, ss.exercises.length, currentSeq, totalDayExercises);
     }).join('');
@@ -993,7 +1026,7 @@ function renderDaySupersetsHTML(day, startSeqNum = 0, totalDayExercises = 0) {
         <div class="superset-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
           <div style="display:flex; align-items:center; gap:8px;">
             <span class="card-drag-handle" title="لمس یا کشیدن برای جابجایی کل سوپرست">⠿</span>
-            <span>⚡ ${ss.title}</span>
+            <span>⚡ ${ss.title || 'سوپرست'}</span>
             <span style="font-size:10.5px; background:rgba(0,242,254,0.15); color:#00f2fe; padding:2px 8px; border-radius:10px; border:1px solid rgba(0,242,254,0.3); font-weight:700;">${ss.exercises.length} حرکت</span>
           </div>
           <div class="card-reorder-toolbar" style="margin-top:0;">
@@ -1010,110 +1043,147 @@ function renderDaySupersetsHTML(day, startSeqNum = 0, totalDayExercises = 0) {
 }
 
 function renderDaySinglesHTML(day, startSeqNum = 0, totalDayExercises = 0) {
-  if (!day.singles || day.singles.length === 0) return '';
+  if (!day || !day.singles || !Array.isArray(day.singles) || day.singles.length === 0) return '';
   const totalSingles = day.singles.length;
   let currentSeq = startSeqNum;
   return day.singles.map((item, sIdx) => {
+    if (!item || !item.exId) return '';
     currentSeq++;
     return renderExerciseCard(item, day.id, false, sIdx, totalSingles, -1, -1, 0, currentSeq, totalDayExercises);
   }).join('');
 }
 
 function renderWorkoutDays() {
-  const prof = getActiveProfile();
+  let prof = getActiveProfile();
   const container = document.getElementById('workoutContent');
   if (!container) return;
 
-  const currentHeight = container.offsetHeight;
-  if (currentHeight > 0) {
-    container.style.minHeight = currentHeight + 'px';
+  // Defensive validation: if prof or prof.days is missing/empty, self-heal immediately
+  if (!prof || !Array.isArray(prof.days) || prof.days.length === 0) {
+    console.warn('[Chieftain] Active profile days empty or invalid. Restoring from defaults...');
+    if (activeProfileId === 'morvarid') {
+      prof = JSON.parse(JSON.stringify(MORVARID_PROFILE));
+    } else {
+      prof = JSON.parse(JSON.stringify(HOSSEIN_PROFILE));
+    }
+    const idx = allProfiles.findIndex(p => p.id === prof.id);
+    if (idx >= 0) allProfiles[idx] = prof;
+    else allProfiles.push(prof);
+    saveProfiles();
   }
 
-  const daysHtml = prof.days.map(day => {
-    const typeBadge = {
-      'gym': '<span class="day-location-badge badge-gym">🏋️ باشگاه</span>',
-      'home': '<span class="day-location-badge badge-home">🏠 خانه</span>',
-      'rest': '<span class="day-location-badge badge-rest">🛌 استراحت کامل</span>'
-    }[day.type] || '';
+  let daysHtml = '';
+  try {
+    daysHtml = prof.days.map(day => {
+      try {
+        const typeBadge = {
+          'gym': '<span class="day-location-badge badge-gym">🏋️ باشگاه</span>',
+          'home': '<span class="day-location-badge badge-home">🏠 خانه</span>',
+          'rest': '<span class="day-location-badge badge-rest">🛌 استراحت کامل</span>'
+        }[day.type] || '';
 
-    let totalDayExercises = (day.singles ? day.singles.length : 0);
-    if (day.supersets) {
-      day.supersets.forEach(ss => {
-        totalDayExercises += (ss.exercises ? ss.exercises.length : 0);
-      });
-    }
+        let totalDayExercises = (day.singles ? day.singles.length : 0);
+        if (day.supersets) {
+          day.supersets.forEach(ss => {
+            totalDayExercises += (ss && ss.exercises ? ss.exercises.length : 0);
+          });
+        }
 
-    let runningSeqNum = 0;
-    const supersetsHtml = renderDaySupersetsHTML(day, runningSeqNum, totalDayExercises);
-    const ssExCount = (day.supersets || []).reduce((acc, ss) => acc + (ss.exercises ? ss.exercises.length : 0), 0);
-    runningSeqNum += ssExCount;
-    const singlesHtml = renderDaySinglesHTML(day, runningSeqNum, totalDayExercises);
+        let runningSeqNum = 0;
+        const supersetsHtml = renderDaySupersetsHTML(day, runningSeqNum, totalDayExercises);
+        const ssExCount = (day.supersets || []).reduce((acc, ss) => acc + (ss && ss.exercises ? ss.exercises.length : 0), 0);
+        runningSeqNum += ssExCount;
+        const singlesHtml = renderDaySinglesHTML(day, runningSeqNum, totalDayExercises);
 
-    let restHtml = '';
-    if (day.type === 'rest') {
-      restHtml = `
-        <div class="rest-day-card">
-          <div class="rest-icon">🛌💤</div>
-          <h3>روز استراحت و ریکاوری کامل</h3>
-          <p>امروز بدن شما نیاز به تغذیه با کیفیت، آب‌رسانی کافی و خواب با کیفیت دارد تا عضلات بازسازی شوند.</p>
-        </div>
-      `;
-    }
+        let restHtml = '';
+        if (day.type === 'rest') {
+          restHtml = `
+            <div class="rest-day-card">
+              <div class="rest-icon">🛌💤</div>
+              <h3>روز استراحت و ریکاوری کامل</h3>
+              <p>امروز بدن شما نیاز به تغذیه با کیفیت، آب‌رسانی کافی و خواب با کیفیت دارد تا عضلات بازسازی شوند.</p>
+            </div>
+          `;
+        }
 
-    let treadmillHtml = '';
-    if (day.treadmill) {
-      treadmillHtml = `
-        <div class="treadmill-banner">
-          <span>🏃 آخر جلسه: ۱۵ دقیقه تردمیل</span>
-          <button class="btn-header-action" onclick="quickTimer(900)" style="padding:4px 10px;font-size:12px">شروع ۱۵ دقیقه تایمر</button>
-        </div>
-      `;
-    }
+        let treadmillHtml = '';
+        if (day.treadmill) {
+          treadmillHtml = `
+            <div class="treadmill-banner">
+              <span>🏃 آخر جلسه: ۱۵ دقیقه تردمیل</span>
+              <button class="btn-header-action" onclick="quickTimer(900)" style="padding:4px 10px;font-size:12px">شروع ۱۵ دقیقه تایمر</button>
+            </div>
+          `;
+        }
 
-    const countBadgeHtml = (totalDayExercises > 0 && day.type !== 'rest')
-      ? `<span class="day-total-badge">🎯 ${totalDayExercises} حرکت</span>`
-      : '';
+        const countBadgeHtml = (totalDayExercises > 0 && day.type !== 'rest')
+          ? `<span class="day-total-badge">🎯 ${totalDayExercises} حرکت</span>`
+          : '';
 
-    return `
+        return `
+          <section id="${day.id}" class="day-section">
+            <div class="day-header">
+              <div class="day-title-wrap">
+                <h2 class="day-title">${day.title}</h2>
+                ${typeBadge}
+                ${countBadgeHtml}
+              </div>
+              <div class="day-progress-wrap">
+                <div class="day-progress-bar"><div class="day-progress-fill" id="prog-${day.id}"></div></div>
+                <span id="prog-text-${day.id}">۰٪</span>
+              </div>
+            </div>
+
+            <div id="complete-banner-${day.id}" class="day-complete-banner" style="display:none;">
+              <span>🏆 جلسه تمرینی ${day.title} ۱۰۰٪ تکمیل شد · خسته نباشی قهرمان! ✨</span>
+              <span>💪 ریکاوری عالی</span>
+            </div>
+
+            ${day.note ? `
+              <div class="session-note">
+                <span>📌</span>
+                <span>${day.note}</span>
+              </div>
+            ` : ''}
+
+            <div id="supersets_${day.id}" class="day-supersets-wrap">${supersetsHtml}</div>
+            <div id="singles_${day.id}" class="day-singles-wrap">${singlesHtml}</div>
+            ${restHtml}
+            ${treadmillHtml}
+          </section>
+        `;
+      } catch(dayErr) {
+        console.error('Error rendering day section:', day?.id, dayErr);
+        return '';
+      }
+    }).join('');
+  } catch(mapErr) {
+    console.error('Error mapping days in renderWorkoutDays:', mapErr);
+  }
+
+  let dynamicSummaryHtml = '';
+  try {
+    dynamicSummaryHtml = renderDynamicWeeklySummary(prof);
+  } catch(sumErr) {
+    console.error('Error rendering dynamic weekly summary:', sumErr);
+    dynamicSummaryHtml = ''; // Summary failure must NEVER prevent workout cards from rendering!
+  }
+
+  // Guaranteed fallback: If daysHtml is empty, render default profile directly
+  if (!daysHtml || daysHtml.trim() === '') {
+    const fallbackDays = (activeProfileId === 'morvarid' ? MORVARID_PROFILE.days : HOSSEIN_PROFILE.days);
+    daysHtml = fallbackDays.map(day => `
       <section id="${day.id}" class="day-section">
-        <div class="day-header">
-          <div class="day-title-wrap">
-            <h2 class="day-title">${day.title}</h2>
-            ${typeBadge}
-            ${countBadgeHtml}
-          </div>
-          <div class="day-progress-wrap">
-            <div class="day-progress-bar"><div class="day-progress-fill" id="prog-${day.id}"></div></div>
-            <span id="prog-text-${day.id}">۰٪</span>
-          </div>
-        </div>
-
-        <div id="complete-banner-${day.id}" class="day-complete-banner" style="display:none;">
-          <span>🏆 جلسه تمرینی ${day.title} ۱۰۰٪ تکمیل شد · خسته نباشی قهرمان! ✨</span>
-          <span>💪 ریکاوری عالی</span>
-        </div>
-
-        ${day.note ? `
-          <div class="session-note">
-            <span>📌</span>
-            <span>${day.note}</span>
-          </div>
-        ` : ''}
-
-        <div id="supersets_${day.id}" class="day-supersets-wrap">${supersetsHtml}</div>
-        <div id="singles_${day.id}" class="day-singles-wrap">${singlesHtml}</div>
-        ${restHtml}
-        ${treadmillHtml}
+        <div class="day-header"><h2 class="day-title">${day.title}</h2></div>
+        <div class="day-supersets-wrap">${renderDaySupersetsHTML(day)}</div>
+        <div class="day-singles-wrap">${renderDaySinglesHTML(day)}</div>
       </section>
-    `;
-  }).join('');
+    `).join('');
+  }
 
-  const dynamicSummaryHtml = renderDynamicWeeklySummary(prof);
   container.innerHTML = daysHtml + dynamicSummaryHtml;
-
-  requestAnimationFrame(() => {
-    container.style.minHeight = '';
-  });
+  container.style.display = 'block';
+  container.style.minHeight = '';
 }
 
 // --- Muscle Breakdown Detail Modal Handlers ---
@@ -1188,17 +1258,7 @@ function requestEditPlanAccess() {
 }
 
 function handleSetClick(btn) {
-  if (isProfileUnlocked()) {
-    toggleSet(btn);
-  } else {
-    pendingActionAfterPin = () => toggleSet(btn);
-    document.getElementById('pinModalTitle').innerText = 'ثبت ست‌های تمرینی';
-    document.getElementById('pinModalDesc').innerText = 'برای ثبت ست‌های این برنامه شخصی، لطفاً رمز عبور را وارد کنید:';
-    document.getElementById('profilePinInput').value = '';
-    document.getElementById('pinErrorMsg').style.display = 'none';
-    document.getElementById('pinModal').classList.add('open');
-    setTimeout(() => document.getElementById('profilePinInput').focus(), 200);
-  }
+  toggleSet(btn);
 }
 
 function closePinModal() {
@@ -1350,11 +1410,6 @@ function factoryResetActiveProfile() {
 
 function resetCurrentSets() {
   const prof = getActiveProfile();
-  if (!isProfileUnlocked()) {
-    handleSetClick({ click: () => resetCurrentSets() });
-    return;
-  }
-
   if (confirm(`آیا می‌خواهید تمام تیک‌های ست‌های ثبت‌شده برای "${prof.name}" ریست شوند تا جلسه تمرینی جدید را شروع کنید؟`)) {
     localStorage.removeItem('chieftain_sets_' + activeProfileId);
     document.querySelectorAll('.set-btn').forEach(btn => btn.classList.remove('done'));
@@ -1886,18 +1941,30 @@ function isExerciseIsometric(ex) {
   return !isExcluded && (ex.isIsometric === true || ((lowerFa.includes('ایزومتریک') || lowerFa.includes('پلانک') || lowerFa.includes('ساید پلانک') || lowerFa.includes('وال سیت') || lowerEn.includes('wall sit') || (ex.defaultReps && ex.defaultReps.includes('ثانیه'))) && !(ex.defaultReps && ex.defaultReps.includes('تکرار'))));
 }
 
-function openLogModal(exId, exFa, dayId, setsCount) {
-  if (!isProfileUnlocked()) {
-    pendingActionAfterPin = () => openLogModal(exId, exFa, dayId, setsCount);
-    document.getElementById('pinModalTitle').innerText = 'ثبت لاگ و پیشرفت';
-    document.getElementById('pinModalDesc').innerText = 'برای ثبت لاگ و پیشرفت این برنامه، لطفاً رمز عبور را وارد کنید:';
-    document.getElementById('profilePinInput').value = '';
-    document.getElementById('pinErrorMsg').style.display = 'none';
-    document.getElementById('pinModal').classList.add('open');
-    setTimeout(() => document.getElementById('profilePinInput').focus(), 200);
-    return;
-  }
+function autoDraftLogInput() {
+  try {
+    const { exId, setsCount, isIso } = currentLogTarget;
+    if (!exId) return;
+    const sets = [];
+    for (let i = 1; i <= (setsCount || 3); i++) {
+      const w = document.getElementById(`logWeight_${i}`)?.value || '';
+      const r = document.getElementById(`logReps_${i}`)?.value || '';
+      const rir = document.getElementById(`logRir_${i}`)?.value || '2';
+      sets.push({ weight: w, reps: r, rir: rir });
+    }
+    const note = document.getElementById('logNoteInput')?.value || '';
+    const draft = { timestamp: Date.now(), sets, note, isIso };
+    localStorage.setItem('chieftain_draft_log_' + activeProfileId + '_' + exId, JSON.stringify(draft));
+  } catch(e) {}
+}
 
+function clearDraftLog(exId) {
+  try {
+    localStorage.removeItem('chieftain_draft_log_' + activeProfileId + '_' + exId);
+  } catch(e) {}
+}
+
+function openLogModal(exId, exFa, dayId, setsCount) {
   const ex = findExerciseById(exId);
   const isIso = isExerciseIsometric(ex);
   currentLogTarget = { exId, exFa, dayId, setsCount: setsCount || 3, isIso };
@@ -1907,6 +1974,13 @@ function openLogModal(exId, exFa, dayId, setsCount) {
     ? `⏱️ ثبت زمان انقباض و <b>TIR (زمان ذخیره تا شکست فرم)</b> بر پایه پروتکل‌های علمی پایداری ستون فقرات`
     : `ثبت دقیق وزنه و RIR برای اعمال اضافه بار تدریجی (Progressive Overload)`;
   
+  // Check for existing saved draft
+  let draft = null;
+  try {
+    const draftRaw = localStorage.getItem('chieftain_draft_log_' + activeProfileId + '_' + exId);
+    if (draftRaw) draft = JSON.parse(draftRaw);
+  } catch(e) {}
+
   // Render set rows
   const container = document.getElementById('logSetsContainer');
   const pastLogs = getExerciseLogs(exId);
@@ -1923,18 +1997,23 @@ function openLogModal(exId, exFa, dayId, setsCount) {
       </div>
     `;
     for (let i = 1; i <= currentLogTarget.setsCount; i++) {
+      const draftSet = draft?.sets?.[i - 1];
       const lastSet = lastLog?.sets?.[i - 1] || {};
+      const valWeight = draftSet ? draftSet.weight : '';
+      const valReps = draftSet ? draftSet.reps : '';
+      const valRir = draftSet ? draftSet.rir : (lastSet.rir || '2');
+
       rowsHtml += `
         <div class="log-row-grid" style="margin-top:6px;">
           <span style="font-weight:800; color:#cbd5e1; font-size:12px;">ست ${i}</span>
-          <input type="number" step="0.5" id="logWeight_${i}" class="form-input" placeholder="${lastSet.weight ? 'قبلی: ' + lastSet.weight : '۰'}" value="${lastSet.weight || ''}" style="text-align:center; font-weight:700; padding:6px;">
-          <input type="number" id="logReps_${i}" class="form-input" placeholder="${lastSet.reps ? 'قبلی: ' + lastSet.reps : 'مثلاً ۳۰'}" value="${lastSet.reps || ''}" style="text-align:center; font-weight:700; padding:6px;">
-          <select id="logRir_${i}" class="form-select" style="padding:6px; font-size:11.5px;">
-            <option value="0" ${lastSet.rir==='0'?'selected':''}>TIR 0 (۰ ثانیه - ناتوانی/لرزش)</option>
-            <option value="1" ${lastSet.rir==='1'?'selected':''}>TIR 1 (۳ تا ۵ ثانیه تا ناتوانی)</option>
-            <option value="2" ${(!lastSet.rir || lastSet.rir==='2')?'selected':''}>TIR 2 (۶ تا ۱۰ ثانیه - بهینه و علمی)</option>
-            <option value="3" ${lastSet.rir==='3'?'selected':''}>TIR 3 (۱۱ تا ۱۵ ثانیه ذخیره)</option>
-            <option value="4" ${lastSet.rir==='4'?'selected':''}>TIR 4+ (بیش از ۱۵ ثانیه ذخیره)</option>
+          <input type="number" step="0.5" id="logWeight_${i}" class="form-input" oninput="autoDraftLogInput()" placeholder="${lastSet.weight ? 'قبلی: ' + lastSet.weight : '۰'}" value="${valWeight}" style="text-align:center; font-weight:700; padding:6px;">
+          <input type="number" id="logReps_${i}" class="form-input" oninput="autoDraftLogInput()" placeholder="${lastSet.reps ? 'قبلی: ' + lastSet.reps : 'مثلاً ۳۰'}" value="${valReps}" style="text-align:center; font-weight:700; padding:6px;">
+          <select id="logRir_${i}" class="form-select" onchange="autoDraftLogInput()" style="padding:6px; font-size:11.5px;">
+            <option value="0" ${valRir==='0'?'selected':''}>TIR 0 (۰ ثانیه - ناتوانی/لرزش)</option>
+            <option value="1" ${valRir==='1'?'selected':''}>TIR 1 (۳ تا ۵ ثانیه تا ناتوانی)</option>
+            <option value="2" ${valRir==='2'?'selected':''}>TIR 2 (۶ تا ۱۰ ثانیه - بهینه و علمی)</option>
+            <option value="3" ${valRir==='3'?'selected':''}>TIR 3 (۱۱ تا ۱۵ ثانیه ذخیره)</option>
+            <option value="4" ${valRir==='4'?'selected':''}>TIR 4+ (بیش از ۱۵ ثانیه ذخیره)</option>
           </select>
         </div>
       `;
@@ -1954,18 +2033,23 @@ function openLogModal(exId, exFa, dayId, setsCount) {
       </div>
     `;
     for (let i = 1; i <= currentLogTarget.setsCount; i++) {
+      const draftSet = draft?.sets?.[i - 1];
       const lastSet = lastLog?.sets?.[i - 1] || {};
+      const valWeight = draftSet ? draftSet.weight : '';
+      const valReps = draftSet ? draftSet.reps : '';
+      const valRir = draftSet ? draftSet.rir : (lastSet.rir || '2');
+
       rowsHtml += `
         <div class="log-row-grid" style="margin-top:6px;">
           <span style="font-weight:800; color:#cbd5e1; font-size:12px;">ست ${i}</span>
-          <input type="number" step="0.5" id="logWeight_${i}" class="form-input" placeholder="${lastSet.weight ? 'قبلی: ' + lastSet.weight : 'مثلاً ۵۰'}" value="${lastSet.weight || ''}" style="text-align:center; font-weight:700; padding:6px;">
-          <input type="number" id="logReps_${i}" class="form-input" placeholder="${lastSet.reps ? 'قبلی: ' + lastSet.reps : 'مثلاً ۱۰'}" value="${lastSet.reps || ''}" style="text-align:center; font-weight:700; padding:6px;">
-          <select id="logRir_${i}" class="form-select" style="padding:6px; font-size:12px;">
-            <option value="0" ${lastSet.rir==='0'?'selected':''}>0 (ناتوانی کامل)</option>
-            <option value="1" ${lastSet.rir==='1'?'selected':''}>1 تکرار ذخیره</option>
-            <option value="2" ${(!lastSet.rir || lastSet.rir==='2')?'selected':''}>2 تکرار ذخیره (ایده‌آل)</option>
-            <option value="3" ${lastSet.rir==='3'?'selected':''}>3 تکرار ذخیره</option>
-            <option value="4" ${lastSet.rir==='4'?'selected':''}>4+ (بسیار سبک)</option>
+          <input type="number" step="0.5" id="logWeight_${i}" class="form-input" oninput="autoDraftLogInput()" placeholder="${lastSet.weight ? 'قبلی: ' + lastSet.weight : 'مثلاً ۵۰'}" value="${valWeight}" style="text-align:center; font-weight:700; padding:6px;">
+          <input type="number" id="logReps_${i}" class="form-input" oninput="autoDraftLogInput()" placeholder="${lastSet.reps ? 'قبلی: ' + lastSet.reps : 'مثلاً ۱۰'}" value="${valReps}" style="text-align:center; font-weight:700; padding:6px;">
+          <select id="logRir_${i}" class="form-select" onchange="autoDraftLogInput()" style="padding:6px; font-size:12px;">
+            <option value="0" ${valRir==='0'?'selected':''}>0 (ناتوانی کامل)</option>
+            <option value="1" ${valRir==='1'?'selected':''}>1 تکرار ذخیره</option>
+            <option value="2" ${valRir==='2'?'selected':''}>2 تکرار ذخیره (ایده‌آل)</option>
+            <option value="3" ${valRir==='3'?'selected':''}>3 تکرار ذخیره</option>
+            <option value="4" ${valRir==='4'?'selected':''}>4+ (بسیار سبک)</option>
           </select>
         </div>
       `;
@@ -1973,7 +2057,8 @@ function openLogModal(exId, exFa, dayId, setsCount) {
   }
 
   container.innerHTML = rowsHtml;
-  document.getElementById('logNoteInput').value = '';
+  document.getElementById('logNoteInput').value = draft?.note || '';
+  document.getElementById('logNoteInput').oninput = autoDraftLogInput;
   document.getElementById('logModal').classList.add('open');
 }
 
@@ -2019,11 +2104,12 @@ function saveExerciseLog() {
     });
 
     saveExerciseLogsList(exId, logs);
+    clearDraftLog(exId);
     closeLogModal();
     showToast(isIso ? `✅ لاگ ایزومتریک "${exFa}" ثبت شد! (${totalVolume} ثانیه مجموع انقباض)` : `✅ لاگ تمرین برای "${exFa}" ثبت شد! (حجم کل: ${totalVolume} kg)`);
 
     // Auto-sync to cloud immediately so progress is never lost across devices
-    if (typeof pushToCloudStorage === 'function' && isAutoCloudSyncEnabled()) {
+    if (typeof pushToCloudStorage === 'function') {
       pushToCloudStorage(true);
     }
   } catch(err) {
@@ -2691,12 +2777,7 @@ function closeTimerModal() {
 
 timerFab?.addEventListener('click', openTimerModal);
 
-// --- PWA Installation & Date Logic ---
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch(() => {});
-  });
-}
+// --- Date & Today Navigation Logic ---
 
 const todayIndex = new Date().getDay(); // 0 = Sunday, 6 = Saturday
 
@@ -3085,6 +3166,30 @@ async function forceSyncAndHardRefresh(btn) {
   if (btn) {
     btn.style.opacity = '1';
     btn.innerHTML = '<span>🔄</span> <span>به‌روزرسانی و رفرش</span>';
+  }
+}
+
+async function quickCloudSyncAction(btn) {
+  if (btn) {
+    btn.style.opacity = '0.6';
+    btn.innerHTML = '<span>⏳</span> <span>در حال ذخیره...</span>';
+  }
+  showToast('☁️ در حال ارسال تمام داده‌ها و لاگ‌ها به سرور ابری...');
+  try {
+    const pushed = await pushToCloudStorage(true);
+    await pullFromCloudStorage(true);
+    if (pushed) {
+      showToast('✅ تمام اطلاعات، لاگ‌ها و ست‌ها در سرور ابری ذخیره شدند! 🟢');
+    } else {
+      showToast('✅ اطلاعات در حافظه دستگاه ذخیره شد و آماده همگام‌سازی ابری است.');
+    }
+  } catch(e) {
+    showToast('⚠️ ذخیره محلی با موفقیت انجام شد (اتصال اینترنت را بررسی کنید).');
+  } finally {
+    if (btn) {
+      btn.style.opacity = '1';
+      btn.innerHTML = '<span>☁️</span> <span>همگام‌سازی ابری</span>';
+    }
   }
 }
 
@@ -3552,7 +3657,7 @@ document.getElementById('searchInput')?.addEventListener('input', (e) => {
 // PWA Install Handlers
 let deferredPrompt = null;
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+const isStandalone = (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || (typeof navigator !== 'undefined' && navigator.standalone);
 
 const headerInstallBtn = document.getElementById('headerInstallBtn');
 
@@ -4276,8 +4381,9 @@ function renderBodyMetricsView() {
   const container = document.getElementById('bodyMetricsView');
   if (!container) return;
 
-  const prof = getActiveProfile();
-  const list = getProfileBodyMetrics(prof.id);
+  try {
+    const prof = getActiveProfile();
+    const list = getProfileBodyMetrics(prof.id);
 
   // Sort chronologically (oldest to newest)
   list.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
@@ -4986,6 +5092,21 @@ function renderBodyMetricsView() {
   }
 
   container.innerHTML = contentHtml;
+} catch(err) {
+  console.error('Error rendering body metrics view:', err);
+  container.innerHTML = `
+    <div class="metrics-empty-card">
+      <div class="metrics-empty-icon">⚠️</div>
+      <h3 style="font-size:17px; font-weight:900; color:#fff; margin-bottom:8px;">بارگذاری بخش آنالیز بدنی</h3>
+      <p style="color:var(--text-muted); font-size:13px; max-width:440px; margin:0 auto 16px auto; line-height:1.6;">
+        مشکلی در نمایش این بخش رخ داد، اما برنامه اصلی در حال کار است.
+      </p>
+      <button class="btn-header-action btn-action-primary" onclick="openAddBodyMetricModal()" style="font-size:13px; padding:8px 18px;">
+        ➕ ثبت اندازه‌گیری جدید
+      </button>
+    </div>
+  `;
+}
 }
 
 // --- Modal Handlers for Body Metrics ---

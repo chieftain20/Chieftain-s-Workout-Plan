@@ -81,9 +81,13 @@
       <span>ریست ست‌ها</span>
     </button>
 
-    <button class="btn-header-action" onclick="openSyncBackupModal()" title="پایگاه ابری زنده و همگام‌سازی خودکار بین تمام گوشی‌ها و مرورگرها" style="border-color:#00f2fe88; color:#00f2fe; background:rgba(0,242,254,0.12);">
+    <button id="quickCloudSyncBtn" class="btn-header-action" onclick="quickCloudSyncAction(this)" title="همگام‌سازی دوطرفه زنده و ذخیره فوری در سرور ابری" style="border-color:#00f2fe88; color:#00f2fe; background:rgba(0,242,254,0.12);">
       <span>☁️</span>
       <span>همگام‌سازی ابری</span>
+    </button>
+
+    <button class="btn-header-action" onclick="openSyncBackupModal()" title="تنظیمات شناسه ابری و فایل JSON" style="padding:6px 9px; font-size:11.5px; opacity:0.85;">
+      <span>⚙️</span>
     </button>
 
     <button id="quickRefreshCloudBtn" class="btn-header-action" onclick="forceSyncAndHardRefresh(this)" title="دریافت آخرین نسخه از سرور ابری و رفرش کامل بدون کش" style="border-color:#10b98188; color:#34d399; background:rgba(16,185,129,0.08);">
