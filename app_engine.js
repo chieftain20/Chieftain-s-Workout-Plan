@@ -1,7 +1,8 @@
 // --- Application State Management ---
+let currentAuthUser = null;
 let customExercises = [];
 let allProfiles = [];
-let activeProfileId = 'hossein_chieftain';
+let activeProfileId = 'template_male';
 let activeMainTab = 'workout'; // 'workout' | 'metrics'
 let activeDayForAdding = null;
 let convertTargetDayIdx = null;
@@ -30,31 +31,36 @@ function loadAppData() {
     allProfiles = [];
   }
 
-  // Ensure built-in profile Hossein Chieftain exists and has proper PIN & latest routine
-  let hProf = allProfiles.find(p => p.id === 'hossein_chieftain');
-  if (!hProf) {
-    hProf = JSON.parse(JSON.stringify(HOSSEIN_PROFILE));
-    hProf.pin = 'gym';
-    allProfiles.unshift(hProf);
-  } else {
-    hProf.pin = 'gym';
-    if (!hProf.days || !Array.isArray(hProf.days) || hProf.days.length === 0) {
-      hProf.days = JSON.parse(JSON.stringify(HOSSEIN_PROFILE.days));
+  // Generic templates for guests / unauthenticated users
+  allProfiles = allProfiles.map(p => {
+    if (p.id === 'hossein_chieftain' || p.id === 'template_male') {
+      p.id = 'template_male';
+      if (!currentAuthUser) {
+        p.name = 'برنامه نمونه آقایان (هایپرتروفی ۵ روزه)';
+      }
+    } else if (p.id === 'morvarid' || p.id === 'template_female') {
+      p.id = 'template_female';
+      if (!currentAuthUser) {
+        p.name = 'برنامه نمونه بانوان (تناسب اندام و فرم‌دهی)';
+      }
     }
+    return p;
+  });
+
+  let tMale = allProfiles.find(p => p.id === 'template_male');
+  if (!tMale) {
+    tMale = JSON.parse(JSON.stringify(HOSSEIN_PROFILE));
+    tMale.id = 'template_male';
+    tMale.name = 'برنامه نمونه آقایان (هایپرتروفی ۵ روزه)';
+    allProfiles.unshift(tMale);
   }
 
-  // Ensure built-in profile Morvarid exists and has proper PIN
-  let mProf = allProfiles.find(p => p.id === 'morvarid');
-  if (!mProf) {
-    mProf = JSON.parse(JSON.stringify(MORVARID_PROFILE));
-    mProf.pin = 'inci';
-    allProfiles.push(mProf);
-  } else {
-    mProf.name = 'مروارید';
-    if (!mProf.pin) mProf.pin = 'inci';
-    if (!mProf.days || !Array.isArray(mProf.days) || mProf.days.length === 0) {
-      mProf.days = JSON.parse(JSON.stringify(MORVARID_PROFILE.days));
-    }
+  let tFemale = allProfiles.find(p => p.id === 'template_female');
+  if (!tFemale) {
+    tFemale = JSON.parse(JSON.stringify(MORVARID_PROFILE));
+    tFemale.id = 'template_female';
+    tFemale.name = 'برنامه نمونه بانوان (تناسب اندام و فرم‌دهی)';
+    allProfiles.push(tFemale);
   }
 
   saveProfiles();
@@ -63,7 +69,7 @@ function loadAppData() {
   if (savedActiveId && allProfiles.some(p => p.id === savedActiveId)) {
     activeProfileId = savedActiveId;
   } else {
-    activeProfileId = 'hossein_chieftain';
+    activeProfileId = 'template_male';
   }
 }
 
@@ -74,12 +80,107 @@ function saveProfiles() {
   }
 }
 
+// Master Exercise Overrides & Admin State
+let masterExerciseOverrides = {};
+try {
+  masterExerciseOverrides = JSON.parse(localStorage.getItem('chieftain_master_overrides') || '{}');
+} catch(e) {
+  masterExerciseOverrides = {};
+}
+
+function isAdminUnlocked() {
+  return localStorage.getItem('chieftain_admin_unlocked') === 'true';
+}
+
+function unlockAdminMode(pwd) {
+  const validPasswords = ['gym', 'chieftain20', 'admin123'];
+  if (validPasswords.includes(pwd)) {
+    localStorage.setItem('chieftain_admin_unlocked', 'true');
+    updateAdminUI();
+    showToast('👑 حالت مدیریت ادمین فعال شد!');
+    return true;
+  }
+  return false;
+}
+
+function lockAdminMode() {
+  localStorage.removeItem('chieftain_admin_unlocked');
+  updateAdminUI();
+  showToast('🔒 از حالت مدیریت ادمین خارج شدید.');
+}
+
+function toggleAdminModePrompt() {
+  if (isAdminUnlocked()) {
+    if (confirm('آیا مایلید از حالت مدیریت ادمین خارج شوید؟')) {
+      lockAdminMode();
+    }
+  } else {
+    const pwd = prompt('لطفاً رمز عبور ادمین را وارد نمایید:');
+    if (pwd === null) return;
+    if (unlockAdminMode(pwd.trim())) {
+      // success toast already shown
+    } else {
+      alert('❌ رمز عبور ادمین اشتباه است.');
+    }
+  }
+}
+
+function updateAdminUI() {
+  const unlocked = isAdminUnlocked();
+  const lockedBox = document.getElementById('quickEditAdminLockedBox');
+  const unlockedBox = document.getElementById('quickEditAdminUnlockedBox');
+  const toggleBtn = document.getElementById('quickEditAdminToggleBtn');
+  const libAdminBtn = document.getElementById('libAdminToggleBtn');
+
+  if (lockedBox) lockedBox.style.display = unlocked ? 'none' : 'block';
+  if (unlockedBox) unlockedBox.style.display = unlocked ? 'block' : 'none';
+  if (toggleBtn) {
+    toggleBtn.innerHTML = unlocked ? '🔒 خروج ادمین' : '🔑 ورود ادمین';
+    toggleBtn.style.color = unlocked ? '#ef4444' : '#fbbf24';
+    toggleBtn.style.borderColor = unlocked ? '#ef444488' : '#fbbf2488';
+  }
+  if (libAdminBtn) {
+    libAdminBtn.innerHTML = unlocked ? '👑 ادمین فعال است' : '👑 حالت ادمین';
+    libAdminBtn.style.color = unlocked ? '#22c55e' : '#fbbf24';
+    libAdminBtn.style.borderColor = unlocked ? '#22c55e88' : '#fbbf2488';
+  }
+
+  const libModal = document.getElementById('libraryModal');
+  if (libModal && libModal.classList.contains('open')) {
+    renderLibraryList(getAllExercises());
+  }
+}
+
+function saveMasterOverrides() {
+  localStorage.setItem('chieftain_master_overrides', JSON.stringify(masterExerciseOverrides));
+  if (typeof pushToCloudStorage === 'function' && isAutoCloudSyncEnabled()) {
+    pushToCloudStorage(true);
+  }
+}
+
 function saveCustomExercises() {
   localStorage.setItem('chieftain_custom_exercises', JSON.stringify(customExercises));
+  if (typeof pushToCloudStorage === 'function' && isAutoCloudSyncEnabled()) {
+    pushToCloudStorage(true);
+  }
 }
 
 function getAllExercises() {
-  return [...MASTER_EXERCISES, ...customExercises];
+  const masters = MASTER_EXERCISES.map(m => {
+    if (masterExerciseOverrides && masterExerciseOverrides[m.id]) {
+      return Object.assign({}, m, masterExerciseOverrides[m.id]);
+    }
+    return m;
+  });
+
+  const currentUserId = (typeof currentAuthUser !== 'undefined' && currentAuthUser) ? currentAuthUser.id : (activeProfileId || 'local');
+  const visibleCustom = (customExercises || []).filter(e => {
+    if (isAdminUnlocked()) return true;
+    if (e.isApproved) return true;
+    return e.ownerId === currentUserId || (!e.ownerId && String(activeProfileId).includes('hossein'));
+  });
+
+  return [...masters, ...visibleCustom];
 }
 
 function findExerciseById(id) {
@@ -208,7 +309,21 @@ function renderProfileSelect() {
 function renderHeader() {
   const prof = getActiveProfile();
   const titleEl = document.getElementById('appTitle');
-  titleEl.innerText = 'برنامه تمرینی ' + prof.name;
+  if (titleEl) {
+    if (typeof currentAuthUser !== 'undefined' && currentAuthUser) {
+      const name = currentAuthUser.user_metadata?.display_name || currentAuthUser.email?.split('@')[0] || '';
+      const emailLower = (currentAuthUser.email || '').toLowerCase();
+      if (emailLower.includes('hossein') || emailLower.includes('chieftain')) {
+        titleEl.innerText = 'برنامه تمرینی تخصصی حسین';
+      } else if (emailLower.includes('morvarid')) {
+        titleEl.innerText = 'برنامه تمرینی تخصصی مروارید';
+      } else {
+        titleEl.innerText = `برنامه تمرینی ${name || prof.name}`;
+      }
+    } else {
+      titleEl.innerText = 'سامانه تخصصی بدنسازی و تمرین | Chieftain Pro';
+    }
+  }
 
   const deleteBtn = document.getElementById('deleteProfileBtn');
   if (deleteBtn) {
@@ -508,11 +623,163 @@ function openQuickEditForCard(btn) {
   }
 }
 
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+let currentQuickEditVideos = [];
+
+function renderQuickEditVideosList() {
+  const container = document.getElementById('quickEditVideosContainer');
+  const countEl = document.getElementById('quickEditVideosCount');
+  if (!container) return;
+
+  if (countEl) {
+    countEl.innerText = `${currentQuickEditVideos.length} ویدیو`;
+  }
+
+  if (currentQuickEditVideos.length === 0) {
+    container.innerHTML = '<div style="font-size:11px; color:#94a3b8; text-align:center; padding:6px;">هیچ ویدیویی برای این حرکت ثبت نشده است.</div>';
+    return;
+  }
+
+  container.innerHTML = currentQuickEditVideos.map((v, i) => `
+    <div style="display:flex; gap:4px; align-items:center; background:#152033; padding:4px 6px; border-radius:6px; border:1px solid #334155;">
+      <input type="text" class="form-input" style="font-size:11px; padding:4px; flex:1;" value="${escapeHtml(v.title || '')}" onchange="updateVideoInQuickEdit(${i}, 'title', this.value)" placeholder="عنوان">
+      <input type="text" class="form-input" style="font-size:11px; padding:4px; flex:2; direction:ltr;" value="${escapeHtml(v.url || '')}" onchange="updateVideoInQuickEdit(${i}, 'url', this.value)" placeholder="لینک ویدیو">
+      <button type="button" class="btn-header-action" style="padding:2px 6px; color:#f87171; border-color:#f8717155; font-size:11px;" onclick="deleteVideoInQuickEdit(${i})">🗑️</button>
+    </div>
+  `).join('');
+}
+
+function updateVideoInQuickEdit(idx, field, val) {
+  if (currentQuickEditVideos[idx]) {
+    currentQuickEditVideos[idx][field] = val.trim();
+  }
+}
+
+function addVideoInQuickEdit() {
+  const titleInput = document.getElementById('quickEditNewVidTitle');
+  const urlInput = document.getElementById('quickEditNewVidUrl');
+  const url = urlInput ? urlInput.value.trim() : '';
+  let title = titleInput ? titleInput.value.trim() : '';
+
+  if (!url) {
+    alert('لطفاً آدرس لینک ویدیو را وارد نمایید.');
+    return;
+  }
+
+  if (!title) {
+    title = `آموزش ${currentQuickEditVideos.length + 1}`;
+  }
+
+  currentQuickEditVideos.push({ title, url });
+  if (titleInput) titleInput.value = '';
+  if (urlInput) urlInput.value = '';
+  renderQuickEditVideosList();
+  showToast('➕ ویدیو به لیست اضافه شد. برای ذخیره نهایی، دکمه ذخیره مرجع را بزنید.');
+}
+
+function deleteVideoInQuickEdit(idx) {
+  currentQuickEditVideos.splice(idx, 1);
+  renderQuickEditVideosList();
+}
+
+function saveMasterExerciseFromQuickEdit() {
+  if (!isAdminUnlocked()) {
+    alert('⚠️ فقط ادمین مجاز به تغییر مشخصات مرجع و ویدیوها است.');
+    return;
+  }
+
+  const exId = currentQuickEditTarget.exId;
+  if (!exId) return;
+
+  const fa = document.getElementById('quickEditMasterFa').value.trim();
+  const en = document.getElementById('quickEditMasterEn').value.trim();
+  const muscles = document.getElementById('quickEditMasterMuscles').value.trim();
+
+  if (!fa) {
+    alert('نام فارسی حرکت نمی‌تواند خالی باشد.');
+    return;
+  }
+
+  if (exId.startsWith('cust_')) {
+    const custEx = (customExercises || []).find(e => e.id === exId);
+    if (custEx) {
+      custEx.fa = fa;
+      custEx.en = en;
+      custEx.muscles = muscles;
+      custEx.videos = JSON.parse(JSON.stringify(currentQuickEditVideos));
+      saveCustomExercises();
+    }
+  } else {
+    if (!masterExerciseOverrides) masterExerciseOverrides = {};
+    masterExerciseOverrides[exId] = {
+      fa: fa,
+      en: en,
+      muscles: muscles,
+      videos: JSON.parse(JSON.stringify(currentQuickEditVideos))
+    };
+    saveMasterOverrides();
+  }
+
+  showToast('✅ تغییرات مرجع حرکت و ویدیوها با موفقیت در بانک حرکات ذخیره شد!');
+  renderApp(true);
+  renderLibraryList(getAllExercises());
+  document.getElementById('quickEditExModalTitle').innerText = `✏️ ویرایش: ${fa}`;
+}
+
+function openQuickEditForExercise(exId) {
+  const ex = findExerciseById(exId);
+  if (!ex) return;
+  currentQuickEditTarget = { dayId: null, exId: exId, isSuperset: false };
+
+  document.getElementById('quickEditExModalTitle').innerText = `✏️ ویرایش مرجع: ${ex.fa}`;
+  document.getElementById('quickEditExSelectVal').value = exId;
+  document.getElementById('pickerSelectedDisplayQuickEdit').innerText = 'حرکت انتخابی: ' + ex.fa;
+  document.getElementById('pickerSearchQuickEdit').value = ex.fa;
+
+  document.getElementById('quickEditExReps').value = ex.defaultReps || '3 × 8–12';
+  document.getElementById('quickEditExSets').value = String(ex.defaultSets || 3);
+
+  const customNameInput = document.getElementById('quickEditExCustomName');
+  if (customNameInput) customNameInput.value = '';
+
+  const isoInput = document.getElementById('quickEditExIsoDuration');
+  if (isoInput) isoInput.value = '';
+
+  const notSsBox = document.getElementById('quickEditNotSupersetBox');
+  const isSsBox = document.getElementById('quickEditIsSupersetBox');
+  if (notSsBox && isSsBox) {
+    notSsBox.style.display = 'none';
+    isSsBox.style.display = 'none';
+  }
+
+  const masterFaInput = document.getElementById('quickEditMasterFa');
+  const masterEnInput = document.getElementById('quickEditMasterEn');
+  const masterMusclesInput = document.getElementById('quickEditMasterMuscles');
+  if (masterFaInput) masterFaInput.value = ex.fa || '';
+  if (masterEnInput) masterEnInput.value = ex.en || '';
+  if (masterMusclesInput) masterMusclesInput.value = ex.muscles || '';
+
+  currentQuickEditVideos = JSON.parse(JSON.stringify(ex.videos || []));
+  renderQuickEditVideosList();
+  updateAdminUI();
+
+  document.getElementById('quickEditExModal').classList.add('open');
+}
+
 function openQuickEditExModal(dayId, exId, reps, sets, isSuperset) {
   currentQuickEditTarget = { dayId, exId, isSuperset };
   const ex = findExerciseById(exId);
   const prof = getActiveProfile();
-  const day = prof.days.find(d => d.id === dayId);
+  const day = prof ? prof.days.find(d => d.id === dayId) : null;
 
   let currentItem = null;
   if (!isSuperset && day?.singles) {
@@ -550,6 +817,18 @@ function openQuickEditExModal(dayId, exId, reps, sets, isSuperset) {
     notSsBox.style.display = isSuperset ? 'none' : 'block';
     isSsBox.style.display = isSuperset ? 'block' : 'none';
   }
+
+  // Admin Master Fields & Videos
+  const masterFaInput = document.getElementById('quickEditMasterFa');
+  const masterEnInput = document.getElementById('quickEditMasterEn');
+  const masterMusclesInput = document.getElementById('quickEditMasterMuscles');
+  if (masterFaInput) masterFaInput.value = ex.fa || '';
+  if (masterEnInput) masterEnInput.value = ex.en || '';
+  if (masterMusclesInput) masterMusclesInput.value = ex.muscles || '';
+
+  currentQuickEditVideos = JSON.parse(JSON.stringify(ex.videos || []));
+  renderQuickEditVideosList();
+  updateAdminUI();
 
   document.getElementById('quickEditExModal').classList.add('open');
 }
@@ -2264,72 +2543,170 @@ function renderSvgLineChart(logs, svgEl, isIso = false) {
 }
 
 // --- Exercise Library Explorer ---
+let currentLibraryScope = 'all';
+let currentLibraryCat = 'all';
+let currentLibrarySearch = '';
+
 function openLibraryModal() {
-  renderLibraryList(getAllExercises());
+  applyLibraryFilters();
   document.getElementById('libraryModal').classList.add('open');
+  updateAdminUI();
 }
 
 function closeLibraryModal() {
   document.getElementById('libraryModal').classList.remove('open');
 }
 
-function renderLibraryList(list) {
-  const container = document.getElementById('libraryListContainer');
-  if (!list || list.length === 0) {
-    container.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding:20px;">حرکتی با این مشخصات یافت نشد. می‌توانید از بخش زیر در MuscleWiki جستجو کنید.</div>';
-    return;
-  }
-
-  container.innerHTML = list.map(ex => `
-    <div class="library-item-card">
-      <div class="library-item-top">
-        <div>
-          <div style="font-size:14.5px; font-weight:800; color:#fff;">${ex.fa}</div>
-          ${ex.en ? `<div style="font-size:12px; color:var(--accent-cyan); direction:ltr; text-align:right;">${ex.en}</div>` : ''}
-        </div>
-        <span class="muscle-tag">${ex.category === 'home' ? '🏠 خانه' : '🏋️ باشگاه'}</span>
-      </div>
-
-      <div class="muscles-row" style="margin:6px 0;">
-        <span class="muscle-tag">عضلات: ${ex.muscles || 'عمومی'}</span>
-        <span class="muscle-tag" style="direction:ltr">${ex.defaultReps || '3 × 8–12'}</span>
-      </div>
-
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; flex-wrap:wrap; gap:6px;">
-        <div class="video-links-group">
-          ${renderVideoButtons(ex.videos)}
-        </div>
-        <button class="btn-header-action btn-action-primary" style="padding:4px 9px; font-size:11.5px" onclick="quickAddExFromLibrary('${ex.id}')">
-          + افزودن به برنامه
-        </button>
-      </div>
-    </div>
-  `).join('');
+function filterLibraryScope(scope) {
+  currentLibraryScope = scope;
+  ['All', 'Public', 'Private'].forEach(s => {
+    const btn = document.getElementById('libScope' + s);
+    if (btn) {
+      if (s.toLowerCase() === scope.toLowerCase()) {
+        btn.classList.add('active');
+        btn.style.background = 'var(--card-bg)';
+      } else {
+        btn.classList.remove('active');
+        btn.style.background = '';
+      }
+    }
+  });
+  applyLibraryFilters();
 }
 
 function filterLibrary(term) {
-  term = term.toLowerCase().trim();
-  const all = getAllExercises();
-  if (!term) {
-    renderLibraryList(all);
-    return;
-  }
-  const filtered = all.filter(e => 
-    e.fa.toLowerCase().includes(term) || 
-    (e.en && e.en.toLowerCase().includes(term)) ||
-    (e.muscles && e.muscles.toLowerCase().includes(term))
-  );
-  renderLibraryList(filtered);
+  currentLibrarySearch = term.toLowerCase().trim();
+  applyLibraryFilters();
 }
 
 function filterLibraryCat(cat) {
-  const all = getAllExercises();
-  if (cat === 'all') {
-    renderLibraryList(all);
-  } else if (cat === 'gym' || cat === 'home') {
-    renderLibraryList(all.filter(e => e.category === cat));
-  } else {
-    renderLibraryList(all.filter(e => e.muscles && e.muscles.includes(cat)));
+  currentLibraryCat = cat;
+  applyLibraryFilters();
+}
+
+function applyLibraryFilters() {
+  let list = getAllExercises();
+
+  // 1. Scope filter
+  const currentUserId = (typeof currentAuthUser !== 'undefined' && currentAuthUser) ? currentAuthUser.id : (activeProfileId || 'local');
+  if (currentLibraryScope === 'public') {
+    list = list.filter(e => !e.isCustom || e.isApproved);
+  } else if (currentLibraryScope === 'private') {
+    list = list.filter(e => e.isCustom && (!e.isApproved || e.ownerId === currentUserId));
+  }
+
+  // 2. Category / Muscle filter
+  if (currentLibraryCat === 'gym' || currentLibraryCat === 'home') {
+    list = list.filter(e => e.category === currentLibraryCat);
+  } else if (currentLibraryCat !== 'all') {
+    list = list.filter(e => e.muscles && e.muscles.includes(currentLibraryCat));
+  }
+
+  // 3. Search query
+  if (currentLibrarySearch) {
+    list = list.filter(e =>
+      e.fa.toLowerCase().includes(currentLibrarySearch) ||
+      (e.en && e.en.toLowerCase().includes(currentLibrarySearch)) ||
+      (e.muscles && e.muscles.toLowerCase().includes(currentLibrarySearch))
+    );
+  }
+
+  renderLibraryList(list);
+}
+
+function renderLibraryList(list) {
+  const container = document.getElementById('libraryListContainer');
+  if (!container) return;
+  if (!list || list.length === 0) {
+    container.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding:20px;">حرکتی با این مشخصات یافت نشد. می‌توانید از بخش زیر در MuscleWiki جستجو کنید یا حرکت دلخواه بسازید.</div>';
+    return;
+  }
+
+  const adminUnlocked = isAdminUnlocked();
+
+  container.innerHTML = list.map(ex => {
+    let bankBadge = '';
+    if (ex.isCustom) {
+      if (ex.isApproved) {
+        bankBadge = '<span class="muscle-tag" style="background:#05966933; color:#34d399; border-color:#059669;">🌐 بانک عمومی</span>';
+      } else {
+        bankBadge = '<span class="muscle-tag" style="background:#854d0e33; color:#facc15; border-color:#854d0e;">🔒 بانک خصوصی</span>';
+      }
+    } else {
+      bankBadge = '<span class="muscle-tag" style="background:#0369a133; color:#38bdf8; border-color:#0284c7;">🌐 بانک مرجع</span>';
+    }
+
+    return `
+      <div class="library-item-card" style="${ex.isCustom && !ex.isApproved ? 'border-color:#854d0e88;' : ''}">
+        <div class="library-item-top">
+          <div>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span style="font-size:14.5px; font-weight:800; color:#fff;">${escapeHtml(ex.fa)}</span>
+              ${bankBadge}
+            </div>
+            ${ex.en ? `<div style="font-size:12px; color:var(--accent-cyan); direction:ltr; text-align:right;">${escapeHtml(ex.en)}</div>` : ''}
+          </div>
+          <span class="muscle-tag">${ex.category === 'home' ? '🏠 خانه' : '🏋️ باشگاه'}</span>
+        </div>
+
+        <div class="muscles-row" style="margin:6px 0;">
+          <span class="muscle-tag">عضلات: ${escapeHtml(ex.muscles || 'عمومی')}</span>
+          <span class="muscle-tag" style="direction:ltr">${escapeHtml(ex.defaultReps || '3 × 8–12')}</span>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; flex-wrap:wrap; gap:6px;">
+          <div class="video-links-group">
+            ${renderVideoButtons(ex.videos)}
+          </div>
+          <div style="display:flex; gap:4px; flex-wrap:wrap;">
+            <button class="btn-header-action btn-action-primary" style="padding:4px 9px; font-size:11.5px" onclick="quickAddExFromLibrary('${ex.id}')">
+              + افزودن به برنامه
+            </button>
+            ${adminUnlocked ? `
+              <button class="btn-header-action" style="padding:4px 7px; font-size:11px; border-color:#fbbf2488; color:#fbbf24;" onclick="openQuickEditForExercise('${ex.id}')" title="ویرایش مشخصات مرجع و ویدیوها">
+                ✏️ مرجع
+              </button>
+              ${ex.isCustom && !ex.isApproved ? `
+                <button class="btn-header-action" style="padding:4px 7px; font-size:11px; border-color:#22c55e88; color:#22c55e;" onclick="approveCustomExercise('${ex.id}')" title="تایید برای بانک عمومی">
+                  ✅ تایید عمومی
+                </button>
+              ` : ''}
+              ${ex.isCustom ? `
+                <button class="btn-header-action" style="padding:4px 7px; font-size:11px; border-color:#f8717155; color:#f87171;" onclick="deleteCustomExercise('${ex.id}')" title="حذف از بانک">
+                  🗑️
+                </button>
+              ` : ''}
+            ` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function approveCustomExercise(exId) {
+  if (!isAdminUnlocked()) {
+    alert('فقط ادمین می‌تواند حرکات را برای بانک عمومی تایید کند.');
+    return;
+  }
+  const ex = (customExercises || []).find(e => e.id === exId);
+  if (!ex) return;
+
+  ex.isApproved = true;
+  saveCustomExercises();
+  applyLibraryFilters();
+  showToast(`✅ حرکت "${ex.fa}" با موفقیت تایید و در بانک عمومی منتشر شد!`);
+}
+
+function deleteCustomExercise(exId) {
+  const ex = (customExercises || []).find(e => e.id === exId);
+  if (!ex) return;
+
+  if (confirm(`آیا از حذف حرکت "${ex.fa}" اطمینان دارید؟`)) {
+    customExercises = customExercises.filter(e => e.id !== exId);
+    saveCustomExercises();
+    applyLibraryFilters();
+    showToast(`حرکت "${ex.fa}" با موفقیت حذف شد.`);
   }
 }
 
@@ -2428,6 +2805,10 @@ function saveCustomExercise() {
     });
   }
 
+  const isApproved = isAdminUnlocked();
+  const reqPublic = Boolean(document.getElementById('custRequestPublic')?.checked);
+  const currentUserId = (typeof currentAuthUser !== 'undefined' && currentAuthUser) ? currentAuthUser.id : (activeProfileId || 'local');
+
   const newEx = {
     id: 'cust_' + Date.now(),
     fa: fa,
@@ -2436,14 +2817,26 @@ function saveCustomExercise() {
     muscles: muscles,
     defaultReps: reps,
     defaultSets: 3,
-    videos: videos
+    videos: videos,
+    isCustom: true,
+    isApproved: isApproved,
+    requestPublic: isApproved ? false : reqPublic,
+    ownerId: currentUserId,
+    createdAt: new Date().toISOString()
   };
 
   customExercises.push(newEx);
   saveCustomExercises();
   closeCustomExerciseModal();
-  renderLibraryList(getAllExercises());
-  showToast(`حرکت "${fa}" با موفقیت در بانک حرکات ثبت شد.`);
+  applyLibraryFilters();
+
+  if (isApproved) {
+    showToast(`👑 حرکت "${fa}" توسط ادمین در بانک عمومی منتشر شد.`);
+  } else if (reqPublic) {
+    showToast(`✅ حرکت "${fa}" در بانک خصوصی شما ثبت شد و جهت انتشار برای ادمین ارسال گردید.`);
+  } else {
+    showToast(`🔒 حرکت "${fa}" با موفقیت در بانک خصوصی شما ذخیره شد.`);
+  }
 }
 
 // --- Sets Tracker & Persistence ---
@@ -3279,7 +3672,6 @@ const SUPABASE_URL = 'https://dtdwutbzwddindwqqgir.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR0ZHd1dGJ6d2RkaW5kd3FxZ2lyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk5MzA4MTYsImV4cCI6MjEwNTUwNjgxNn0.LccpSJ5Yd_B-kcqWbzQz6M_aFuqEr0IhKGaQ3k53d3I';
 
 let supabaseClient = null;
-let currentAuthUser = null;
 
 function initSupabase() {
   try {
@@ -3333,6 +3725,18 @@ function updateAuthUI(user) {
     if (loggedInView) loggedInView.style.display = 'block';
     if (emailDisplay) emailDisplay.innerText = user.email || '';
     if (nameDisplay) nameDisplay.innerText = `خوش آمدید، ${name}`;
+
+    const appTitleEl = document.getElementById('appTitle');
+    const emailLower = (user.email || '').toLowerCase();
+    if (emailLower.includes('hossein') || emailLower.includes('chieftain')) {
+      localStorage.setItem('chieftain_admin_unlocked', 'true');
+      if (appTitleEl) appTitleEl.innerText = 'برنامه تمرینی تخصصی حسین';
+    } else if (emailLower.includes('morvarid')) {
+      if (appTitleEl) appTitleEl.innerText = 'برنامه تمرینی تخصصی مروارید';
+    } else {
+      if (appTitleEl) appTitleEl.innerText = `سامانه تمرینی ${name} | Chieftain Pro`;
+    }
+    updateAdminUI();
   } else {
     currentAuthUser = null;
     if (btnText) btnText.innerText = 'ورود / حساب';
@@ -3343,6 +3747,8 @@ function updateAuthUI(user) {
     }
     if (loggedOutView) loggedOutView.style.display = 'block';
     if (loggedInView) loggedInView.style.display = 'none';
+    const appTitleEl = document.getElementById('appTitle');
+    if (appTitleEl) appTitleEl.innerText = 'سامانه تخصصی بدنسازی و تمرین | Chieftain Pro';
   }
 }
 

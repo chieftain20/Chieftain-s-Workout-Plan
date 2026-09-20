@@ -1,8 +1,7 @@
 {
-  "id": "hossein_chieftain",
-  "name": "Hossein Chieftain",
+  "id": "template_male",
+  "name": "برنامه نمونه آقایان (هایپرتروفی ۵ روزه)",
   "isDefault": true,
-  "pin": "gym",
   "days": [
     {
       "id": "d1",
