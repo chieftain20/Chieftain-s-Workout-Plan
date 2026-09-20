@@ -2113,6 +2113,9 @@ function saveExerciseLog() {
     if (typeof pushToCloudStorage === 'function') {
       pushToCloudStorage(true);
     }
+    if (typeof pushLogToSupabase === 'function') {
+      pushLogToSupabase(exId, logs[logs.length - 1]);
+    }
   } catch(err) {
     console.error('Error saving exercise log:', err);
     closeLogModal();
@@ -2804,6 +2807,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   renderApp(false);
   try { applyUiMode(); } catch(e) {}
+  try { initSupabase(); } catch(e) {}
 
   // Background Auto-Sync from Cloud on startup
   if (navigator.onLine && isAutoCloudSyncEnabled()) {
@@ -3267,6 +3271,330 @@ function toggleUiMode() {
     : '⚡ حالت پیشرفته فعال شد (نمایش تمام امکانات و ویدیوها)'
   );
 }
+
+// ==============================================================================
+// 🔒 Supabase Authentication & Multi-User Cloud Storage
+// ==============================================================================
+const SUPABASE_URL = 'https://dtdwutbzwddindwqqgir.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR0ZHd1dGJ6d2RkaW5kd3FxZ2lyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk5MzA4MTYsImV4cCI6MjEwNTUwNjgxNn0.LccpSJ5Yd_B-kcqWbzQz6M_aFuqEr0IhKGaQ3k53d3I';
+
+let supabaseClient = null;
+let currentAuthUser = null;
+
+function initSupabase() {
+  try {
+    if (typeof window !== 'undefined' && window.supabase && window.supabase.createClient) {
+      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      
+      // Check existing session
+      supabaseClient.auth.getSession().then(({ data }) => {
+        const session = data?.session;
+        if (session && session.user) {
+          handleAuthSessionChanged(session.user);
+        } else {
+          updateAuthUI(null);
+        }
+      }).catch(err => {
+        console.warn('Supabase getSession error:', err);
+      });
+
+      // Listen for auth state changes
+      supabaseClient.auth.onAuthStateChange((event, session) => {
+        if (session && session.user) {
+          handleAuthSessionChanged(session.user);
+        } else {
+          handleAuthSessionChanged(null);
+        }
+      });
+    }
+  } catch(e) {
+    console.warn('Supabase initialization error:', e);
+  }
+}
+
+function updateAuthUI(user) {
+  const btn = document.getElementById('authModalBtn');
+  const btnText = document.getElementById('authBtnText');
+  const loggedOutView = document.getElementById('authLoggedOutView');
+  const loggedInView = document.getElementById('authLoggedInView');
+  const emailDisplay = document.getElementById('authProfileEmailDisplay');
+  const nameDisplay = document.getElementById('authProfileNameDisplay');
+
+  if (user) {
+    currentAuthUser = user;
+    const name = user.user_metadata?.display_name || user.email?.split('@')[0] || 'کاربر';
+    if (btnText) btnText.innerText = name;
+    if (btn) {
+      btn.style.borderColor = '#10b981aa';
+      btn.style.color = '#34d399';
+      btn.style.background = 'rgba(16,185,129,0.18)';
+    }
+    if (loggedOutView) loggedOutView.style.display = 'none';
+    if (loggedInView) loggedInView.style.display = 'block';
+    if (emailDisplay) emailDisplay.innerText = user.email || '';
+    if (nameDisplay) nameDisplay.innerText = `خوش آمدید، ${name}`;
+  } else {
+    currentAuthUser = null;
+    if (btnText) btnText.innerText = 'ورود / حساب';
+    if (btn) {
+      btn.style.borderColor = '#10b981aa';
+      btn.style.color = '#34d399';
+      btn.style.background = 'rgba(16,185,129,0.12)';
+    }
+    if (loggedOutView) loggedOutView.style.display = 'block';
+    if (loggedInView) loggedInView.style.display = 'none';
+  }
+}
+
+async function handleAuthSessionChanged(user) {
+  updateAuthUI(user);
+  if (user) {
+    await syncCurrentDataWithSupabase();
+  }
+}
+
+function openAuthModal() {
+  document.getElementById('authModal')?.classList.add('open');
+}
+
+function closeAuthModal() {
+  document.getElementById('authModal')?.classList.remove('open');
+}
+
+function switchAuthTab(tab) {
+  const tabLogin = document.getElementById('authTabLogin');
+  const tabSignup = document.getElementById('authTabSignup');
+  const formLogin = document.getElementById('authLoginForm');
+  const formSignup = document.getElementById('authSignupForm');
+
+  if (tab === 'login') {
+    tabLogin?.classList.add('active');
+    tabSignup?.classList.remove('active');
+    if (formLogin) formLogin.style.display = 'block';
+    if (formSignup) formSignup.style.display = 'none';
+  } else {
+    tabLogin?.classList.remove('active');
+    tabSignup?.classList.add('active');
+    if (formLogin) formLogin.style.display = 'none';
+    if (formSignup) formSignup.style.display = 'block';
+  }
+}
+
+async function handleSupabaseLogin() {
+  if (!supabaseClient) {
+    alert('اتصال به سرور احراز هویت برقرار نشد. لطفاً اتصال اینترنت را بررسی کنید.');
+    return;
+  }
+  const email = document.getElementById('loginEmail')?.value.trim();
+  const password = document.getElementById('loginPassword')?.value;
+
+  if (!email || !password) {
+    alert('لطفاً ایمیل و رمز عبور را وارد کنید.');
+    return;
+  }
+
+  const btn = document.getElementById('loginSubmitBtn');
+  if (btn) {
+    btn.style.opacity = '0.6';
+    btn.innerText = 'در حال ورود...';
+  }
+
+  try {
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    showToast('🎉 خوش آمدید! با موفقیت وارد حساب خود شدید.');
+    closeAuthModal();
+  } catch(err) {
+    alert('خطا در ورود: ' + (err.message || err));
+  } finally {
+    if (btn) {
+      btn.style.opacity = '1';
+      btn.innerHTML = '<span>🚀</span> <span>ورود امن به حساب</span>';
+    }
+  }
+}
+
+async function handleSupabaseSignup() {
+  if (!supabaseClient) {
+    alert('اتصال به سرور احراز هویت برقرار نشد. لطفاً اتصال اینترنت را بررسی کنید.');
+    return;
+  }
+  const name = document.getElementById('signupName')?.value.trim();
+  const email = document.getElementById('signupEmail')?.value.trim();
+  const password = document.getElementById('signupPassword')?.value;
+
+  if (!email || !password) {
+    alert('لطفاً ایمیل و رمز عبور را وارد کنید.');
+    return;
+  }
+  if (password.length < 6) {
+    alert('رمز عبور باید حداقل ۶ کاراکتر باشد.');
+    return;
+  }
+
+  const btn = document.getElementById('signupSubmitBtn');
+  if (btn) {
+    btn.style.opacity = '0.6';
+    btn.innerText = 'در حال ساخت حساب...';
+  }
+
+  try {
+    const { data, error } = await supabaseClient.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { display_name: name || email.split('@')[0] }
+      }
+    });
+    if (error) throw error;
+    showToast('✅ حساب کاربری ساخته شد و با موفقیت وارد شدید!');
+    closeAuthModal();
+  } catch(err) {
+    alert('خطا در ساخت حساب: ' + (err.message || err));
+  } finally {
+    if (btn) {
+      btn.style.opacity = '1';
+      btn.innerHTML = '<span>✨</span> <span>ایجاد حساب و اتصال امن</span>';
+    }
+  }
+}
+
+async function handleSupabaseLogout() {
+  if (!supabaseClient) return;
+  if (confirm('آیا مایلید از حساب کاربری خود خارج شوید؟')) {
+    await supabaseClient.auth.signOut();
+    updateAuthUI(null);
+    showToast('از حساب کاربری خارج شدید.');
+    closeAuthModal();
+  }
+}
+
+async function pushLogToSupabase(exId, logEntry) {
+  if (!supabaseClient || !currentAuthUser) return;
+  try {
+    await supabaseClient.from('workout_logs').insert({
+      user_id: currentAuthUser.id,
+      exercise_id: exId,
+      log_entry: logEntry,
+      created_at: new Date(logEntry.timestamp || Date.now()).toISOString()
+    });
+  } catch(e) {
+    console.error('pushLogToSupabase error:', e);
+  }
+}
+
+async function pushMetricToSupabase(metricRecord) {
+  if (!supabaseClient || !currentAuthUser) return;
+  try {
+    await supabaseClient.from('body_metrics').insert({
+      user_id: currentAuthUser.id,
+      metric_record: metricRecord,
+      created_at: new Date(metricRecord.timestamp || Date.now()).toISOString()
+    });
+  } catch(e) {
+    console.error('pushMetricToSupabase error:', e);
+  }
+}
+
+async function syncCurrentDataWithSupabase() {
+  if (!supabaseClient || !currentAuthUser) return;
+
+  try {
+    showToast('☁️ در حال همگام‌سازی با پایگاه داده اختصاصی Supabase...');
+    const userId = currentAuthUser.id;
+
+    // 1. Check if user already has routines in Supabase
+    const { data: remoteRoutines } = await supabaseClient
+      .from('user_routines')
+      .select('*')
+      .eq('user_id', userId);
+
+    if (remoteRoutines && remoteRoutines.length > 0) {
+      remoteRoutines.forEach(row => {
+        if (row.profile_key && row.routine_data) {
+          const prof = allProfiles.find(p => p.id === row.profile_key);
+          if (prof) {
+            prof.days = row.routine_data.days || prof.days;
+          }
+        }
+      });
+      localStorage.setItem('chieftain_profiles_v9', JSON.stringify(allProfiles));
+    } else {
+      // First time login: auto-upload current profile routine to Supabase (Zero Data Loss)
+      const prof = getActiveProfile();
+      await supabaseClient.from('user_routines').upsert({
+        user_id: userId,
+        profile_key: prof.id,
+        routine_data: { days: prof.days },
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id,profile_key' });
+    }
+
+    // 2. Fetch remote logs and merge with local logs
+    const { data: remoteLogs } = await supabaseClient
+      .from('workout_logs')
+      .select('*')
+      .eq('user_id', userId);
+
+    if (remoteLogs && remoteLogs.length > 0) {
+      remoteLogs.forEach(r => {
+        if (r.exercise_id && r.log_entry) {
+          const localLogs = getExerciseLogs(r.exercise_id);
+          const exists = localLogs.some(l => l.timestamp === r.log_entry.timestamp);
+          if (!exists) {
+            localLogs.push(r.log_entry);
+            localLogs.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+            saveExerciseLogsList(r.exercise_id, localLogs);
+          }
+        }
+      });
+    }
+
+    // 3. Upload local logs not yet in Supabase
+    const logsMap = getAllProfilesLogsMap();
+    for (const [key, entries] of Object.entries(logsMap)) {
+      const exId = key.replace(/^chieftain_logs_[^_]+_/, '');
+      if (Array.isArray(entries)) {
+        for (const entry of entries) {
+          const remoteHas = remoteLogs && remoteLogs.some(r => r.exercise_id === exId && r.log_entry?.timestamp === entry.timestamp);
+          if (!remoteHas) {
+            await supabaseClient.from('workout_logs').insert({
+              user_id: userId,
+              exercise_id: exId,
+              log_entry: entry,
+              created_at: new Date(entry.timestamp || Date.now()).toISOString()
+            });
+          }
+        }
+      }
+    }
+
+    // 4. Remote & local body metrics sync
+    const { data: remoteMetrics } = await supabaseClient
+      .from('body_metrics')
+      .select('*')
+      .eq('user_id', userId);
+
+    if (remoteMetrics && remoteMetrics.length > 0) {
+      const localMetrics = getProfileBodyMetrics(activeProfileId);
+      remoteMetrics.forEach(r => {
+        if (r.metric_record) {
+          const exists = localMetrics.some(m => m.id === r.metric_record.id || m.timestamp === r.metric_record.timestamp);
+          if (!exists) {
+            localMetrics.push(r.metric_record);
+          }
+        }
+      });
+      saveProfileBodyMetrics(activeProfileId, localMetrics);
+    }
+
+    renderApp();
+    showToast('✅ اطلاعات و لاگ‌ها به صورت امن در دیتابیس Supabase ذخیره شدند! 🟢');
+  } catch(err) {
+    console.error('Supabase sync error:', err);
+  }
+}
+
 
 // --- Sync Modal UI Handlers ---
 function openSyncBackupModal() {
@@ -5325,6 +5653,9 @@ function saveBodyMetricRecord() {
   }
 
   saveProfileBodyMetrics(prof.id, list);
+  if (typeof pushMetricToSupabase === 'function') {
+    pushMetricToSupabase(record);
+  }
   closeAddBodyMetricModal();
   switchMainTab('metrics');
   showToast('✅ رکورد با موفقیت ثبت شد و بادی‌آنالیز هوشمند محاسبه گردید!');

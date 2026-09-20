@@ -1137,3 +1137,28 @@ body.simple-mode .day-header {
   margin-bottom: 10px !important;
   padding-bottom: 8px !important;
 }
+
+/* Auth Modal Tabs */
+.auth-tab {
+  flex: 1;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 9px 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.auth-tab:hover {
+  color: #fff;
+}
+
+.auth-tab.active {
+  color: #38bdf8;
+  border-bottom-color: #38bdf8;
+}
+

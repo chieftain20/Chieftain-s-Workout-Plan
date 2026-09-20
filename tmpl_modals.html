@@ -1025,6 +1025,93 @@
   </div>
 </div>
 
+<!-- Supabase User Authentication Modal (Login / Sign Up / Account) -->
+<div id="authModal" class="modal-overlay">
+  <div class="modal-dialog" style="max-width: 440px;">
+    <button class="modal-close-btn" onclick="closeAuthModal()">✕</button>
+    
+    <!-- View when logged OUT -->
+    <div id="authLoggedOutView">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+        <span style="font-size:24px;">🔒</span>
+        <h3 style="margin:0;">حساب کاربری ابری و خصوصی</h3>
+      </div>
+      <p style="font-size:12px; color:var(--text-muted); margin-bottom:14px; line-height:1.6;">
+        با ورود به حساب، برنامه، لاگ‌ها و اندازه‌گیری‌های بدنی شما در دیتابیس امن و اختصاصی ذخیره شده و روی تمام دستگاه‌هایتان همگام می‌شود.
+      </p>
+
+      <!-- Auth Tabs: Login vs Register -->
+      <div style="display:flex; border-bottom:1px solid var(--border-color); margin-bottom:14px;">
+        <button id="authTabLogin" class="auth-tab active" onclick="switchAuthTab('login')">ورود به حساب</button>
+        <button id="authTabSignup" class="auth-tab" onclick="switchAuthTab('signup')">ثبت‌نام جدید</button>
+      </div>
+
+      <!-- Login Form -->
+      <div id="authLoginForm">
+        <div style="margin-bottom:10px;">
+          <label class="form-label">📧 ایمیل:</label>
+          <input type="email" id="loginEmail" class="form-input" placeholder="you@example.com" style="direction:ltr; text-align:left;">
+        </div>
+        <div style="margin-bottom:14px;">
+          <label class="form-label">🔑 رمز عبور:</label>
+          <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" style="direction:ltr; text-align:left;">
+        </div>
+        <button id="loginSubmitBtn" class="btn-header-action btn-action-primary" style="width:100%; justify-content:center; padding:10px; font-weight:800; margin-bottom:10px;" onclick="handleSupabaseLogin()">
+          <span>🚀</span>
+          <span>ورود امن به حساب</span>
+        </button>
+      </div>
+
+      <!-- Signup Form -->
+      <div id="authSignupForm" style="display:none;">
+        <div style="margin-bottom:10px;">
+          <label class="form-label">👤 نام یا نام مستعار:</label>
+          <input type="text" id="signupName" class="form-input" placeholder="مثلاً: حسین یا مروارید">
+        </div>
+        <div style="margin-bottom:10px;">
+          <label class="form-label">📧 ایمیل:</label>
+          <input type="email" id="signupEmail" class="form-input" placeholder="you@example.com" style="direction:ltr; text-align:left;">
+        </div>
+        <div style="margin-bottom:14px;">
+          <label class="form-label">🔑 رمز عبور (حداقل ۶ کاراکتر):</label>
+          <input type="password" id="signupPassword" class="form-input" placeholder="••••••••" style="direction:ltr; text-align:left;">
+        </div>
+        <button id="signupSubmitBtn" class="btn-header-action btn-action-success" style="width:100%; justify-content:center; padding:10px; font-weight:800; margin-bottom:10px;" onclick="handleSupabaseSignup()">
+          <span>✨</span>
+          <span>ایجاد حساب و اتصال امن</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- View when logged IN -->
+    <div id="authLoggedInView" style="display:none;">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+        <span style="font-size:24px;">🟢</span>
+        <h3 style="margin:0;">حساب کاربری فعال</h3>
+      </div>
+      <p style="font-size:12.5px; color:#34d399; margin-bottom:14px; font-weight:700;">
+        شما با موفقیت وارد حساب ابری خود شده‌اید.
+      </p>
+
+      <div style="background:rgba(15,23,42,0.6); border:1px solid var(--border-color); border-radius:10px; padding:12px; margin-bottom:14px;">
+        <div style="font-size:12px; color:var(--text-muted); margin-bottom:4px;">ایمیل حساب:</div>
+        <div id="authProfileEmailDisplay" style="font-size:14px; font-weight:800; color:#fff; direction:ltr; text-align:right;"></div>
+        <div id="authProfileNameDisplay" style="font-size:12px; color:#38bdf8; margin-top:4px;"></div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <button class="btn-header-action btn-action-primary" style="justify-content:center; padding:10px; font-weight:800;" onclick="syncCurrentDataWithSupabase()">
+          <span>🔄</span> <span>همگام‌سازی فوری با دیتابیس</span>
+        </button>
+        <button class="btn-header-action" style="justify-content:center; padding:9px; color:#f87171; border-color:#f8717155;" onclick="handleSupabaseLogout()">
+          <span>🚪</span> <span>خروج از حساب</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
 <!-- Floating Toast Message Container -->
 <div id="toastMsg" class="toast-msg">
   <span>✅</span>
