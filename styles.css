@@ -1162,3 +1162,176 @@ body.simple-mode .day-header {
   border-bottom-color: #38bdf8;
 }
 
+/* ==========================================================================
+   Professional Light Theme (Day Mode)
+   ========================================================================== */
+[data-theme="light"] {
+  --bg-main: #f1f5f9;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f8fafc;
+  --bg-input: #f8fafc;
+  --accent-cyan: #0284c7;
+  --accent-blue: #2563eb;
+  --accent-teal: #059669;
+  --border-color: rgba(2, 132, 199, 0.22);
+  --border-light: rgba(148, 163, 184, 0.3);
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.07), 0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] header {
+  background: linear-gradient(145deg, #ffffff, #f8fafc) !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-theme="light"] h1,
+[data-theme="light"] h2,
+[data-theme="light"] h3,
+[data-theme="light"] h4 {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .exercise-card {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04) !important;
+}
+
+[data-theme="light"] .exercise-card.completed {
+  background: rgba(16, 185, 129, 0.06) !important;
+  border-color: rgba(16, 185, 129, 0.35) !important;
+}
+
+[data-theme="light"] .superset-container {
+  background: #f8fafc !important;
+  border-color: rgba(2, 132, 199, 0.25) !important;
+}
+
+[data-theme="light"] .day-section {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] .day-header {
+  border-bottom-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] .modal-dialog {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2) !important;
+}
+
+[data-theme="light"] .form-input,
+[data-theme="light"] .form-select {
+  background: #f8fafc !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="light"] .form-input:focus,
+[data-theme="light"] .form-select:focus {
+  border-color: #0284c7 !important;
+  background: #ffffff !important;
+}
+
+[data-theme="light"] .btn-header-action {
+  background: #f1f5f9 !important;
+  color: #334155 !important;
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="light"] .btn-header-action:hover {
+  background: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .btn-action-primary {
+  background: linear-gradient(135deg, #0284c7, #2563eb) !important;
+  color: #ffffff !important;
+  border: none !important;
+}
+
+[data-theme="light"] .nav-tab {
+  background: #f1f5f9 !important;
+  color: #64748b !important;
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] .nav-tab.active {
+  background: #0284c7 !important;
+  color: #ffffff !important;
+  border-color: #0284c7 !important;
+}
+
+[data-theme="light"] .library-item-card {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] .muscle-tag {
+  background: #f1f5f9 !important;
+  color: #475569 !important;
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="light"] .video-btn {
+  background: rgba(2, 132, 199, 0.08) !important;
+  color: #0284c7 !important;
+  border-color: rgba(2, 132, 199, 0.25) !important;
+}
+
+[data-theme="light"] .profile-selector-wrap {
+  background: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="light"] .profile-select {
+  color: #0284c7 !important;
+}
+
+[data-theme="light"] .profile-select option {
+  background: #ffffff !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .metric-summary-card,
+[data-theme="light"] .metric-row-card {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] .search-box {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="light"] .search-input {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] table th {
+  background: #f1f5f9 !important;
+  color: #475569 !important;
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] table td {
+  border-color: #e2e8f0 !important;
+  color: #1e293b !important;
+}
+
+[data-theme="light"] .delta-pill.neutral {
+  background: #f1f5f9 !important;
+  color: #64748b !important;
+}
+
+[data-theme="light"] .somatotype-badge {
+  background: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+}
+
+

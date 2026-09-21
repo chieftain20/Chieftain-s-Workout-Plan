@@ -4003,6 +4003,1192 @@ async function syncCurrentDataWithSupabase() {
 
 
 // --- Sync Modal UI Handlers ---
+
+// --- Theme Switcher (Dark / Light) ---
+function initTheme() {
+  const saved = localStorage.getItem('chieftain_theme') || 'dark';
+  applyTheme(saved);
+}
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  const icon = document.getElementById('themeToggleIcon');
+  const text = document.getElementById('themeToggleText');
+  if (theme === 'light') {
+    if (icon) icon.innerText = '🌙';
+    if (text) text.innerText = 'حالت شب';
+  } else {
+    if (icon) icon.innerText = '☀️';
+    if (text) text.innerText = 'حالت روز';
+  }
+}
+
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme') || 'dark';
+  const next = current === 'dark' ? 'light' : 'dark';
+  localStorage.setItem('chieftain_theme', next);
+  applyTheme(next);
+  showToast(next === 'light' ? '☀️ تم روشن (حالت روز) فعال شد' : '🌙 تم تاریک (حالت شب) فعال شد');
+}
+
+try { initTheme(); } catch(e) {}
+
+// --- Preloaded Backup Data & Profile Restoration (Hossein & Morvarid) ---
+const BACKUP_PRELOADED_DATA = {
+  "metrics": {
+    "hossein_chieftain": [
+      {
+        "id": "m_1788521227499",
+        "timestamp": 1788521227499,
+        "date": "۱۴۰۵/۶/۱۳",
+        "time": "۱۴:۵۴",
+        "condition": "fasted_morning",
+        "gender": "male",
+        "weight": 91,
+        "height": 184,
+        "age": 35,
+        "neck": 38,
+        "shoulders": 123,
+        "chest": 104,
+        "armRight": 36,
+        "armRightRelaxed": 34,
+        "armLeft": 37,
+        "armLeftRelaxed": 34.5,
+        "waist": 88,
+        "abdomen": 98.5,
+        "lowerBelly": 101,
+        "hips": 110,
+        "thighRight": 57,
+        "thighLeft": 57,
+        "calves": 41,
+        "wrist": 18,
+        "ankle": 24,
+        "bodyFatManual": 0,
+        "notes": ""
+      }
+    ],
+    "morvarid": [
+      {
+        "id": "m_1788526442231",
+        "timestamp": 1788526442231,
+        "date": "۱۴۰۵/۶/۱۳",
+        "time": "۱۶:۲۲",
+        "condition": "fasted_morning",
+        "gender": "female",
+        "weight": 67,
+        "height": 152,
+        "age": 36,
+        "neck": 36,
+        "shoulders": 108.5,
+        "chest": 103,
+        "armRight": 31,
+        "armRightRelaxed": 29,
+        "armLeft": 30.5,
+        "armLeftRelaxed": 27.5,
+        "waist": 90,
+        "abdomen": 98,
+        "lowerBelly": 98,
+        "hips": 103,
+        "thighRight": 52,
+        "thighLeft": 52,
+        "calves": 37,
+        "wrist": 15.5,
+        "ankle": 22,
+        "bodyFatManual": 0,
+        "notes": ""
+      }
+    ]
+  },
+  "logs": {
+    "chieftain_logs_hossein_chieftain_leg_extension": [
+      {
+        "timestamp": 1788620850617,
+        "date": "۶/۱۴, ۱۸:۳۷",
+        "sets": [
+          {
+            "setNum": 1,
+            "weight": 35,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 2,
+            "weight": 45,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 3,
+            "weight": 45,
+            "reps": 12,
+            "rir": "2"
+          }
+        ],
+        "totalVolume": 1500,
+        "isIso": false,
+        "note": ""
+      }
+    ],
+    "chieftain_logs_hossein_chieftain_rdl": [
+      {
+        "timestamp": 1789019275098,
+        "date": "۶/۱۹, ۰۹:۱۷",
+        "sets": [
+          {
+            "setNum": 1,
+            "weight": 20,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 2,
+            "weight": 20,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 3,
+            "weight": 20,
+            "reps": 12,
+            "rir": "2"
+          }
+        ],
+        "totalVolume": 720,
+        "isIso": false,
+        "note": ""
+      }
+    ],
+    "chieftain_logs_hossein_chieftain_cossack_squat": [
+      {
+        "timestamp": 1789019191886,
+        "date": "۶/۱۹, ۰۹:۱۶",
+        "sets": [
+          {
+            "setNum": 1,
+            "weight": 12.5,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 2,
+            "weight": 12.5,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 3,
+            "weight": 12.5,
+            "reps": 12,
+            "rir": "2"
+          }
+        ],
+        "totalVolume": 450,
+        "isIso": false,
+        "note": ""
+      }
+    ],
+    "chieftain_logs_hossein_chieftain_single_arm_pronated_scapular_correction": [
+      {
+        "timestamp": 1789019231002,
+        "date": "۶/۱۹, ۰۹:۱۷",
+        "sets": [
+          {
+            "setNum": 1,
+            "weight": 12.5,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 2,
+            "weight": 12.5,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 3,
+            "weight": 12.5,
+            "reps": 12,
+            "rir": "2"
+          }
+        ],
+        "totalVolume": 450,
+        "isIso": false,
+        "note": ""
+      }
+    ],
+    "chieftain_logs_hossein_chieftain_cable_row": [
+      {
+        "timestamp": 1789019138571,
+        "date": "۶/۱۹, ۰۹:۱۵",
+        "sets": [
+          {
+            "setNum": 1,
+            "weight": 30,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 2,
+            "weight": 30,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 3,
+            "weight": 30,
+            "reps": 12,
+            "rir": "2"
+          }
+        ],
+        "totalVolume": 1080,
+        "isIso": false,
+        "note": ""
+      }
+    ],
+    "chieftain_logs_hossein_chieftain_leg_curl": [
+      {
+        "timestamp": 1788620249556,
+        "date": "۶/۱۴, ۱۸:۲۷",
+        "sets": [
+          {
+            "setNum": 1,
+            "weight": 35,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 2,
+            "weight": 35,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 3,
+            "weight": 35,
+            "reps": 12,
+            "rir": "2"
+          }
+        ],
+        "totalVolume": 1260,
+        "isIso": false,
+        "note": ""
+      },
+      {
+        "timestamp": 1789019123174,
+        "date": "۶/۱۹, ۰۹:۱۵",
+        "sets": [
+          {
+            "setNum": 1,
+            "weight": 35,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 2,
+            "weight": 35,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 3,
+            "weight": 35,
+            "reps": 12,
+            "rir": "2"
+          }
+        ],
+        "totalVolume": 1260,
+        "isIso": false,
+        "note": ""
+      }
+    ],
+    "chieftain_logs_hossein_chieftain_peck_deck_fly": [
+      {
+        "timestamp": 1788621036401,
+        "date": "۶/۱۴, ۱۸:۴۰",
+        "sets": [
+          {
+            "setNum": 1,
+            "weight": 20,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 2,
+            "weight": 25,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 3,
+            "weight": 25,
+            "reps": 12,
+            "rir": "2"
+          }
+        ],
+        "totalVolume": 840,
+        "isIso": false,
+        "note": ""
+      }
+    ],
+    "chieftain_logs_hossein_chieftain_standing_lateral_raise_machine": [
+      {
+        "timestamp": 1788620162807,
+        "date": "۶/۱۴, ۱۸:۲۶",
+        "sets": [
+          {
+            "setNum": 1,
+            "weight": 5,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 2,
+            "weight": 7.5,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 3,
+            "weight": 7.5,
+            "reps": 12,
+            "rir": "2"
+          }
+        ],
+        "totalVolume": 240,
+        "isIso": false,
+        "note": ""
+      },
+      {
+        "timestamp": 1789019302666,
+        "date": "۶/۱۹, ۰۹:۱۸",
+        "sets": [
+          {
+            "setNum": 1,
+            "weight": 5,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 2,
+            "weight": 7.5,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 3,
+            "weight": 7.5,
+            "reps": 12,
+            "rir": "2"
+          }
+        ],
+        "totalVolume": 240,
+        "isIso": false,
+        "note": ""
+      }
+    ],
+    "chieftain_logs_hossein_chieftain_preacher_hammer_curl": [
+      {
+        "timestamp": 1788620910793,
+        "date": "۶/۱۴, ۱۸:۳۸",
+        "sets": [
+          {
+            "setNum": 1,
+            "weight": 15,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 2,
+            "weight": 15,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 3,
+            "weight": 15,
+            "reps": 12,
+            "rir": "2"
+          }
+        ],
+        "totalVolume": 540,
+        "isIso": false,
+        "note": ""
+      }
+    ],
+    "chieftain_logs_hossein_chieftain_rope_triceps_pushdown": [
+      {
+        "timestamp": 1788620308155,
+        "date": "۶/۱۴, ۱۸:۲۸",
+        "sets": [
+          {
+            "setNum": 1,
+            "weight": 20,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 2,
+            "weight": 20,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 3,
+            "weight": 25,
+            "reps": 10,
+            "rir": "2"
+          }
+        ],
+        "totalVolume": 730,
+        "isIso": false,
+        "note": ""
+      },
+      {
+        "timestamp": 1789019262000,
+        "date": "۶/۱۹, ۰۹:۱۷",
+        "sets": [
+          {
+            "setNum": 1,
+            "weight": 20,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 2,
+            "weight": 20,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 3,
+            "weight": 20,
+            "reps": 12,
+            "rir": "2"
+          }
+        ],
+        "totalVolume": 720,
+        "isIso": false,
+        "note": ""
+      }
+    ],
+    "chieftain_logs_hossein_chieftain_lat_pulldown": [
+      {
+        "timestamp": 1788620870322,
+        "date": "۶/۱۴, ۱۸:۳۷",
+        "sets": [
+          {
+            "setNum": 1,
+            "weight": 20,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 2,
+            "weight": 20,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 3,
+            "weight": 20,
+            "reps": 12,
+            "rir": "2"
+          }
+        ],
+        "totalVolume": 720,
+        "isIso": false,
+        "note": ""
+      }
+    ],
+    "chieftain_logs_hossein_chieftain_seated_chest_press_machine": [
+      {
+        "timestamp": 1788620827192,
+        "date": "۶/۱۴, ۱۸:۳۷",
+        "sets": [
+          {
+            "setNum": 1,
+            "weight": 15,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 2,
+            "weight": 20,
+            "reps": 10,
+            "rir": "2"
+          },
+          {
+            "setNum": 3,
+            "weight": 20,
+            "reps": 10,
+            "rir": "2"
+          }
+        ],
+        "totalVolume": 580,
+        "isIso": false,
+        "note": ""
+      }
+    ],
+    "chieftain_logs_hossein_chieftain_preacher_curls": [
+      {
+        "timestamp": 1788620328549,
+        "date": "۶/۱۴, ۱۸:۲۸",
+        "sets": [
+          {
+            "setNum": 1,
+            "weight": 15,
+            "reps": 15,
+            "rir": "2"
+          },
+          {
+            "setNum": 2,
+            "weight": 15,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 3,
+            "weight": 15,
+            "reps": 12,
+            "rir": "2"
+          }
+        ],
+        "totalVolume": 585,
+        "isIso": false,
+        "note": ""
+      },
+      {
+        "timestamp": 1789019158614,
+        "date": "۶/۱۹, ۰۹:۱۵",
+        "sets": [
+          {
+            "setNum": 1,
+            "weight": 15,
+            "reps": 13,
+            "rir": "2"
+          },
+          {
+            "setNum": 2,
+            "weight": 15,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 3,
+            "weight": 15,
+            "reps": 12,
+            "rir": "2"
+          }
+        ],
+        "totalVolume": 555,
+        "isIso": false,
+        "note": ""
+      }
+    ],
+    "chieftain_logs_hossein_chieftain_hack_squat": [
+      {
+        "timestamp": 1788620116272,
+        "date": "۶/۱۴, ۱۸:۲۵",
+        "sets": [
+          {
+            "setNum": 1,
+            "weight": 40,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 2,
+            "weight": 40,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 3,
+            "weight": 40,
+            "reps": 12,
+            "rir": "2"
+          }
+        ],
+        "totalVolume": 1440,
+        "isIso": false,
+        "note": ""
+      },
+      {
+        "timestamp": 1788622526421,
+        "date": "۶/۱۴, ۱۹:۰۵",
+        "sets": [
+          {
+            "setNum": 1,
+            "weight": 40,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 2,
+            "weight": 40,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 3,
+            "weight": 40,
+            "reps": 12,
+            "rir": "2"
+          }
+        ],
+        "totalVolume": 1440,
+        "isIso": false,
+        "note": ""
+      },
+      {
+        "timestamp": 1789019287734,
+        "date": "۶/۱۹, ۰۹:۱۸",
+        "sets": [
+          {
+            "setNum": 1,
+            "weight": 40,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 2,
+            "weight": 40,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 3,
+            "weight": 40,
+            "reps": 12,
+            "rir": "2"
+          }
+        ],
+        "totalVolume": 1440,
+        "isIso": false,
+        "note": ""
+      }
+    ],
+    "chieftain_logs_hossein_chieftain_face_pull": [
+      {
+        "timestamp": 1788621135790,
+        "date": "۶/۱۴, ۱۸:۴۲",
+        "sets": [
+          {
+            "setNum": 1,
+            "weight": 25,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 2,
+            "weight": 25,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 3,
+            "weight": 35,
+            "reps": 10,
+            "rir": "2"
+          }
+        ],
+        "totalVolume": 950,
+        "isIso": false,
+        "note": ""
+      },
+      {
+        "timestamp": 1789020478163,
+        "date": "۶/۱۹, ۰۹:۳۷",
+        "sets": [
+          {
+            "setNum": 1,
+            "weight": 25,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 2,
+            "weight": 25,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 3,
+            "weight": 25,
+            "reps": 12,
+            "rir": "2"
+          }
+        ],
+        "totalVolume": 900,
+        "isIso": false,
+        "note": ""
+      }
+    ],
+    "chieftain_logs_hossein_chieftain_smith_incline_bench_press": [
+      {
+        "timestamp": 1788620228768,
+        "date": "۶/۱۴, ۱۸:۲۷",
+        "sets": [
+          {
+            "setNum": 1,
+            "weight": 5,
+            "reps": 14,
+            "rir": "2"
+          },
+          {
+            "setNum": 2,
+            "weight": 10,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 3,
+            "weight": 10,
+            "reps": 10,
+            "rir": "2"
+          }
+        ],
+        "totalVolume": 290,
+        "isIso": false,
+        "note": ""
+      },
+      {
+        "timestamp": 1788620271167,
+        "date": "۶/۱۴, ۱۸:۲۷",
+        "sets": [
+          {
+            "setNum": 1,
+            "weight": 5,
+            "reps": 14,
+            "rir": "2"
+          },
+          {
+            "setNum": 2,
+            "weight": 10,
+            "reps": 10,
+            "rir": "2"
+          },
+          {
+            "setNum": 3,
+            "weight": 10,
+            "reps": 10,
+            "rir": "2"
+          }
+        ],
+        "totalVolume": 270,
+        "isIso": false,
+        "note": ""
+      }
+    ],
+    "chieftain_logs_hossein_chieftain_standing_plate_hip_abduction": [
+      {
+        "timestamp": 1788620396412,
+        "date": "۶/۱۴, ۱۸:۲۹",
+        "sets": [
+          {
+            "setNum": 1,
+            "weight": 10,
+            "reps": 10,
+            "rir": "2"
+          },
+          {
+            "setNum": 2,
+            "weight": 10,
+            "reps": 10,
+            "rir": "2"
+          },
+          {
+            "setNum": 3,
+            "weight": 10,
+            "reps": 10,
+            "rir": "2"
+          }
+        ],
+        "totalVolume": 300,
+        "isIso": false,
+        "note": ""
+      }
+    ],
+    "chieftain_logs_hossein_chieftain_standing_cable_crunch": [
+      {
+        "timestamp": 1788621197912,
+        "date": "۶/۱۴, ۱۸:۴۳",
+        "sets": [
+          {
+            "setNum": 1,
+            "weight": 35,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 2,
+            "weight": 35,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 3,
+            "weight": 35,
+            "reps": 12,
+            "rir": "2"
+          }
+        ],
+        "totalVolume": 1260,
+        "isIso": false,
+        "note": ""
+      }
+    ],
+    "chieftain_logs_hossein_chieftain_back_extension": [
+      {
+        "timestamp": 1788621116893,
+        "date": "۶/۱۴, ۱۸:۴۱",
+        "sets": [
+          {
+            "setNum": 1,
+            "weight": 0,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 2,
+            "weight": 0,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 3,
+            "weight": 0,
+            "reps": 12,
+            "rir": "2"
+          }
+        ],
+        "totalVolume": 0,
+        "isIso": false,
+        "note": ""
+      },
+      {
+        "timestamp": 1789020489613,
+        "date": "۶/۱۹, ۰۹:۳۸",
+        "sets": [
+          {
+            "setNum": 1,
+            "weight": 0,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 2,
+            "weight": 0,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 3,
+            "weight": 0,
+            "reps": 12,
+            "rir": "2"
+          }
+        ],
+        "totalVolume": 0,
+        "isIso": false,
+        "note": ""
+      }
+    ],
+    "chieftain_logs_hossein_chieftain_standing_calf_raise_hack": [
+      {
+        "timestamp": 1788620344650,
+        "date": "۶/۱۴, ۱۸:۲۹",
+        "sets": [
+          {
+            "setNum": 1,
+            "weight": 40,
+            "reps": 15,
+            "rir": "2"
+          },
+          {
+            "setNum": 2,
+            "weight": 40,
+            "reps": 15,
+            "rir": "2"
+          },
+          {
+            "setNum": 3,
+            "weight": 40,
+            "reps": 15,
+            "rir": "2"
+          }
+        ],
+        "totalVolume": 1800,
+        "isIso": false,
+        "note": ""
+      }
+    ],
+    "chieftain_logs_hossein_chieftain_iso_lateral_row": [
+      {
+        "timestamp": 1789019243015,
+        "date": "۶/۱۹, ۰۹:۱۷",
+        "sets": [
+          {
+            "setNum": 1,
+            "weight": 25,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 2,
+            "weight": 25,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 3,
+            "weight": 25,
+            "reps": 12,
+            "rir": "2"
+          }
+        ],
+        "totalVolume": 900,
+        "isIso": false,
+        "note": ""
+      }
+    ],
+    "chieftain_logs_hossein_chieftain_reverse_peck_deck_fly": [
+      {
+        "timestamp": 1788620778223,
+        "date": "۶/۱۴, ۱۸:۳۶",
+        "sets": [
+          {
+            "setNum": 1,
+            "weight": 25,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 2,
+            "weight": 25,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 3,
+            "weight": 25,
+            "reps": 12,
+            "rir": "2"
+          }
+        ],
+        "totalVolume": 900,
+        "isIso": false,
+        "note": ""
+      }
+    ],
+    "chieftain_logs_hossein_chieftain_leg_press": [
+      {
+        "timestamp": 1788620760738,
+        "date": "۶/۱۴, ۱۸:۳۶",
+        "sets": [
+          {
+            "setNum": 1,
+            "weight": 80,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 2,
+            "weight": 100,
+            "reps": 10,
+            "rir": "2"
+          },
+          {
+            "setNum": 3,
+            "weight": 100,
+            "reps": 10,
+            "rir": "2"
+          }
+        ],
+        "totalVolume": 2960,
+        "isIso": false,
+        "note": ""
+      }
+    ],
+    "chieftain_logs_hossein_chieftain_ufo_linear_row_machine": [
+      {
+        "timestamp": 1788620289199,
+        "date": "۶/۱۴, ۱۸:۲۸",
+        "sets": [
+          {
+            "setNum": 1,
+            "weight": 10,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 2,
+            "weight": 10,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 3,
+            "weight": 10,
+            "reps": 12,
+            "rir": "2"
+          }
+        ],
+        "totalVolume": 360,
+        "isIso": false,
+        "note": ""
+      }
+    ],
+    "chieftain_logs_hossein_chieftain_plate_loaded_shoulder_press": [
+      {
+        "timestamp": 1788620995705,
+        "date": "۶/۱۴, ۱۸:۳۹",
+        "sets": [
+          {
+            "setNum": 1,
+            "weight": 15,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 2,
+            "weight": 20,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 3,
+            "weight": 20,
+            "reps": 12,
+            "rir": "2"
+          }
+        ],
+        "totalVolume": 660,
+        "isIso": false,
+        "note": ""
+      }
+    ],
+    "chieftain_logs_hossein_chieftain_overhead_triceps_extension": [
+      {
+        "timestamp": 1788620885248,
+        "date": "۶/۱۴, ۱۸:۳۸",
+        "sets": [
+          {
+            "setNum": 1,
+            "weight": 15,
+            "reps": 12,
+            "rir": "2"
+          },
+          {
+            "setNum": 2,
+            "weight": 15,
+            "reps": 10,
+            "rir": "2"
+          },
+          {
+            "setNum": 3,
+            "weight": 15,
+            "reps": 10,
+            "rir": "2"
+          }
+        ],
+        "totalVolume": 480,
+        "isIso": false,
+        "note": ""
+      }
+    ]
+  }
+};
+
+
+function restoreBackedUpProfile(userKey) {
+  if (userKey === 'hossein') {
+    const pwd = prompt('لطفاً رمز عبور اختصاصی حسین را وارد کنید:');
+    if (pwd === null) return;
+    if (pwd.trim() !== 'gym') {
+      alert('❌ رمز عبور نادرست است.');
+      return;
+    }
+
+    // 1. Restore Profile in allProfiles
+    let hProf = allProfiles.find(p => p.id === 'hossein_chieftain');
+    if (!hProf) {
+      hProf = JSON.parse(JSON.stringify(HOSSEIN_PROFILE));
+      hProf.id = 'hossein_chieftain';
+      hProf.name = 'Hossein Chieftain';
+      allProfiles.unshift(hProf);
+    } else {
+      hProf.name = 'Hossein Chieftain';
+      if (HOSSEIN_PROFILE.days && HOSSEIN_PROFILE.days.length > 0) {
+        hProf.days = JSON.parse(JSON.stringify(HOSSEIN_PROFILE.days));
+      }
+    }
+    activeProfileId = 'hossein_chieftain';
+    saveProfiles();
+
+    // 2. Restore Body Metrics
+    if (typeof BACKUP_PRELOADED_DATA !== 'undefined' && BACKUP_PRELOADED_DATA.metrics && BACKUP_PRELOADED_DATA.metrics.hossein_chieftain) {
+      saveProfileBodyMetrics('hossein_chieftain', BACKUP_PRELOADED_DATA.metrics.hossein_chieftain);
+      saveProfileBodyMetrics('template_male', BACKUP_PRELOADED_DATA.metrics.hossein_chieftain);
+    }
+
+    // 3. Restore Workout Logs
+    if (typeof BACKUP_PRELOADED_DATA !== 'undefined' && BACKUP_PRELOADED_DATA.logs) {
+      for (const [key, logList] of Object.entries(BACKUP_PRELOADED_DATA.logs)) {
+        localStorage.setItem(key, JSON.stringify(logList));
+      }
+    }
+
+    // 4. If Supabase is connected, sync everything
+    if (typeof supabaseClient !== 'undefined' && supabaseClient && currentAuthUser) {
+      syncCurrentDataWithSupabase();
+    }
+
+    closeAuthModal();
+    renderApp(true);
+    showToast('🎉 اطلاعات، ۲۶ لاگ تمرینی و بادی‌آنالیز حسین با موفقیت بارگذاری شد!');
+  } else if (userKey === 'morvarid') {
+    const pwd = prompt('لطفاً رمز عبور اختصاصی مروارید را وارد کنید:');
+    if (pwd === null) return;
+    if (pwd.trim() !== 'inci') {
+      alert('❌ رمز عبور نادرست است.');
+      return;
+    }
+
+    // 1. Restore Profile in allProfiles
+    let mProf = allProfiles.find(p => p.id === 'morvarid');
+    if (!mProf) {
+      mProf = JSON.parse(JSON.stringify(MORVARID_PROFILE));
+      mProf.id = 'morvarid';
+      mProf.name = 'مروارید';
+      allProfiles.push(mProf);
+    } else {
+      mProf.name = 'مروارید';
+      if (MORVARID_PROFILE.days && MORVARID_PROFILE.days.length > 0) {
+        mProf.days = JSON.parse(JSON.stringify(MORVARID_PROFILE.days));
+      }
+    }
+    activeProfileId = 'morvarid';
+    saveProfiles();
+
+    // 2. Restore Body Metrics
+    if (typeof BACKUP_PRELOADED_DATA !== 'undefined' && BACKUP_PRELOADED_DATA.metrics && BACKUP_PRELOADED_DATA.metrics.morvarid) {
+      saveProfileBodyMetrics('morvarid', BACKUP_PRELOADED_DATA.metrics.morvarid);
+      saveProfileBodyMetrics('template_female', BACKUP_PRELOADED_DATA.metrics.morvarid);
+    }
+
+    // 3. If Supabase is connected, sync
+    if (typeof supabaseClient !== 'undefined' && supabaseClient && currentAuthUser) {
+      syncCurrentDataWithSupabase();
+    }
+
+    closeAuthModal();
+    renderApp(true);
+    showToast('🎉 اطلاعات و بادی‌آنالیز مروارید با موفقیت بارگذاری شد!');
+  }
+}
+
+
 function openSyncBackupModal() {
   const syncKey = getEffectiveCloudKey();
   const keyInput = document.getElementById('cloudSyncKeyInput');
