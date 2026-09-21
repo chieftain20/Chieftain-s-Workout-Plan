@@ -1,7 +1,14 @@
-﻿# Ignored files
+# Ignored files
 __pycache__/
 *.pyc
 generate.py
 data.py
 build_icons.py
 test.txt
+
+# Private Backups & Local Data
+backups/
+*.backup.json
+*_backup_*.json
+kvdb_backup_*.json
+FULL_SYSTEM_BACKUP_*.json

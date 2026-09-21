@@ -35,11 +35,11 @@ head_html = head_html.replace('<link rel="stylesheet" href="styles.css">', f'<st
 with open('master_exercises.json', 'r', encoding='utf-8') as f:
     master_ex_json = f.read()
 
-with open('hossein_profile.json', 'r', encoding='utf-8') as f:
-    hossein_prof_json = f.read()
+with open('template_male.json', 'r', encoding='utf-8') as f:
+    template_male_json = f.read()
 
-with open('morvarid_profile.json', 'r', encoding='utf-8') as f:
-    morvarid_prof_json = f.read()
+with open('template_female.json', 'r', encoding='utf-8') as f:
+    template_female_json = f.read()
 
 with open('app_engine.js', 'r', encoding='utf-8') as f:
     app_engine_code = f.read()
@@ -50,8 +50,10 @@ final_html = f"""{head_html}
 
 <script>
 const MASTER_EXERCISES = {master_ex_json};
-const HOSSEIN_PROFILE = {hossein_prof_json};
-const MORVARID_PROFILE = {morvarid_prof_json};
+const TEMPLATE_MALE_PROFILE = {template_male_json};
+const TEMPLATE_FEMALE_PROFILE = {template_female_json};
+const HOSSEIN_PROFILE = TEMPLATE_MALE_PROFILE;
+const MORVARID_PROFILE = TEMPLATE_FEMALE_PROFILE;
 
 {app_engine_code}
 </script>
