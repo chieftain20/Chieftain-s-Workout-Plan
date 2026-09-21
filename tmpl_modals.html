@@ -323,30 +323,30 @@
   <div class="modal-dialog" style="max-width: 440px;">
     <button class="modal-close-btn" onclick="closeNewProfileModal()">✕</button>
     <h3 id="newProfileModalTitle">👤 ایجاد کاربر یا برنامه تمرینی جدید</h3>
-    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
+    <p id="newProfileModalDesc" style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
       یک پروفایل مجزا بسازید تا برنامه، ست‌ها، لاگ‌ها و روزهای شخصی خود را داشته باشید.
     </p>
 
     <div class="form-group">
-      <label class="form-label">نام کاربر یا عنوان برنامه *</label>
-      <input type="text" id="newProfileName" class="form-input" placeholder="مثلاً: برنامه اختصاصی مروارید، برنامه حجم ۴ روزه">
+      <label id="newProfileNameLabel" class="form-label">نام کاربر یا عنوان برنامه *</label>
+      <input type="text" id="newProfileName" class="form-input" placeholder="مثلاً: برنامه اختصاصی، برنامه حجم ۴ روزه">
     </div>
 
     <div class="form-group">
-      <label class="form-label">قالب اولیه برنامه</label>
+      <label id="newProfileTemplateLabel" class="form-label">قالب اولیه برنامه</label>
       <select id="newProfileTemplate" class="form-select">
-        <option value="clone">کپی از برنامه Hossein Chieftain</option>
-        <option value="morvarid">کپی از برنامه تخصصی مروارید (باشگاه + خانه)</option>
-        <option value="empty">شروع از برنامه خالی (صفحه سفید)</option>
+        <option id="newProfileOptMale" value="clone">برنامه نمونه آقایان (هایپرتروفی ۵ روزه)</option>
+        <option id="newProfileOptFemale" value="morvarid">برنامه نمونه بانوان (تناسب اندام و فرم‌دهی)</option>
+        <option id="newProfileOptEmpty" value="empty">شروع از برنامه خالی (صفحه سفید)</option>
       </select>
     </div>
 
     <div class="form-group">
-      <label class="form-label">رمز عبور برای قفل برنامه و لاگ‌ها (اختیاری)</label>
+      <label id="newProfilePinLabel" class="form-label">رمز عبور برای قفل برنامه و لاگ‌ها (اختیاری)</label>
       <input type="password" id="newProfilePin" class="form-input" placeholder="مثلاً: 1234 یا رمز دلخواه">
     </div>
 
-    <button class="btn-header-action btn-action-primary" style="width:100%; justify-content:center; padding:11px;" onclick="saveNewProfile()">
+    <button id="newProfileSubmitBtn" class="btn-header-action btn-action-primary" style="width:100%; justify-content:center; padding:11px;" onclick="saveNewProfile()">
       ✨ ساخت برنامه شخصی جدید
     </button>
   </div>
@@ -1154,7 +1154,7 @@
       <div id="authSignupForm" style="display:none;">
         <div style="margin-bottom:10px;">
           <label id="authSignupNameLabel" class="form-label">👤 نام یا نام مستعار:</label>
-          <input type="text" id="signupName" class="form-input" placeholder="مثلاً: حسین یا مروارید">
+          <input type="text" id="signupName" class="form-input" placeholder="مثلاً: علی، سارا">
         </div>
         <div style="margin-bottom:10px;">
           <label id="authSignupEmailLabel" class="form-label">📧 ایمیل:</label>
@@ -1197,21 +1197,19 @@
       </div>
     </div>
 
-    <!-- Backup Restore Section (Always Visible for Hossein & Morvarid) -->
+    <!-- Confidential Coach & Admin Access Box -->
     <div style="background:rgba(15,23,42,0.85); border:1px solid #38bdf844; border-radius:10px; padding:12px; margin-top:14px;">
       <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
-        <span style="font-size:16px;">📦</span>
-        <span id="authRestoreTitle" style="font-size:12px; font-weight:800; color:#38bdf8;">بازیابی اطلاعات و بادی‌آنالیز اختصاصی:</span>
+        <span style="font-size:16px;">🛡️</span>
+        <span id="authAdminAccessTitle" style="font-size:12px; font-weight:800; color:#38bdf8;">ورود مربی و ادمین / Coach & Admin Access</span>
       </div>
-      <p id="authRestoreDesc" style="font-size:11px; color:#94a3b8; line-height:1.5; margin-bottom:10px;">
-        برای بارگذاری فوری برنامه شخصی، ۲۶ لاگ تمرینی و اندازه‌گیری‌های بادی‌آنالیز (قد، وزن، دور شکم/کمر/بازو و درصد چربی)، دکمه مربوطه را انتخاب کنید:
+      <p id="authAdminAccessDesc" style="font-size:11px; color:#94a3b8; line-height:1.5; margin-bottom:10px;">
+        ورود با کد دسترسی اختصاصی جهت بارگذاری برنامه و پرونده:
       </p>
-      <div style="display:flex; gap:6px; flex-direction:column;">
-        <button type="button" class="btn-header-action" style="justify-content:center; padding:9px; font-size:12px; font-weight:700; border-color:#00f2fe88; color:#00f2fe; background:rgba(0,242,254,0.08);" onclick="restoreBackedUpProfile('hossein')">
-          <span id="restoreHosseinBtnText">🏋️‍♂️ بازیابی برنامه و آنالیز بدن حسین (کد: gym)</span>
-        </button>
-        <button type="button" class="btn-header-action" style="justify-content:center; padding:9px; font-size:12px; font-weight:700; border-color:#ec489988; color:#f472b6; background:rgba(236,72,153,0.08);" onclick="restoreBackedUpProfile('morvarid')">
-          <span id="restoreMorvaridBtnText">🧘‍♀️ بازیابی برنامه و آنالیز بدن مروارید (کد: inci)</span>
+      <div style="display:flex; gap:8px;">
+        <input type="password" id="adminAccessPinInput" class="form-input" style="flex:1; direction:ltr; text-align:center; letter-spacing:2px; font-size:13px;" placeholder="کد دسترسی..." onkeydown="if(event.key==='Enter') handleAdminPinLogin()">
+        <button type="button" class="btn-header-action btn-action-primary" style="padding:0 14px; font-weight:800;" onclick="handleAdminPinLogin()">
+          <span id="adminAccessSubmitBtnText">ورود</span>
         </button>
       </div>
     </div>

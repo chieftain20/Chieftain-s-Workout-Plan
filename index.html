@@ -1924,30 +1924,30 @@ body[dir="ltr"],
   <div class="modal-dialog" style="max-width: 440px;">
     <button class="modal-close-btn" onclick="closeNewProfileModal()">✕</button>
     <h3 id="newProfileModalTitle">👤 ایجاد کاربر یا برنامه تمرینی جدید</h3>
-    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
+    <p id="newProfileModalDesc" style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
       یک پروفایل مجزا بسازید تا برنامه، ست‌ها، لاگ‌ها و روزهای شخصی خود را داشته باشید.
     </p>
 
     <div class="form-group">
-      <label class="form-label">نام کاربر یا عنوان برنامه *</label>
-      <input type="text" id="newProfileName" class="form-input" placeholder="مثلاً: برنامه اختصاصی مروارید، برنامه حجم ۴ روزه">
+      <label id="newProfileNameLabel" class="form-label">نام کاربر یا عنوان برنامه *</label>
+      <input type="text" id="newProfileName" class="form-input" placeholder="مثلاً: برنامه اختصاصی، برنامه حجم ۴ روزه">
     </div>
 
     <div class="form-group">
-      <label class="form-label">قالب اولیه برنامه</label>
+      <label id="newProfileTemplateLabel" class="form-label">قالب اولیه برنامه</label>
       <select id="newProfileTemplate" class="form-select">
-        <option value="clone">کپی از برنامه Hossein Chieftain</option>
-        <option value="morvarid">کپی از برنامه تخصصی مروارید (باشگاه + خانه)</option>
-        <option value="empty">شروع از برنامه خالی (صفحه سفید)</option>
+        <option id="newProfileOptMale" value="clone">برنامه نمونه آقایان (هایپرتروفی ۵ روزه)</option>
+        <option id="newProfileOptFemale" value="morvarid">برنامه نمونه بانوان (تناسب اندام و فرم‌دهی)</option>
+        <option id="newProfileOptEmpty" value="empty">شروع از برنامه خالی (صفحه سفید)</option>
       </select>
     </div>
 
     <div class="form-group">
-      <label class="form-label">رمز عبور برای قفل برنامه و لاگ‌ها (اختیاری)</label>
+      <label id="newProfilePinLabel" class="form-label">رمز عبور برای قفل برنامه و لاگ‌ها (اختیاری)</label>
       <input type="password" id="newProfilePin" class="form-input" placeholder="مثلاً: 1234 یا رمز دلخواه">
     </div>
 
-    <button class="btn-header-action btn-action-primary" style="width:100%; justify-content:center; padding:11px;" onclick="saveNewProfile()">
+    <button id="newProfileSubmitBtn" class="btn-header-action btn-action-primary" style="width:100%; justify-content:center; padding:11px;" onclick="saveNewProfile()">
       ✨ ساخت برنامه شخصی جدید
     </button>
   </div>
@@ -2755,7 +2755,7 @@ body[dir="ltr"],
       <div id="authSignupForm" style="display:none;">
         <div style="margin-bottom:10px;">
           <label id="authSignupNameLabel" class="form-label">👤 نام یا نام مستعار:</label>
-          <input type="text" id="signupName" class="form-input" placeholder="مثلاً: حسین یا مروارید">
+          <input type="text" id="signupName" class="form-input" placeholder="مثلاً: علی، سارا">
         </div>
         <div style="margin-bottom:10px;">
           <label id="authSignupEmailLabel" class="form-label">📧 ایمیل:</label>
@@ -2798,21 +2798,19 @@ body[dir="ltr"],
       </div>
     </div>
 
-    <!-- Backup Restore Section (Always Visible for Hossein & Morvarid) -->
+    <!-- Confidential Coach & Admin Access Box -->
     <div style="background:rgba(15,23,42,0.85); border:1px solid #38bdf844; border-radius:10px; padding:12px; margin-top:14px;">
       <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
-        <span style="font-size:16px;">📦</span>
-        <span id="authRestoreTitle" style="font-size:12px; font-weight:800; color:#38bdf8;">بازیابی اطلاعات و بادی‌آنالیز اختصاصی:</span>
+        <span style="font-size:16px;">🛡️</span>
+        <span id="authAdminAccessTitle" style="font-size:12px; font-weight:800; color:#38bdf8;">ورود مربی و ادمین / Coach & Admin Access</span>
       </div>
-      <p id="authRestoreDesc" style="font-size:11px; color:#94a3b8; line-height:1.5; margin-bottom:10px;">
-        برای بارگذاری فوری برنامه شخصی، ۲۶ لاگ تمرینی و اندازه‌گیری‌های بادی‌آنالیز (قد، وزن، دور شکم/کمر/بازو و درصد چربی)، دکمه مربوطه را انتخاب کنید:
+      <p id="authAdminAccessDesc" style="font-size:11px; color:#94a3b8; line-height:1.5; margin-bottom:10px;">
+        ورود با کد دسترسی اختصاصی جهت بارگذاری برنامه و پرونده:
       </p>
-      <div style="display:flex; gap:6px; flex-direction:column;">
-        <button type="button" class="btn-header-action" style="justify-content:center; padding:9px; font-size:12px; font-weight:700; border-color:#00f2fe88; color:#00f2fe; background:rgba(0,242,254,0.08);" onclick="restoreBackedUpProfile('hossein')">
-          <span id="restoreHosseinBtnText">🏋️‍♂️ بازیابی برنامه و آنالیز بدن حسین (کد: gym)</span>
-        </button>
-        <button type="button" class="btn-header-action" style="justify-content:center; padding:9px; font-size:12px; font-weight:700; border-color:#ec489988; color:#f472b6; background:rgba(236,72,153,0.08);" onclick="restoreBackedUpProfile('morvarid')">
-          <span id="restoreMorvaridBtnText">🧘‍♀️ بازیابی برنامه و آنالیز بدن مروارید (کد: inci)</span>
+      <div style="display:flex; gap:8px;">
+        <input type="password" id="adminAccessPinInput" class="form-input" style="flex:1; direction:ltr; text-align:center; letter-spacing:2px; font-size:13px;" placeholder="کد دسترسی..." onkeydown="if(event.key==='Enter') handleAdminPinLogin()">
+        <button type="button" class="btn-header-action btn-action-primary" style="padding:0 14px; font-weight:800;" onclick="handleAdminPinLogin()">
+          <span id="adminAccessSubmitBtnText">ورود</span>
         </button>
       </div>
     </div>
@@ -5527,15 +5525,17 @@ function updateStaticUIText() {
   const authLogoutBtnText = document.getElementById('authLogoutBtnText');
   if (authLogoutBtnText) authLogoutBtnText.innerText = isEn ? 'Log Out' : 'خروج از حساب';
 
-  // Dedicated Backup Restore Section in Auth Modal
-  const authRestoreTitle = document.getElementById('authRestoreTitle');
-  if (authRestoreTitle) authRestoreTitle.innerText = isEn ? 'Restore Dedicated Profile & Metrics:' : 'بازیابی اطلاعات و بادی‌آنالیز اختصاصی:';
-  const authRestoreDesc = document.getElementById('authRestoreDesc');
-  if (authRestoreDesc) authRestoreDesc.innerText = isEn ? 'If you are Hossein or Morvarid, click below to restore your full routine, 26 logs, and body measurements in 1 second:' : 'برای بارگذاری فوری برنامه شخصی، ۲۶ لاگ تمرینی و اندازه‌گیری‌های بادی‌آنالیز (قد، وزن، دور شکم/کمر/بازو و درصد چربی)، دکمه مربوطه را انتخاب کنید:';
-  const restoreHosseinBtnText = document.getElementById('restoreHosseinBtnText');
-  if (restoreHosseinBtnText) restoreHosseinBtnText.innerText = isEn ? '🏋️‍♂️ Restore Hossein Routine & Analysis (Code: gym)' : '🏋️‍♂️ بازیابی برنامه و آنالیز بدن حسین (کد: gym)';
-  const restoreMorvaridBtnText = document.getElementById('restoreMorvaridBtnText');
-  if (restoreMorvaridBtnText) restoreMorvaridBtnText.innerText = isEn ? '🧘‍♀️ Restore Morvarid Routine & Analysis (Code: inci)' : '🧘‍♀️ بازیابی برنامه و آنالیز بدن مروارید (کد: inci)';
+  // Confidential Coach & Admin Access Box in Auth Modal
+  const signupName = document.getElementById('signupName');
+  if (signupName) signupName.placeholder = isEn ? 'e.g. Sam, Alex' : 'مثلاً: علی، سارا';
+  const authAdminAccessTitle = document.getElementById('authAdminAccessTitle');
+  if (authAdminAccessTitle) authAdminAccessTitle.innerText = isEn ? 'Coach & Admin Access' : 'ورود مربی و ادمین / Coach & Admin Access';
+  const authAdminAccessDesc = document.getElementById('authAdminAccessDesc');
+  if (authAdminAccessDesc) authAdminAccessDesc.innerText = isEn ? 'Enter private access code to load your routine and records:' : 'ورود با کد دسترسی اختصاصی جهت بارگذاری برنامه و پرونده:';
+  const adminAccessPinInput = document.getElementById('adminAccessPinInput');
+  if (adminAccessPinInput) adminAccessPinInput.placeholder = isEn ? 'Access Code...' : 'کد دسترسی...';
+  const adminAccessSubmitBtnText = document.getElementById('adminAccessSubmitBtnText');
+  if (adminAccessSubmitBtnText) adminAccessSubmitBtnText.innerText = isEn ? 'Unlock' : 'ورود';
 
   // Cloud Sync Modal
   const syncModalTitle = document.getElementById('syncModalTitle');
@@ -5586,8 +5586,31 @@ function updateStaticUIText() {
   if (muscleWikiModalTitle) muscleWikiModalTitle.innerText = isEn ? '🌐 Global Exercise Bank & Videos' : 'بانک جهانی حرکات MuscleWiki & ویدیوها';
   const customExModalTitle = document.getElementById('customExModalTitle');
   if (customExModalTitle) customExModalTitle.innerText = isEn ? '➕ Create Custom Exercise (Private Bank)' : '➕ ثبت حرکت تمرینی جدید (بانک خصوصی)';
+
+  // New Profile / Plan Modal
   const newProfileModalTitle = document.getElementById('newProfileModalTitle');
   if (newProfileModalTitle) newProfileModalTitle.innerText = isEn ? '👤 Create New Plan / Profile' : '👤 ایجاد کاربر یا برنامه تمرینی جدید';
+  const newProfileModalDesc = document.getElementById('newProfileModalDesc');
+  if (newProfileModalDesc) newProfileModalDesc.innerText = isEn ? 'Create an independent profile to keep your own routines, logs, and customized workout days.' : 'یک پروفایل مجزا بسازید تا برنامه، ست‌ها، لاگ‌ها و روزهای شخصی خود را داشته باشید.';
+  const newProfileNameLabel = document.getElementById('newProfileNameLabel');
+  if (newProfileNameLabel) newProfileNameLabel.innerText = isEn ? 'Plan or Profile Name *' : 'نام کاربر یا عنوان برنامه *';
+  const newProfileName = document.getElementById('newProfileName');
+  if (newProfileName) newProfileName.placeholder = isEn ? 'e.g. 4-Day Hypertrophy, Summer Shred' : 'مثلاً: برنامه اختصاصی، برنامه حجم ۴ روزه';
+  const newProfileTemplateLabel = document.getElementById('newProfileTemplateLabel');
+  if (newProfileTemplateLabel) newProfileTemplateLabel.innerText = isEn ? 'Initial Routine Template' : 'قالب اولیه برنامه';
+  const newProfileOptMale = document.getElementById('newProfileOptMale');
+  if (newProfileOptMale) newProfileOptMale.innerText = isEn ? "Men's Hypertrophy Routine (5-Day)" : 'برنامه نمونه آقایان (هایپرتروفی ۵ روزه)';
+  const newProfileOptFemale = document.getElementById('newProfileOptFemale');
+  if (newProfileOptFemale) newProfileOptFemale.innerText = isEn ? "Women's Fitness & Toning Routine (5-Day)" : 'برنامه نمونه بانوان (تناسب اندام و فرم‌دهی)';
+  const newProfileOptEmpty = document.getElementById('newProfileOptEmpty');
+  if (newProfileOptEmpty) newProfileOptEmpty.innerText = isEn ? 'Blank Routine (Start from scratch)' : 'شروع از برنامه خالی (صفحه سفید)';
+  const newProfilePinLabel = document.getElementById('newProfilePinLabel');
+  if (newProfilePinLabel) newProfilePinLabel.innerText = isEn ? 'PIN to Lock Routine & Logs (Optional)' : 'رمز عبور برای قفل برنامه و لاگ‌ها (اختیاری)';
+  const newProfilePin = document.getElementById('newProfilePin');
+  if (newProfilePin) newProfilePin.placeholder = isEn ? 'e.g. 1234 or custom PIN' : 'مثلاً: 1234 یا رمز دلخواه';
+  const newProfileSubmitBtn = document.getElementById('newProfileSubmitBtn');
+  if (newProfileSubmitBtn) newProfileSubmitBtn.innerText = isEn ? '✨ Create Custom Plan' : '✨ ساخت برنامه شخصی جدید';
+
   const editPlanModalTitle = document.getElementById('editPlanModalTitle');
   if (editPlanModalTitle) editPlanModalTitle.innerText = isEn ? '✏️ Edit Routine & Days' : '✏️ ویرایش کامل و همه‌جانبه برنامه';
   const addExModalTitle = document.getElementById('addExModalTitle');
@@ -5610,6 +5633,27 @@ function updateStaticUIText() {
   if (bodyMetricHistoryModalTitle) bodyMetricHistoryModalTitle.innerText = isEn ? '📜 Complete Body Measurement History' : 'تاریخچه کامل ثبت ابعاد و سایزگیری';
   const bodyMetricHistoryModalDesc = document.getElementById('bodyMetricHistoryModalDesc');
   if (bodyMetricHistoryModalDesc) bodyMetricHistoryModalDesc.innerText = isEn ? 'View, edit, or delete logged measurements from different periods' : 'مشاهده، ویرایش یا حذف رکوردهای ثبت‌شده در دوره‌های مختلف';
+
+  try { applyUiMode(); } catch(e) {}
+}
+
+function handleAdminPinLogin() {
+  const pinInput = document.getElementById('adminAccessPinInput');
+  if (!pinInput) return;
+  const pin = pinInput.value.trim().toLowerCase();
+  pinInput.value = '';
+
+  if (pin === 'gym') {
+    restoreBackedUpProfile('hossein');
+    closeAuthModal();
+    showToast(currentLang === 'en' ? 'Welcome Admin! Routine & profile loaded successfully. 🚀' : 'ورود موفق مدیر! برنامه و پرونده اختصاصی بارگذاری شد. 🚀');
+  } else if (pin === 'inci') {
+    restoreBackedUpProfile('morvarid');
+    closeAuthModal();
+    showToast(currentLang === 'en' ? 'Welcome! Routine & body metrics loaded successfully. 🌸' : 'ورود موفق! برنامه و آنالیز بدن بارگذاری شد. 🌸');
+  } else {
+    showToast(currentLang === 'en' ? '⚠️ Invalid access code.' : '⚠️ کد دسترسی وارد شده نادرست است.');
+  }
 }
 
 try { initLanguage(); } catch(e) {}
@@ -6115,8 +6159,8 @@ function renderExerciseCard(item, dayId, isSuperset = false, singleIdx = -1, tot
     displayName = ex.en || item.customName || ex.fa || item.exId;
     if (item.customName && item.customName !== ex.en) {
       subtextHtml = `<div class="exercise-name-en" style="color:#94a3b8; font-size:11px;">Base: ${ex.en || ex.fa}</div>`;
-    } else if (ex.fa) {
-      subtextHtml = `<div class="exercise-name-en">${ex.fa}</div>`;
+    } else {
+      subtextHtml = '';
     }
   } else {
     displayName = item.customName ? item.customName : (ex.fa || item.exId);
@@ -9342,7 +9386,7 @@ async function quickCloudSyncAction(btn) {
   } finally {
     if (btn) {
       btn.style.opacity = '1';
-      btn.innerHTML = '<span>☁️</span> <span>همگام‌سازی ابری</span>';
+      btn.innerHTML = `<span>☁️</span> <span id="quickCloudSyncBtnText">${t('cloudSync')}</span>`;
     }
   }
 }
@@ -9364,23 +9408,24 @@ function applyUiMode() {
   const btnText = document.getElementById('uiModeToggleText');
   const btnIcon = document.getElementById('uiModeToggleIcon');
   const btn = document.getElementById('uiModeToggleBtn');
+  const isEn = currentLang === 'en';
   
   if (isSimple) {
     body.classList.add('simple-mode');
-    if (btnText) btnText.innerText = 'حالت پیشرفته';
+    if (btnText) btnText.innerText = isEn ? 'Advanced Mode' : 'حالت پیشرفته';
     if (btnIcon) btnIcon.innerText = '⚡';
     if (btn) {
-      btn.title = 'تغییر به حالت پیشرفته (نمایش ویدیوها، عضلات، آنالیزها و امکانات کامل)';
+      btn.title = isEn ? 'Switch to Advanced Mode (Full videos, muscles, charts)' : 'تغییر به حالت پیشرفته (نمایش ویدیوها، عضلات، آنالیزها و امکانات کامل)';
       btn.style.borderColor = '#10b981aa';
       btn.style.color = '#34d399';
       btn.style.background = 'rgba(16,185,129,0.15)';
     }
   } else {
     body.classList.remove('simple-mode');
-    if (btnText) btnText.innerText = 'حالت ساده';
+    if (btnText) btnText.innerText = isEn ? 'Simple Mode' : 'حالت ساده';
     if (btnIcon) btnIcon.innerText = '🎯';
     if (btn) {
-      btn.title = 'تغییر به حالت ساده (خلوت و سریع مخصوص باشگاه، فقط نام حرکات و ست‌ها)';
+      btn.title = isEn ? 'Switch to Simple Mode (Clean & fast gym mode)' : 'تغییر به حالت ساده (خلوت و سریع مخصوص باشگاه، فقط نام حرکات و ست‌ها)';
       btn.style.borderColor = '#a855f7aa';
       btn.style.color = '#d8b4fe';
       btn.style.background = 'rgba(168,85,247,0.14)';
