@@ -143,12 +143,77 @@ function t(key, defaultVal) {
 }
 
 const MUSCLE_MAP_EN = {
+  // Exact phrase mapping for all known combinations
+  'Core و کنترل تنه': 'Core & Torso Control',
+  'ابلیک و Core': 'Obliques & Core',
+  'باسن (سرینی)، همسترینگ': 'Glutes, Hamstrings',
+  'باسن و زنجیره خلفی': 'Glutes & Posterior Chain',
+  'براکیالیس، براکیورادیالیس، جلو بازو': 'Brachialis, Brachioradialis, Biceps',
+  'خارج ران، سرینی میانی': 'Outer Thigh, Glute Medius',
+  'خارج ران، سرینی میانی (Glute Medius)': 'Outer Thigh, Glute Medius',
+  'داخل ران': 'Inner Thigh / Adductors',
+  'داخل ران، چهارسر، باسن، انعطاف لگن': 'Adductors, Quads, Glutes, Hip Mobility',
+  'زیر بغل / لت': 'Lats',
+  'زیر بغل، جلو بازو': 'Lats, Biceps',
+  'زیر بغل، پشت میانی': 'Lats, Mid Back',
+  'زیر بغل، پشت میانی، جلو بازو': 'Lats, Mid Back, Biceps',
+  'زیر شکم': 'Lower Abs',
+  'ساق پا': 'Calves',
+  'ساق پا (عضله نعلی / سولئوس)': 'Calves (Soleus)',
+  'ساق پا (نعلی)': 'Calves (Soleus)',
+  'سراتوس قدامی و کنترل کتف': 'Serratus Anterior & Scapular Control',
+  'سرشانه میانی': 'Side Delts',
+  'سرشانه جلویی': 'Front Delts',
+  'سرشانه خلفی': 'Rear Delts',
+  'سرشانه پشتی': 'Rear Delts',
+  'سرشانه، پشت بازو': 'Shoulders, Triceps',
+  'سرینی بزرگ': 'Gluteus Maximus',
+  'سرینی بزرگ و میانی': 'Gluteus Max & Medius',
+  'سرینی بزرگ، همسترینگ': 'Gluteus Maximus, Hamstrings',
+  'سرینی میانی': 'Gluteus Medius',
+  'سرینی میانی و خارج ران': 'Glute Medius & Outer Thigh',
+  'سرینی میانی و چرخاننده‌های لگن': 'Glute Medius & Hip Rotators',
+  'سرینی میانی و کوچک': 'Glute Medius & Minimus',
+  'سرینی میانی و کوچک (خارج باسن)': 'Glute Medius & Minimus',
+  'سرینی میانی، خارج ران': 'Glute Medius, Outer Thigh',
+  'سینه (بالا سینه)': 'Upper Chest',
+  'سینه (بالا سینه)، پشت بازو': 'Upper Chest, Triceps',
+  'سینه، سرشانه جلویی، پشت بازو': 'Chest, Front Delts, Triceps',
+  'سینه، پشت بازو، سرشانه جلویی': 'Chest, Triceps, Front Delts',
+  'شکم / راست شکمی': 'Abs / Rectus Abdominis',
+  'شکم، ثبات کمربند شانه‌ای': 'Abs, Shoulder Stability',
+  'شکم، ثبات کمربند شانه‌ای، چهارسر': 'Abs, Shoulder Stability, Quads',
+  'شکم، سرینی، شانه': 'Abs, Glutes, Shoulders',
+  'شکم، مورب شکمی': 'Abs, Obliques',
+  'عضلات مرکزی و شکم (Core)': 'Core & Abs',
+  'فیله کمر، باسن، همسترینگ': 'Lower Back, Glutes, Hamstrings',
+  'فیله کمر، پشت میانی': 'Lower Back, Mid Back',
+  'مورب شکمی (ابلیک)': 'Obliques',
+  'همسترینگ، باسن، تعادل': 'Hamstrings, Glutes, Balance',
+  'همسترینگ، باسن، فیله': 'Hamstrings, Glutes, Lower Back',
+  'پشت سرشانه، تراپز و کنترل کتف': 'Rear Delts, Traps & Scapular Control',
+  'پشت سرشانه، روتاتور کاف، پشت بالایی': 'Rear Delts, Rotator Cuff, Upper Back',
+  'پشت سرشانه، پشت میانی': 'Rear Delts, Mid Back',
+  'پشت میانی، زیر بغل، جلو بازو': 'Mid Back, Lats, Biceps',
+  'پشت میانی، کول میانی و فوقانی': 'Mid Back, Middle & Upper Traps',
+  'چهارسر و ایزومتریک': 'Quads & Isometric',
+  'چهارسر، باسن': 'Quads, Glutes',
+  'چهارسر، باسن، همسترینگ': 'Quads, Glutes, Hamstrings',
+  'چهارسر، داخل ران (ادکتور)، باسن': 'Quads, Adductors, Glutes',
+  'چهارسر، داخل ران، باسن': 'Quads, Inner Thigh, Glutes',
+  'کتف، ذوزنقه‌ای، زیر بغل و پشت': 'Scapula, Traps, Lats & Back',
+  'کنترل کتف و شانه': 'Scapular & Shoulder Control',
+  'کول فوقانی (تراپز)': 'Upper Traps',
+
+  // Individual tokens & words
   'سینه': 'Chest',
   'بالا سینه': 'Incline Chest',
   'زیر سینه': 'Decline Chest',
   'پشت / زیر بغل': 'Back / Lats',
   'زیر بغل': 'Lats',
   'پشت': 'Back',
+  'پشت میانی': 'Mid Back',
+  'پشت بالایی': 'Upper Back',
   'عضلات پشت': 'Back',
   'سرشانه': 'Shoulders',
   'جلو بازو': 'Biceps',
@@ -167,6 +232,13 @@ const MUSCLE_MAP_EN = {
   'ساعد': 'Forearms',
   'گردن': 'Neck',
   'فیله': 'Lower Back',
+  'فیله کمر': 'Lower Back',
+  'کتف': 'Scapula',
+  'ذوزنقه‌ای': 'Traps',
+  'تراپز': 'Traps',
+  'کول': 'Traps',
+  'کول میانی': 'Mid Traps',
+  'کول فوقانی': 'Upper Traps',
   'موبیلیتی': 'Mobility',
   'عمومی': 'General'
 };
@@ -174,9 +246,19 @@ const MUSCLE_MAP_EN = {
 function translateMuscles(musclesStr) {
   if (!musclesStr) return currentLang === 'en' ? 'General' : 'عمومی';
   if (currentLang !== 'en') return musclesStr;
-  const parts = String(musclesStr).split(/[\،,]/).map(s => s.trim()).filter(Boolean);
-  const translated = parts.map(p => MUSCLE_MAP_EN[p] || p);
-  return translated.join(', ');
+  const trimmed = String(musclesStr).trim();
+  if (MUSCLE_MAP_EN[trimmed]) return MUSCLE_MAP_EN[trimmed];
+
+  // Token replacement for any remaining Persian words
+  let result = trimmed;
+  for (const [fa, en] of Object.entries(MUSCLE_MAP_EN)) {
+    result = result.replace(new RegExp(fa, 'g'), en);
+  }
+  result = result.replace(/،/g, ', ')
+                 .replace(/\s+و\s+/g, ' & ')
+                 .replace(/\s+/g, ' ')
+                 .trim();
+  return result;
 }
 
 const DAY_MAP_EN = {
@@ -274,6 +356,386 @@ function initLanguage() {
   setLanguage(saved, false);
 }
 
+
+// --- Complete Global UI Translations Map (Persian to English) ---
+const UI_TRANSLATIONS_MAP = {
+  "+ افزودن روز جدید": "+ Add New Day",
+  "+ افزودن ویدیو به این حرکت": "+ Add Video to Exercise",
+  "+ ثبت جلسه جدید": "+ Log New Session",
+  "+ ثبت حرکت جدید در برنامه": "+ Add New Exercise to Routine",
+  "+ حرکت دلخواه": "+ Custom Exercise",
+  "InBody / کالیپر %": "InBody / Caliper %",
+  "Switch to English / تغییر زبان": "Switch to English / Switch Language",
+  "آقا (Male)": "Male",
+  "خانم (Female)": "Female",
+  "ابعاد بالاتنه (سانتی‌متر)": "Upper Body Dimensions (cm)",
+  "ابعاد میان‌تنه و شکم (سانتی‌متر)": "Core & Abdominal Dimensions (cm)",
+  "ابعاد پایین‌تنه (سانتی‌متر)": "Lower Body Dimensions (cm)",
+  "اسکلت استخوانی و سقف ژنتیکی نچرال (Casey Butt Model)": "Bone Structure & Natural Genetic Ceiling (Casey Butt Model)",
+  "افزودن حرکت به سوپرست": "Add Exercise to Superset",
+  "افزودن حرکت ۳، ۴ یا بیشتر برای ایجاد تری‌ست (Tri-Set) یا جاینت‌ست (Giant Set)": "Add 3rd, 4th or more exercises to create a Tri-Set or Giant Set",
+  "امروز": "Today",
+  "امکان تغییر حرکت با جستجو، تفکیک/ساخت سوپرست، ویرایش تعداد ست و تکرار در اختیار شماست:": "Search to replace, convert/create supersets, or modify sets and reps:",
+  "انتخاب روز مقصد برای انتقال:": "Select target day to move to:",
+  "انتخاب شده: -": "Selected: -",
+  "انتخاب شده: ددلیفت رومانیایی": "Selected: Romanian Deadlift",
+  "انتقال به روز:": "Move to Day:",
+  "انتقال حرکت / سوپرست به روز دیگر": "Move Exercise / Superset to Another Day",
+  "انصراف": "Cancel",
+  "انصراف ✕": "Cancel ✕",
+  "اگر تیک خورده باشد، حرکت پس از بررسی و تایید توسط ادمین برای همه کاربران در بانک عمومی قرار خواهد گرفت.": "If checked, the exercise will be reviewed and published to the public bank for all users by admin.",
+  "اگر در باشگاه یا برنامه‌تان این حرکت را با نام دیگری صدا می‌زنید، اینجا بنویسید تا در کارت حرکت نمایش یابد.": "If you call this exercise by another name in your gym, enter it here to display on the exercise card.",
+  "ایجاد حساب و اتصال امن": "Create Account & Connect",
+  "ایجاد کاربر یا برنامه شخصی جدید": "Create New User or Personal Plan",
+  "ایمیل حساب:": "Account Email:",
+  "این برنامه محافظت‌شده است. لطفاً رمز عبور را وارد کنید:": "This routine is protected. Please enter PIN:",
+  "این حرکت در": "This exercise in",
+  "با وارد کردن عدد دلخواه، دکمه سریع تایمر روی کارت این حرکت دقیقاً با همین ثانیه باز می‌شود.": "By entering seconds, the quick timer button on this exercise card will open with this exact duration.",
+  "با ورود به حساب، برنامه، لاگ‌ها و اندازه‌گیری‌های بدنی شما در دیتابیس امن و اختصاصی ذخیره شده و روی تمام دستگاه‌هایتان همگام می‌شود.": "Signing in securely stores your routines, logs, and body measurements in a private database, syncing across all your devices.",
+  "باز کردن تایمر استراحت و ایزومتریک": "Open Rest and Isometric Timer",
+  "بازنشانی برنامه به تنظیمات اولیه کارخانه": "Reset Routine to Default Factory Settings",
+  "باسن / سرینی (Hips/Glutes)": "Glutes / Hips",
+  "بانک جهانی حرکات MuscleWiki & ویدیوها": "MuscleWiki Global Exercise Bank & Videos",
+  "بانک حرکات": "Exercise Bank",
+  "بانک خصوصی شما": "Your Private Bank",
+  "برای حفظ ریتم تمرین زمان استراحت را مدیریت کن": "Manage rest periods to maintain optimal workout intensity",
+  "برنامه تخصصی هایپرتروفی، ثبات مفاصل و کنترل تنه": "Specialized Program for Hypertrophy, Joint Stability & Core Control",
+  "برنامه تمرینی شما بدون نیاز به هیچ فایلی، به طور زنده و خودکار بین تمام دستگاه‌ها و مرورگرها همگام می‌شود:": "Your routine syncs in real-time across all devices and browsers automatically without any manual files:",
+  "برنامه جدید": "New Plan",
+  "برنامه نمونه آقایان (هایپرتروفی ۵ روزه)": "Men's Sample Plan (5-Day Hypertrophy)",
+  "برنامه نمونه بانوان (تناسب اندام و فرم‌دهی)": "Women's Sample Plan (Tone & Fitness)",
+  "بستن": "Close",
+  "بستن ✕": "Close ✕",
+  "بعد از تمرین (پمپ عضلانی 🏋️)": "Post-workout (Muscle Pump 🏋️)",
+  "به‌روزرسانی و رفرش": "Update & Refresh",
+  "تاریخ": "Date",
+  "تاریخچه کامل ثبت ابعاد و سایزگیری": "Complete Body Measurement History",
+  "تایمر تمرین": "Workout Timer",
+  "تایپ نام حرکت برای جایگزینی...": "Type exercise name to replace...",
+  "تایپ نام حرکت برای جستجوی سریع...": "Type exercise name for quick search...",
+  "تایپ نام حرکت دوم...": "Type 2nd exercise name...",
+  "تایپ نام حرکت...": "Type exercise name...",
+  "تایید و باز کردن قفل 🔓": "Confirm and Unlock 🔓",
+  "تحلیل آناتومیک و تفکیک حجم": "Anatomical Analysis & Volume Breakdown",
+  "تعداد ست": "Sets Count",
+  "تغییر بین حالت ساده (خلوت و تمرکز روی حرکات) و حالت پیشرفته": "Toggle between Simple Mode (clean focus on exercises) and Advanced Mode",
+  "تغییر تم (حالت روز / شب)": "Toggle Theme (Day / Night)",
+  "تغییر حرکت، تعداد ست‌ها، دامنه تکرار یا حذف از برنامه": "Change exercise, sets, rep ranges, or remove from plan",
+  "تغییرات با موفقیت ذخیره و اعمال شد!": "Changes saved and applied successfully!",
+  "تفکیک علمی ست‌های پرفشار باشگاه و حرکات ثبات و فعال‌سازی در خانه": "Scientific split: high-intensity gym sets vs home stability & activation",
+  "تنظیم ⚡": "Set ⚡",
+  "تنظیمات تایمر هوشمند": "Smart Timer Settings",
+  "تنظیمات شناسه ابری و فایل JSON": "Cloud Key & JSON Backup Settings",
+  "تولید شناسه رندوم جدید": "Generate New Random Key",
+  "ثانیه": "sec",
+  "ثبت اندازه‌گیری و آنتروپومتری جدید": "Log New Measurement & Anthropometrics",
+  "ثبت دقیق ابعاد بدنی با متر نواری (به سانتی‌متر) جهت محاسبه هوشمند درصد چربی و تقارن عضلانی": "Accurate tape measurements (in cm) for body fat and muscular symmetry calculation",
+  "ثبت دقیق وزنه و RIR برای اعمال اضافه بار تدریجی (Progressive Overload)": "Accurate weight and RIR tracking for Progressive Overload",
+  "ثبت لاگ وزنه و تکرار": "Log Weight & Reps",
+  "ثبت، مقایسه و تحلیل علمی ابعاد بدنی و آنتروپومتری": "Scientific Tracking, Comparison & Analysis of Body Dimensions",
+  "ثبت‌نام جدید": "New Registration",
+  "جستجو در بانک حرکات (مثلاً: اسکوات، پرس، لت، صدف)...": "Search exercise bank (e.g. Squat, Press, Pulldown)...",
+  "جستجوی حرکت یا عضله هدف در برنامه...": "Search exercise or target muscle in plan...",
+  "جهت ویرایش نام اصلی فارسی/انگلیسی، عضلات، و افزودن، ویرایش یا حذف ویدیوهای آموزشی این حرکت، باید رمز عبور ادمین را وارد نمایید.": "To edit base names, muscles, or manage tutorial videos, enter the admin PIN.",
+  "حالت روز": "Light Mode",
+  "حالت ساده": "Simple Mode",
+  "حجم کل": "Total Volume",
+  "حذف": "Delete",
+  "حذف این پروفایل": "Delete this profile",
+  "حرکت اول (موجود)": "First Exercise (Current)",
+  "حرکت اول در سوپرست قرار می‌گیرد، لطفاً حرکت دوم را انتخاب نمایید:": "First exercise will be placed in superset; please select the 2nd exercise:",
+  "حرکت تکی": "Single Exercise",
+  "حرکت فعلی: -": "Current Exercise: -",
+  "حرکت مورد نظرت رو پیدا نکردی؟": "Can't find your exercise?",
+  "حساب کاربری ابری و خصوصی": "Private Cloud Account",
+  "حساب کاربری فعال": "Active Account",
+  "خروج از حساب": "Log Out",
+  "خروجی گرفتن فایل JSON برنامه": "Export Routine JSON File",
+  "درصد چربی دستگاه (اختیاری)": "Device Body Fat % (Optional)",
+  "دریافت آخرین نسخه از سرور ابری و رفرش کامل بدون کش": "Pull latest version from cloud and hard refresh without cache",
+  "دسترسی به بانک جهانی و ویدیوهای تمام حرکات در MuscleWiki": "Access global exercise directory & videos on MuscleWiki",
+  "دسترسی به نقشه آناتومی تعاملی بدن و ویدیوی آموزشی تمام حرکات بدنسازی دنیا:": "Interactive anatomical body map and tutorial videos for all gym exercises worldwide:",
+  "دقیقه": "min",
+  "دور ساق پا (Calves)": "Calves (cm)",
+  "دور سرشانه (Shoulder 👑)": "Shoulders (cm 👑)",
+  "دور سینه (Chest)": "Chest (cm)",
+  "دور مچ دست باریک (Wrist cm)": "Narrow Wrist (cm)",
+  "دور مچ پا باریک (Ankle cm)": "Narrow Ankle (cm)",
+  "دور گردن (Neck 🎖️)": "Neck (cm 🎖️)",
+  "ذخیره رمز": "Save PIN",
+  "ذخیره می‌شود و می‌توانید فوراً از آن در برنامه‌تان استفاده کنید. در صورت تمایل می‌توانید درخواست تایید برای انتشار در بانک عمومی را فعال کنید.": "Saved to your private bank and immediately usable in your routine.",
+  "ران راست میانی (نقطه وسط زانو تا باسن 🎯)": "Mid Right Thigh (Midpoint Knee-to-Hip 🎯)",
+  "ران چپ میانی (نقطه وسط زانو تا باسن 🎯)": "Mid Left Thigh (Midpoint Knee-to-Hip 🎯)",
+  "رمز جدید...": "New PIN...",
+  "رمز عبور برای قفل برنامه و لاگ‌ها (اختیاری)": "PIN to lock routine & logs (Optional)",
+  "رمز عبور برنامه...": "Routine PIN...",
+  "روند افزایش قدرت، رکورد وزنه و حجم تمرینی نسبت به جلسه اول": "Strength progression, weight records, and volume relative to 1st session",
+  "ریست ست‌ها": "Reset Sets",
+  "ریست کردن تیک تمام ست‌های انجام‌شده برای جلسه جدید": "Reset all completed set checkmarks for a new session",
+  "ریست ↺": "Reset ↺",
+  "زیر شکم (لگن)": "Lower Abs / Hips (cm)",
+  "سامانه تخصصی تمرین و بدنسازی | Chieftain Pro": "Specialized Workout System | Chieftain Pro",
+  "سایر شرایط 📋": "Other Conditions 📋",
+  "سایز و بادی‌آنالیز": "Body Analysis",
+  "ست و تکرار حرکت": "Exercise Sets & Reps",
+  "ست و تکرار حرکت اول": "1st Exercise Sets & Reps",
+  "ست و تکرار حرکت دوم": "2nd Exercise Sets & Reps",
+  "ست و تکرار پیشنهادی": "Recommended Sets & Reps",
+  "ست‌ها (وزنه × تکرار)": "Sets (Weight × Reps)",
+  "سرشانه": "Shoulders",
+  "سرچ MuscleWiki": "Search MuscleWiki",
+  "سوپرست (۲ حرکت متوالی)": "Superset (2 consecutive exercises)",
+  "سینه": "Chest",
+  "شروع از برنامه خالی (صفحه سفید)": "Blank Routine (Start from scratch)",
+  "شروع ⚡": "Start ⚡",
+  "شما با موفقیت وارد حساب ابری خود شده‌اید.": "You have successfully logged in to your cloud account.",
+  "شناسه اختصاصی شما در سرور ابری (": "Your private cloud sync key (",
+  "شناسه اختصاصی شما مثلا my_gym_key...": "Your sync key e.g. my_gym_key...",
+  "شکم (روی ناف)": "Abdomen / Navel (cm)",
+  "ضخامت استخوان‌های مچ برای محاسبه حداکثر پتانسیل ساخت عضله بدون دارو و زمان رسیدن به آن:": "Wrist and ankle bone thickness to calculate natural drug-free muscular potential (Casey Butt):",
+  "عصر / پایان روز 🌙": "Evening / End of Day 🌙",
+  "عضلات هدف": "Target Muscles",
+  "عضلات هدف:": "Target Muscles:",
+  "عنوان (مثلاً: آموزش ۱)": "Title (e.g. Video 1)",
+  "عنوان دلخواه سوپرست...": "Custom Superset Title...",
+  "عنوان سوپرست": "Superset Title",
+  "فیلتر بانک:": "Bank Filter:",
+  "قالب اولیه برنامه": "Initial Routine Template",
+  "لوگوی برنامه تمرینی Chieftain": "Chieftain Workout Logo",
+  "لینک ویدیو (یوتیوب / آپارات / اینستاگرام)": "Video URL (YouTube / Instagram)",
+  "لینک‌های ویدیو آموزشی (یوتیوب / آپارات / اینستاگرام) - هر لینک در یک خط": "Video URLs (YouTube / Instagram) - one per line",
+  "متن ست و تکرار": "Sets & Reps Text",
+  "محیط تمرین": "Training Location",
+  "مدیریت مرجع حرکت و ویدیوها (مخصوص ادمین)": "Master Exercise & Video Management (Admin)",
+  "مرجع کامل تمام ۷۵+ حرکت تمرینی به همراه ویدیوهای آموزشی یوتیوب": "Complete master reference of 75+ exercises with video tutorials",
+  "مشاهده بانک کامل تمام حرکات با ویدیو": "View full exercise library with tutorials",
+  "مشاهده، ویرایش یا حذف رکوردهای ثبت‌شده در دوره‌های مختلف": "View, edit, or delete logged records across different periods",
+  "میزان پیشرفت روز فعال": "Active Day Progress",
+  "می‌توانید این حرکت را با یک یا چند حرکت دیگر از بانک حرکات جفت و سوپرست کنید:": "Pair this exercise with one or more exercises to form a superset:",
+  "می‌توانید حرکت دیگری به این سوپرست اضافه کنید (ساخت تری‌ست یا جاینت‌ست) یا آن را تفکیک کنید:": "Add another exercise to this superset (Tri-Set / Giant Set) or split it:",
+  "می‌تونی در مرجع جهانی MuscleWiki نقشه آناتومی بدن و ویدیوهای تمام حرکات دنیا رو ببینی:": "Explore the interactive anatomical body map and video guides on MuscleWiki:",
+  "ناشتا صبح اول وقت (استاندارد ☀️)": "Fasted Morning (Standard ☀️)",
+  "نام اصلی انگلیسی حرکت (مرجع):": "Master English Name:",
+  "نام اصلی فارسی حرکت (مرجع):": "Master Persian Name:",
+  "نام انگلیسی حرکت (اختیاری)": "English Name (Optional)",
+  "نام فارسی حرکت *": "Persian Name *",
+  "نام فارسی یا انگلیسی حرکت (مثلاً: هیپ تراست، Hip Thrust)...": "Exercise Name (e.g. Hip Thrust)...",
+  "نام نمایشی اختصاصی (اختیاری)": "Custom Display Name (Optional)",
+  "نام کاربر یا عنوان برنامه *": "User Name or Routine Title *",
+  "نصب اپ": "Install App",
+  "نمودار پیشرفت و اضافه بار تدریجی": "Progressive Overload Chart",
+  "نوع افزودن": "Addition Type",
+  "هر تغییری در برنامه بدهید، خودکار و بدون نیاز به کلیک در سرور ابری ذخیره می‌شود.": "Any change made is automatically saved to the cloud without clicking.",
+  "همه": "All",
+  "همگام‌سازی ابری": "Cloud Sync",
+  "همگام‌سازی دوطرفه زنده و ذخیره فوری در سرور ابری": "Live 2-way cloud sync and immediate server save",
+  "همگام‌سازی فوری با دیتابیس": "Immediate Database Sync",
+  "هنوز لاگی برای این حرکت ثبت نشده است. با زدن «ثبت جلسه جدید» اولین وزنه و تکرار خود را ثبت کنید تا نمودار هوشمند فعال شود!": "No logs yet for this exercise. Click \"+ Log New Session\" to start tracking!",
+  "ورود": "Login",
+  "ورود / حساب": "Login / Account",
+  "ورود امن به حساب": "Secure Login",
+  "ورود با کد دسترسی اختصاصی جهت بارگذاری برنامه و پرونده:": "Enter confidential access code to load routine and records:",
+  "ورود به بخش اختصاصی برنامه": "Enter Security PIN",
+  "ورود به حساب": "Log In",
+  "ورود به حساب کاربری اختصاصی یا ثبت‌نام": "Sign in to personal account or register",
+  "ورود به نقشه تعاملی بدن در MuscleWiki.com ↗": "Open Interactive Body Map on MuscleWiki.com ↗",
+  "ورود مربی و ادمین / Coach & Admin Access": "Coach & Admin Access",
+  "ویدیو در یوتیوب": "YouTube Video",
+  "ویرایش برنامه": "Edit Plan",
+  "ویرایش حرکت تمرینی": "Edit Exercise",
+  "ویرایش و افزودن حرکات به این برنامه (نیازمند رمز عبور)": "Edit routine and add exercises (PIN required)",
+  "پا / باسن": "Legs / Glutes",
+  "پایگاه ابری اختصاصی و همگام‌سازی خودکار": "Dedicated Cloud Sync & Automatic Backup",
+  "پرش به روز جاری": "Jump to Current Day",
+  "پشت / زیر بغل": "Back / Lats",
+  "کد دسترسی...": "Access Code...",
+  "کمر (باریک‌ترین نقطه)": "Waist (Narrowest point, cm)",
+  "یا متن / کد JSON برنامه را در کادر زیر پیست کرده و دکمه اعمال را بزنید:": "Or paste the routine JSON code below and click Apply:",
+  "یادداشت": "Notes",
+  "یادداشت این جلسه (اختیاری)": "Session Notes (Optional)",
+  "یادداشت یا توضیحات دوره": "Period Notes or Description",
+  "یک پروفایل مجزا بسازید تا برنامه، ست‌ها، لاگ‌ها و روزهای شخصی خود را داشته باشید.": "Create an independent profile to keep your own routines, logs, and customized days.",
+  "۰ kg": "0 kg",
+  "۰ ویدیو": "0 Videos",
+  "۰٪": "0%",
+  "۱ ست": "1 Set",
+  "۲ دقیقه": "2 min",
+  "۲ ست": "2 Sets",
+  "۲۰ ثانیه": "20 sec",
+  "۳ دقیقه": "3 min",
+  "۳ ست": "3 Sets",
+  "۳۰ ثانیه": "30 sec",
+  "۴ ست": "4 Sets",
+  "۴۵ ثانیه": "45 sec",
+  "۵ ست": "5 Sets",
+  "۶۰ ثانیه": "60 sec",
+  "۹۰ ثانیه": "90 sec",
+  "⏰ ساعت / نوبت": "⏰ Time / Slot",
+  "⏱️ استراحت بین ست‌ها": "⏱️ Rest Between Sets",
+  "⏱️ تایمر استراحت بین ست‌ها": "⏱️ Rest Timer Between Sets",
+  "⏱️ زمان پیش‌فرض تایمر برای این حرکت (ثانیه):": "⏱️ Default Timer Duration for this exercise (sec):",
+  "⏳ زمان دلخواه:": "⏳ Custom Duration:",
+  "☀️ شرایط اندازه‌گیری": "☀️ Measurement Conditions",
+  "☁️ حساب ابری همگام‌سازی (": "☁️ Live Cloud Sync Account (",
+  "☁️ ذخیره در سرور ابری": "☁️ Save to Cloud",
+  "⚖️ وزن بدن (kg)": "⚖️ Bodyweight (kg)",
+  "⚡ اضافه کردن به این سوپرست": "⚡ Add to this Superset",
+  "⚡ اعمال کد": "⚡ Apply Code",
+  "⚡ این حرکت در حال حاضر درون یک سوپرست است": "⚡ This exercise is currently in a superset",
+  "⚡ تبدیل به سوپرست دوتایی": "⚡ Convert to 2-Exercise Superset",
+  "⚡ تبدیل حرکت تکی به سوپرست": "⚡ Convert Single Exercise to Superset",
+  "⚡ ترکیب و سوپرست کردن این حرکت": "⚡ Pair and Superset this exercise",
+  "⚡ ساخت سوپرست دوتایی": "⚡ Build 2-Exercise Superset",
+  "⚡ همگام‌سازی خودکار در پس‌زمینه": "⚡ Background Auto-Sync",
+  "✂️ تفکیک به حرکت تکی": "✂️ Split to Single Exercise",
+  "✏️ ویرایش کامل و همه‌جانبه برنامه": "✏️ Comprehensive Routine Editor",
+  "✨ ساخت برنامه شخصی جدید": "✨ Create New Custom Plan",
+  "❌ رمز عبور اشتباه است!": "❌ Incorrect PIN!",
+  "➕ اضافه کردن به برنامه": "➕ Add to Routine",
+  "➕ افزودن حرکت به روز تمرین": "➕ Add Exercise to Day",
+  "➕ افزودن حرکت دیگر به این سوپرست": "➕ Add Another Exercise to Superset",
+  "➕ افزودن ویدیوی جدید:": "➕ Add New Video:",
+  "➕ ثبت حرکت تمرینی جدید (بانک خصوصی)": "➕ Create Custom Exercise (Private Bank)",
+  "🌐 ارسال درخواست انتشار در بانک عمومی (جهت بررسی و تایید ادمین)": "🌐 Submit for Public Bank (Pending Admin Approval)",
+  "🌐 باز کردن بانک جهانی MuscleWiki": "🌐 Open MuscleWiki Directory",
+  "🌐 بانک عمومی": "🌐 Public Bank",
+  "🎂 سن (سال)": "🎂 Age (years)",
+  "🏆 بیشترین وزنه": "🏆 Max Weight",
+  "🏋️ باشگاه": "🏋️ Gym",
+  "🏋️ شنبه، دوشنبه، پنجشنبه: باشگاه": "🏋️ Saturday, Monday, Thursday: Gym",
+  "🏠 خانه / Core": "🏠 Home / Core",
+  "🏠 خانه / بدون وسیله": "🏠 Home / Bodyweight",
+  "🏠 یکشنبه، سه‌شنبه، جمعه: خانه": "🏠 Sunday, Tuesday, Friday: Home",
+  "🏷️ نام نمایشی اختصاصی برای این حرکت (اختیاری):": "🏷️ Custom Display Name for this exercise (Optional):",
+  "👑 حالت ادمین": "👑 Admin Mode",
+  "👤 ایجاد کاربر یا برنامه تمرینی جدید": "👤 Create New Plan / Profile",
+  "👤 جنسیت (برای فرمول چربی)": "👤 Gender (for Body Fat formula)",
+  "👤 نام یا نام مستعار:": "👤 Name or Nickname:",
+  "💡 فقط کافیست همین شناسه را در گوشی یا هر مرورگر دیگری وارد کنید تا برنامه‌تان متصل شود.": "💡 Simply enter this key on any other phone or browser to connect your routine.",
+  "💪 بازوی راست منقبض (Flexed)": "💪 Right Arm Flexed (cm)",
+  "💪 بازوی چپ منقبض (Flexed)": "💪 Left Arm Flexed (cm)",
+  "💾 اعمال تغییرات": "💾 Apply Changes",
+  "💾 اعمال و ذخیره تغییرات": "💾 Apply & Save Changes",
+  "💾 اعمال و ذخیره نهایی ویرایش‌ها": "💾 Save Final Edits",
+  "💾 ثبت و محاسبه آنتروپومتری": "💾 Calculate & Save Anthropometrics",
+  "💾 ذخیره تغییرات نام و ویدیوها در بانک اصلی (ادمین)": "💾 Save Name & Video Edits to Master Bank (Admin)",
+  "💾 ذخیره حرکت در بانک خصوصی": "💾 Save to Private Bank",
+  "💾 ذخیره لاگ جلسه": "💾 Save Session Log",
+  "💾 پشتیبان‌گیری و بارگذاری فایل / متن (": "💾 Local Backup / Restore (JSON) (",
+  "📁 انتخاب فایل": "📁 Choose File",
+  "📅 تاریخ ثبت": "📅 Log Date",
+  "📈 مشاهده نمودار": "📈 View Chart",
+  "📊 حجم کل آخرین جلسه": "📊 Total Volume of Last Session",
+  "📋 برنامه:": "📋 Plan:",
+  "📋 تاریخچه جلسات ثبت‌شده:": "📋 Logged Session History:",
+  "📋 لیست کامل حرکات درگیر در طول هفته:": "📋 Complete Weekly Exercise Directory:",
+  "📐 قد (cm)": "📐 Height (cm)",
+  "📚 بانک جامع حرکات ورزشی (با تمام ویدیوها)": "📚 Master Exercise Library (All Videos)",
+  "📥 خروجی (JSON)": "📥 Export (JSON)",
+  "📥 دانلود فایل": "📥 Download File",
+  "📥 دریافت از سرور ابری": "📥 Download from Cloud",
+  "📧 ایمیل:": "📧 Email:",
+  "📹 لیست ویدیوهای آموزشی این حرکت:": "📹 Video Tutorials for this exercise:",
+  "🔄 بازنشانی روزهای اصلی": "🔄 Reset to Original Days",
+  "🔍 انتخاب حرکت (با جستجوی سریع)": "🔍 Select Exercise (Quick Search)",
+  "🔍 انتخاب حرکت جدید برای اضافه شدن به این سوپرست *": "🔍 Select New Exercise for this Superset *",
+  "🔍 جستجو و انتخاب حرکت اول *": "🔍 Search and Select 1st Exercise *",
+  "🔍 جستجو و انتخاب حرکت دوم *": "🔍 Search and Select 2nd Exercise *",
+  "🔍 جستجو و انتخاب حرکت دوم برای جفت شدن *": "🔍 Search and Select 2nd Exercise to Pair *",
+  "🔍 جستجوی نام حرکت برای دریافت فوری ویدیو و آموزش:": "🔍 Search exercise for instant tutorial and videos:",
+  "🔍 یافتن ویدیو آموزشی": "🔍 Find Tutorial Video",
+  "🔑 رمز عبور (حداقل ۶ کاراکتر):": "🔑 Password (min 6 chars):",
+  "🔑 رمز عبور:": "🔑 Password:",
+  "🔑 ورود ادمین": "🔑 Admin Login",
+  "🔒 بانک خصوصی من": "🔒 My Private Bank",
+  "🔒 رمز عبور ویرایش و لاگ‌های این برنامه:": "🔒 PIN to edit and log in this routine:",
+  "🖐️ بازوی راست ریلکس / عادی (Relaxed)": "🖐️ Right Arm Relaxed (cm)",
+  "🖐️ بازوی چپ ریلکس / عادی (Relaxed)": "🖐️ Left Arm Relaxed (cm)",
+  "🖼️ تصویر نحوه اجرای صحیح حرکت": "🖼️ Proper Form & Execution Image",
+  "🗑️ حذف برنامه": "🗑️ Delete Routine",
+  "🗑️ حذف حرکت": "🗑️ Delete Exercise",
+  "🚀 انتقال فوری": "🚀 Instant Move",
+  "🚀 رشد نسبت به جلسه اول": "🚀 Growth from 1st Session",
+  "🛌 چهارشنبه: استراحت کامل": "🛌 Wednesday: Full Rest",
+  "🟢 آماده اتصال": "🟢 Ready to Connect",
+  "🟢 روشن و فعال": "🟢 Active & Enabled",
+  "🧘‍♂️ حرکات ایزومتریک": "🧘‍♂️ Isometric Exercises"
+};
+
+function translateText(str) {
+  if (!str) return '';
+  const trimmed = str.trim();
+  if (UI_TRANSLATIONS_MAP[trimmed]) return UI_TRANSLATIONS_MAP[trimmed];
+  if (typeof MUSCLE_MAP_EN !== 'undefined' && MUSCLE_MAP_EN[trimmed]) return MUSCLE_MAP_EN[trimmed];
+  if (typeof DAY_MAP_EN !== 'undefined' && DAY_MAP_EN[trimmed]) return DAY_MAP_EN[trimmed];
+
+  if (trimmed.startsWith('مثلاً:')) {
+    let rest = trimmed.substring(6).trim();
+    return 'e.g. ' + (UI_TRANSLATIONS_MAP[rest] || (typeof MUSCLE_MAP_EN !== 'undefined' && MUSCLE_MAP_EN[rest]) || rest);
+  }
+
+  let res = trimmed;
+  for (const [fa, en] of Object.entries(UI_TRANSLATIONS_MAP)) {
+    if (res.includes(fa)) {
+      res = res.replaceAll(fa, en);
+    }
+  }
+  if (typeof MUSCLE_MAP_EN !== 'undefined') {
+    for (const [fa, en] of Object.entries(MUSCLE_MAP_EN)) {
+      if (res.includes(fa)) {
+        res = res.replaceAll(fa, en);
+      }
+    }
+  }
+  return res;
+}
+
+function applyDOMTranslations() {
+  const isEn = currentLang === 'en';
+
+  // 1. All elements with title attribute (tooltips)
+  document.querySelectorAll('[title]').forEach(el => {
+    if (!el.hasAttribute('data-fa-title')) {
+      el.setAttribute('data-fa-title', el.getAttribute('title') || '');
+    }
+    const faTitle = el.getAttribute('data-fa-title');
+    if (faTitle) {
+      el.setAttribute('title', isEn ? translateText(faTitle) : faTitle);
+    }
+  });
+
+  // 2. All input / textarea elements with placeholder
+  document.querySelectorAll('input[placeholder], textarea[placeholder]').forEach(el => {
+    if (!el.hasAttribute('data-fa-placeholder')) {
+      el.setAttribute('data-fa-placeholder', el.getAttribute('placeholder') || '');
+    }
+    const faPh = el.getAttribute('data-fa-placeholder');
+    if (faPh) {
+      el.setAttribute('placeholder', isEn ? translateText(faPh) : faPh);
+    }
+  });
+
+  // 3. Modal overlays, header and toolbars text nodes
+  const rootEls = document.querySelectorAll('.modal-overlay, header, .action-row, .nav-container');
+  rootEls.forEach(root => {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null, false);
+    let node;
+    while ((node = walker.nextNode())) {
+      const val = node.nodeValue.trim();
+      if (!val) continue;
+
+      if (!node.__origFaText) {
+        node.__origFaText = node.nodeValue;
+      }
+      if (isEn) {
+        node.nodeValue = translateText(node.__origFaText);
+      } else {
+        node.nodeValue = node.__origFaText;
+      }
+    }
+  });
+}
+
 function setLanguage(lang, doRender = true) {
   currentLang = (lang === 'en') ? 'en' : 'fa';
   window.currentLang = currentLang;
@@ -291,6 +753,7 @@ function setLanguage(lang, doRender = true) {
   }
 
   updateStaticUIText();
+  applyDOMTranslations();
   if (doRender) {
     renderApp(true);
   }
@@ -970,6 +1433,49 @@ function navigateToDaySection(e, secId) {
   }
 }
 
+function translateVideoTitle(title, idx = 0, totalCount = 1) {
+  if (!title) {
+    return currentLang === 'en' 
+      ? (totalCount === 1 ? 'Exercise Video' : `Video ${idx + 1}`)
+      : (totalCount === 1 ? 'ویدیو آموزش' : `ویدیو ${idx + 1}`);
+  }
+  if (currentLang !== 'en') return title;
+
+  let tStr = String(title);
+  tStr = tStr.replace(/آموزش/g, 'Video')
+             .replace(/ویدیو/g, 'Video')
+             .replace(/\(شورت\)/g, '(Short)')
+             .replace(/شورت/g, 'Short')
+             .replace(/\(کامل\)/g, '(Full)')
+             .replace(/کامل/g, 'Full')
+             .replace(/فرم کوتاه/g, 'Short Form')
+             .replace(/آموزش سریع/g, 'Quick Guide')
+             .replace(/آموزش کامل/g, 'Full Tutorial')
+             .replace(/حرکت اصلاحی کتف راست با گیرش پرونیت/g, 'Right Scapular Corrective (Pronated Grip)')
+             .replace(/حرکت اصلاحی کتف راست با گیرش سوپینیت/g, 'Right Scapular Corrective (Supinated Grip)')
+             .replace(/حرکت اصلاحی کتف راست با گیرش موازی/g, 'Right Scapular Corrective (Neutral Grip)')
+             .replace(/حرکت اصلاحی/g, 'Corrective Exercise')
+             .replace(/کتف راست/g, 'Right Scapula')
+             .replace(/کتف چپ/g, 'Left Scapula')
+             .replace(/کتف/g, 'Scapula')
+             .replace(/گیرش پرونیت/g, 'Pronated Grip')
+             .replace(/گیرش سوپینیت/g, 'Supinated Grip')
+             .replace(/گیرش موازی/g, 'Neutral Grip')
+             .replace(/۱/g, '1').replace(/۲/g, '2').replace(/۳/g, '3')
+             .replace(/۴/g, '4').replace(/۵/g, '5').replace(/۶/g, '6')
+             .replace(/۷/g, '7').replace(/۸/g, '8').replace(/۹/g, '9');
+
+  if (/[\u0600-\u06FF]/.test(tStr)) {
+    const enMatch = tStr.match(/\([A-Za-z0-9\s\-]+\)/);
+    if (enMatch) {
+      tStr = `Video ${idx + 1} ${enMatch[0]}`;
+    } else {
+      tStr = totalCount === 1 ? 'Exercise Video' : `Video ${idx + 1}`;
+    }
+  }
+  return tStr;
+}
+
 function renderVideoButtons(videos) {
   if (!videos || videos.length === 0) {
     return `<span class="video-missing">${t('textGuide')}</span>`;
@@ -982,19 +1488,16 @@ function renderVideoButtons(videos) {
       let imgTitle = v.title || t('formImage');
       if (isEn && imgTitle) {
         imgTitle = imgTitle.replace(/تصویر فرم/g, 'Form Image').replace(/عکس/g, 'Image');
+        if (/[\u0600-\u06FF]/.test(imgTitle)) imgTitle = 'Form Image';
       }
       return `<button class="video-btn" onclick="openImageModal('${v.url}')" style="background:rgba(234,179,8,0.15); color:#facc15; border-color:rgba(234,179,8,0.35); cursor:pointer;">
         <span>🖼️</span> <span>${imgTitle}</span>
       </button>`;
     }
     const defTitle = (videos.length === 1 ? t('videoGuide') : ((isEn ? 'Video ' : 'ویدیو ') + (i+1)));
-    let title = v.title || defTitle;
-    if (isEn && title) {
-      title = title.replace(/آموزش/g, 'Video').replace(/ویدیو/g, 'Video')
-                   .replace(/۱/g, '1').replace(/۲/g, '2').replace(/۳/g, '3')
-                   .replace(/۴/g, '4').replace(/۵/g, '5').replace(/۶/g, '6')
-                   .replace(/۷/g, '7').replace(/۸/g, '8').replace(/۹/g, '9');
-    }
+    let rawTitle = v.title || defTitle;
+    let title = isEn ? translateVideoTitle(rawTitle, i, videos.length) : rawTitle;
+
     return `
       <a href="${v.url}" target="_blank" rel="noopener" class="video-btn">
         <span>▶</span> <span>${title}</span>
