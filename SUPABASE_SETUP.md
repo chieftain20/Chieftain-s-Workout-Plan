@@ -77,13 +77,17 @@ SECURITY DEFINER
 SET search_path = ''
 AS $$
 DECLARE
-    caller_role text;
+    raw_claims text;
+    caller_role text := '';
 BEGIN
-    caller_role := pg_catalog.coalesce(
-        (pg_catalog.nullif(pg_catalog.current_setting('request.jwt.claims', true), '')::jsonb ->> 'role'),
-        (pg_catalog.nullif(pg_catalog.current_setting('request.jwt.claim.role', true), '')),
-        ''
-    );
+    raw_claims := pg_catalog.current_setting('request.jwt.claims', true);
+    IF raw_claims IS NOT NULL AND raw_claims <> '' THEN
+        caller_role := (raw_claims::jsonb ->> 'role');
+    END IF;
+
+    IF caller_role IS NULL OR caller_role = '' THEN
+        caller_role := pg_catalog.current_setting('request.jwt.claim.role', true);
+    END IF;
 
     IF caller_role IN ('authenticated', 'anon') THEN
         IF TG_OP = 'INSERT' AND NEW.role IS DISTINCT FROM 'user' THEN
