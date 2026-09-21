@@ -7746,19 +7746,6 @@ function renderBodyMetricsView() {
         </div>
       </div>
     `;
-                <th style="text-align:center;">رکورد قبلی (${prev ? prev.date : '--'})</th>
-                <th style="text-align:center; color:#00f2fe;">اندازه کنونی (${current.date})</th>
-                <th style="text-align:center;">تغییر نسبت به قبل (Δ Last)</th>
-                <th style="text-align:center;">تغییر کل از شروع (Δ Total)</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${tableRowsHtml}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    `;
 
     contentHtml = `
       ${headerHtml}
