@@ -1203,175 +1203,216 @@ body.simple-mode .day-header {
 }
 
 /* ==========================================================================
-   Professional Light Theme (Day Mode)
+   Circular Ripple View Transition for Smooth Theme Switching
+   ========================================================================== */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+::view-transition-new(root) {
+  z-index: 9999;
+}
+
+[data-theme="dark"]::view-transition-old(root) {
+  z-index: 9999;
+}
+
+[data-theme="dark"]::view-transition-new(root) {
+  z-index: 1;
+}
+
+/* ==========================================================================
+   Modern Aesthetic Light Theme (Chic Lavender & Violet Palette)
    ========================================================================== */
 [data-theme="light"] {
-  --bg-main: #f1f5f9;
+  --bg-main: #f5f3f9;
   --bg-card: #ffffff;
-  --bg-card-hover: #f8fafc;
-  --bg-input: #f8fafc;
-  --accent-cyan: #0284c7;
-  --accent-blue: #2563eb;
-  --accent-teal: #059669;
-  --border-color: rgba(2, 132, 199, 0.22);
-  --border-light: rgba(148, 163, 184, 0.3);
-  --text-main: #0f172a;
+  --bg-card-hover: #faf8ff;
+  --bg-input: #ffffff;
+  --accent-cyan: #7c3aed;
+  --accent-blue: #8b5cf6;
+  --accent-teal: #10b981;
+  --border-color: rgba(139, 92, 246, 0.18);
+  --border-light: #ede9fe;
+  --text-main: #1b1828;
   --text-muted: #64748b;
-  --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.07), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  --shadow-card: 0 6px 24px -2px rgba(109, 40, 217, 0.07), 0 2px 6px rgba(0, 0, 0, 0.03);
 }
 
 [data-theme="light"] header {
-  background: linear-gradient(145deg, #ffffff, #f8fafc) !important;
-  border-color: #e2e8f0 !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+  background: #ffffff !important;
+  border-bottom: 1px solid #ede9fe !important;
+  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.05) !important;
 }
 
 [data-theme="light"] h1,
 [data-theme="light"] h2,
 [data-theme="light"] h3,
 [data-theme="light"] h4 {
-  color: #0f172a !important;
+  color: #1b1828 !important;
+}
+
+[data-theme="light"] .header-badge {
+  background: #f5f3ff !important;
+  color: #6d28d9 !important;
+  border-color: #ddd6fe !important;
 }
 
 [data-theme="light"] .exercise-card {
   background: #ffffff !important;
-  border-color: #e2e8f0 !important;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04) !important;
+  border-color: #ede9fe !important;
+  box-shadow: 0 4px 18px rgba(124, 58, 237, 0.05) !important;
 }
 
 [data-theme="light"] .exercise-card.completed {
-  background: rgba(16, 185, 129, 0.06) !important;
-  border-color: rgba(16, 185, 129, 0.35) !important;
+  background: rgba(16, 185, 129, 0.07) !important;
+  border-color: rgba(16, 185, 129, 0.45) !important;
+}
+
+[data-theme="light"] .exercise-name-en {
+  color: #7c3aed !important;
 }
 
 [data-theme="light"] .superset-container {
-  background: #f8fafc !important;
-  border-color: rgba(2, 132, 199, 0.25) !important;
+  background: #faf8ff !important;
+  border-color: rgba(139, 92, 246, 0.35) !important;
 }
 
 [data-theme="light"] .day-section {
   background: #ffffff !important;
-  border-color: #e2e8f0 !important;
+  border-color: #ede9fe !important;
+  box-shadow: 0 6px 25px rgba(124, 58, 237, 0.04) !important;
 }
 
 [data-theme="light"] .day-header {
-  border-bottom-color: #e2e8f0 !important;
+  border-bottom-color: #ede9fe !important;
 }
 
 [data-theme="light"] .modal-dialog {
   background: #ffffff !important;
-  color: #0f172a !important;
-  border-color: #cbd5e1 !important;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2) !important;
+  color: #1b1828 !important;
+  border-color: #ede9fe !important;
+  box-shadow: 0 25px 60px -15px rgba(109, 40, 217, 0.18) !important;
 }
 
 [data-theme="light"] .form-input,
 [data-theme="light"] .form-select {
-  background: #f8fafc !important;
-  color: #0f172a !important;
-  border-color: #cbd5e1 !important;
+  background: #ffffff !important;
+  color: #1b1828 !important;
+  border-color: #ddd6fe !important;
 }
 
 [data-theme="light"] .form-input:focus,
 [data-theme="light"] .form-select:focus {
-  border-color: #0284c7 !important;
+  border-color: #7c3aed !important;
   background: #ffffff !important;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15) !important;
 }
 
 [data-theme="light"] .btn-header-action {
-  background: #f1f5f9 !important;
-  color: #334155 !important;
-  border-color: #cbd5e1 !important;
+  background: #f5f3ff !important;
+  color: #5b21b6 !important;
+  border-color: #ddd6fe !important;
 }
 
 [data-theme="light"] .btn-header-action:hover {
-  background: #e2e8f0 !important;
-  color: #0f172a !important;
+  background: #ede9fe !important;
+  color: #4c1d95 !important;
+  border-color: #c4b5fd !important;
 }
 
 [data-theme="light"] .btn-action-primary {
-  background: linear-gradient(135deg, #0284c7, #2563eb) !important;
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed) !important;
   color: #ffffff !important;
   border: none !important;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.28) !important;
 }
 
 [data-theme="light"] .nav-tab {
-  background: #f1f5f9 !important;
-  color: #64748b !important;
-  border-color: #e2e8f0 !important;
+  background: #f5f3ff !important;
+  color: #6d28d9 !important;
+  border-color: #ddd6fe !important;
 }
 
 [data-theme="light"] .nav-tab.active {
-  background: #0284c7 !important;
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed) !important;
   color: #ffffff !important;
-  border-color: #0284c7 !important;
+  border-color: #7c3aed !important;
+  box-shadow: 0 3px 12px rgba(124, 58, 237, 0.25) !important;
 }
 
 [data-theme="light"] .library-item-card {
   background: #ffffff !important;
-  border-color: #e2e8f0 !important;
+  border-color: #ede9fe !important;
 }
 
 [data-theme="light"] .muscle-tag {
-  background: #f1f5f9 !important;
-  color: #475569 !important;
-  border-color: #cbd5e1 !important;
+  background: #f5f3ff !important;
+  color: #6d28d9 !important;
+  border-color: #ddd6fe !important;
 }
 
 [data-theme="light"] .video-btn {
-  background: rgba(2, 132, 199, 0.08) !important;
-  color: #0284c7 !important;
-  border-color: rgba(2, 132, 199, 0.25) !important;
+  background: rgba(124, 58, 237, 0.08) !important;
+  color: #7c3aed !important;
+  border-color: rgba(124, 58, 237, 0.25) !important;
 }
 
 [data-theme="light"] .profile-selector-wrap {
-  background: #f1f5f9 !important;
-  border-color: #cbd5e1 !important;
+  background: #f5f3ff !important;
+  border-color: #ddd6fe !important;
 }
 
 [data-theme="light"] .profile-select {
-  color: #0284c7 !important;
+  color: #6d28d9 !important;
 }
 
 [data-theme="light"] .profile-select option {
   background: #ffffff !important;
-  color: #0f172a !important;
+  color: #1b1828 !important;
 }
 
 [data-theme="light"] .metric-summary-card,
 [data-theme="light"] .metric-row-card {
   background: #ffffff !important;
-  border-color: #e2e8f0 !important;
+  border-color: #ede9fe !important;
 }
 
 [data-theme="light"] .search-box {
   background: #ffffff !important;
-  border-color: #cbd5e1 !important;
+  border-color: #ddd6fe !important;
 }
 
 [data-theme="light"] .search-input {
-  color: #0f172a !important;
+  color: #1b1828 !important;
 }
 
 [data-theme="light"] table th {
-  background: #f1f5f9 !important;
-  color: #475569 !important;
-  border-color: #e2e8f0 !important;
+  background: #f5f3ff !important;
+  color: #5b21b6 !important;
+  border-color: #ede9fe !important;
 }
 
 [data-theme="light"] table td {
-  border-color: #e2e8f0 !important;
+  border-color: #ede9fe !important;
   color: #1e293b !important;
 }
 
 [data-theme="light"] .delta-pill.neutral {
-  background: #f1f5f9 !important;
-  color: #64748b !important;
+  background: #f5f3ff !important;
+  color: #6d28d9 !important;
 }
 
 [data-theme="light"] .somatotype-badge {
-  background: #f1f5f9 !important;
-  border-color: #e2e8f0 !important;
+  background: #f5f3ff !important;
+  border-color: #ddd6fe !important;
+  color: #6d28d9 !important;
 }
 
 /* ==========================================================================
@@ -1530,7 +1571,7 @@ body[dir="ltr"],
           <span id="langToggleIcon">🌐</span>
           <span id="langToggleText">EN</span>
         </button>
-        <button id="themeToggleBtn" class="btn-header-action" onclick="toggleTheme()" title="تغییر تم (حالت روز / شب)" style="border-color:#38bdf888;">
+        <button id="themeToggleBtn" class="btn-header-action" onclick="toggleTheme(event)" title="تغییر تم (حالت روز / شب)" style="border-color:#38bdf888;">
           <span id="themeToggleIcon">☀️</span>
           <span id="themeToggleText">حالت روز</span>
         </button>
@@ -6513,7 +6554,27 @@ function getAllExercises() {
     return e.ownerId === currentUserId || (!e.ownerId && String(activeProfileId).includes('hossein'));
   });
 
-  return [...masters, ...visibleCustom];
+  // Deduplicate by ID and by normalized title to prevent any duplicate exercise from ever appearing
+  const combined = [...masters, ...visibleCustom];
+  const seenIds = new Set();
+  const seenNames = new Set();
+  const uniqueExercises = [];
+
+  for (const ex of combined) {
+    if (!ex || !ex.id) continue;
+    const normFa = (ex.fa || '').trim().toLowerCase();
+    const normEn = (ex.en || '').trim().toLowerCase();
+    const nameKey = `${normFa}__${normEn}`;
+
+    if (seenIds.has(ex.id)) continue;
+    if (normFa && normEn && seenNames.has(nameKey)) continue;
+
+    seenIds.add(ex.id);
+    if (normFa && normEn) seenNames.add(nameKey);
+    uniqueExercises.push(ex);
+  }
+
+  return uniqueExercises;
 }
 
 function findExerciseById(id) {
@@ -6727,30 +6788,30 @@ function updateGreetingText() {
     }
   }
 
-  const profName = isEn 
-    ? (prof.id === 'template_male' ? 'Champion' : (prof.id === 'template_female' ? 'Champion' : prof.name))
-    : prof.name;
+  const isSamplePlan = prof.id === 'template_male' || prof.id === 'template_female' || String(prof.name).includes('نمونه') || String(prof.name).includes('برنامه نمونه');
+  const profNameFa = isSamplePlan ? 'قهرمان' : prof.name;
+  const profNameEn = isSamplePlan ? 'Champion' : prof.name;
 
   if (isToday100) {
     greetingEl.innerText = isEn
-      ? `🎉 Great job ${profName}! Today's workout is 100% completed! 🔥 Keep growing & recovering 💪`
-      : `🎉 دمت گرم ${prof.name}! تمرین امروز رو ۱۰۰٪ با موفقیت ترکوندی و تموم کردی! 🔥 عضلات در حال رشد و ریکاوری‌ان 💪`;
+      ? `🎉 Great job ${profNameEn}! Today's workout is 100% completed! 🔥 Keep growing & recovering 💪`
+      : `🎉 دمت گرم ${profNameFa}! تمرین امروز رو ۱۰۰٪ با موفقیت ترکوندی و تموم کردی! 🔥 عضلات در حال رشد و ریکاوری‌ان 💪`;
     return;
   }
 
   const hour = new Date().getHours();
   if (hour >= 5 && hour < 12) {
     greetingEl.innerText = isEn
-      ? `Good morning ${profName}! Time to energize and build strength ⚡`
-      : `صبح بخیر ${prof.name}! وقت انرژی و ساختن عضلاته ⚡`;
+      ? `Good morning ${profNameEn}! Time to energize and build strength ⚡`
+      : `صبح بخیر ${profNameFa}! وقت انرژی و ساختن عضلاته ⚡`;
   } else if (hour >= 12 && hour < 18) {
     greetingEl.innerText = isEn
-      ? `Good afternoon ${profName}! Ready for a powerful workout session? 💪`
-      : `عصر بخیر ${prof.name}! آماده یک جلسه تمرینی پرقدرت هستی؟ 💪`;
+      ? `Good afternoon ${profNameEn}! Ready for a powerful workout session? 💪`
+      : `عصر بخیر ${profNameFa}! آماده یک جلسه تمرینی پرقدرت هستی؟ 💪`;
   } else {
     greetingEl.innerText = isEn
-      ? `Good evening ${profName}! Recovery and consistency are key 🔥`
-      : `شب بخیر ${prof.name}! ریکاوری و ثبات کلید موفقیته 🔥`;
+      ? `Good evening ${profNameEn}! Recovery and consistency are key 🔥`
+      : `شب بخیر ${profNameFa}! ریکاوری و ثبات کلید موفقیته 🔥`;
   }
 }
 
@@ -10903,15 +10964,65 @@ function applyTheme(theme) {
   }
 }
 
-function toggleTheme() {
+function toggleTheme(event) {
   const current = document.documentElement.getAttribute('data-theme') || 'dark';
   const next = current === 'dark' ? 'light' : 'dark';
-  localStorage.setItem('chieftain_theme', next);
-  applyTheme(next);
   const isEn = currentLang === 'en';
-  showToast(next === 'light' 
-    ? (isEn ? '☀️ Light mode enabled' : '☀️ تم روشن (حالت روز) فعال شد') 
-    : (isEn ? '🌙 Dark mode enabled' : '🌙 تم تاریک (حالت شب) فعال شد'));
+
+  const applyChange = () => {
+    localStorage.setItem('chieftain_theme', next);
+    applyTheme(next);
+    showToast(next === 'light' 
+      ? (isEn ? '☀️ Light mode enabled' : '☀️ تم روشن (حالت روز) فعال شد') 
+      : (isEn ? '🌙 Dark mode enabled' : '🌙 تم تاریک (حالت شب) فعال شد'));
+  };
+
+  // If View Transitions API is not supported or user prefers reduced motion, fallback to instant switch
+  if (!document.startViewTransition || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    applyChange();
+    return;
+  }
+
+  // Determine click coordinates (or center of theme button)
+  let x = window.innerWidth / 2;
+  let y = 0;
+  if (event && (event.clientX || event.clientY)) {
+    x = event.clientX;
+    y = event.clientY;
+  } else {
+    const btn = document.getElementById('themeToggleBtn');
+    if (btn) {
+      const rect = btn.getBoundingClientRect();
+      x = rect.left + rect.width / 2;
+      y = rect.top + rect.height / 2;
+    }
+  }
+
+  const endRadius = Math.hypot(
+    Math.max(x, window.innerWidth - x),
+    Math.max(y, window.innerHeight - y)
+  );
+
+  const transition = document.startViewTransition(() => {
+    applyChange();
+  });
+
+  transition.ready.then(() => {
+    const clipPath = [
+      `circle(0px at ${x}px ${y}px)`,
+      `circle(${endRadius}px at ${x}px ${y}px)`
+    ];
+    document.documentElement.animate(
+      {
+        clipPath: clipPath
+      },
+      {
+        duration: 550,
+        easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+        pseudoElement: '::view-transition-new(root)'
+      }
+    );
+  });
 }
 
 try { initTheme(); } catch(e) {}

@@ -1229,7 +1229,27 @@ function getAllExercises() {
     return e.ownerId === currentUserId || (!e.ownerId && String(activeProfileId).includes('hossein'));
   });
 
-  return [...masters, ...visibleCustom];
+  // Deduplicate by ID and by normalized title to prevent any duplicate exercise from ever appearing
+  const combined = [...masters, ...visibleCustom];
+  const seenIds = new Set();
+  const seenNames = new Set();
+  const uniqueExercises = [];
+
+  for (const ex of combined) {
+    if (!ex || !ex.id) continue;
+    const normFa = (ex.fa || '').trim().toLowerCase();
+    const normEn = (ex.en || '').trim().toLowerCase();
+    const nameKey = `${normFa}__${normEn}`;
+
+    if (seenIds.has(ex.id)) continue;
+    if (normFa && normEn && seenNames.has(nameKey)) continue;
+
+    seenIds.add(ex.id);
+    if (normFa && normEn) seenNames.add(nameKey);
+    uniqueExercises.push(ex);
+  }
+
+  return uniqueExercises;
 }
 
 function findExerciseById(id) {
@@ -1443,30 +1463,30 @@ function updateGreetingText() {
     }
   }
 
-  const profName = isEn 
-    ? (prof.id === 'template_male' ? 'Champion' : (prof.id === 'template_female' ? 'Champion' : prof.name))
-    : prof.name;
+  const isSamplePlan = prof.id === 'template_male' || prof.id === 'template_female' || String(prof.name).includes('نمونه') || String(prof.name).includes('برنامه نمونه');
+  const profNameFa = isSamplePlan ? 'قهرمان' : prof.name;
+  const profNameEn = isSamplePlan ? 'Champion' : prof.name;
 
   if (isToday100) {
     greetingEl.innerText = isEn
-      ? `🎉 Great job ${profName}! Today's workout is 100% completed! 🔥 Keep growing & recovering 💪`
-      : `🎉 دمت گرم ${prof.name}! تمرین امروز رو ۱۰۰٪ با موفقیت ترکوندی و تموم کردی! 🔥 عضلات در حال رشد و ریکاوری‌ان 💪`;
+      ? `🎉 Great job ${profNameEn}! Today's workout is 100% completed! 🔥 Keep growing & recovering 💪`
+      : `🎉 دمت گرم ${profNameFa}! تمرین امروز رو ۱۰۰٪ با موفقیت ترکوندی و تموم کردی! 🔥 عضلات در حال رشد و ریکاوری‌ان 💪`;
     return;
   }
 
   const hour = new Date().getHours();
   if (hour >= 5 && hour < 12) {
     greetingEl.innerText = isEn
-      ? `Good morning ${profName}! Time to energize and build strength ⚡`
-      : `صبح بخیر ${prof.name}! وقت انرژی و ساختن عضلاته ⚡`;
+      ? `Good morning ${profNameEn}! Time to energize and build strength ⚡`
+      : `صبح بخیر ${profNameFa}! وقت انرژی و ساختن عضلاته ⚡`;
   } else if (hour >= 12 && hour < 18) {
     greetingEl.innerText = isEn
-      ? `Good afternoon ${profName}! Ready for a powerful workout session? 💪`
-      : `عصر بخیر ${prof.name}! آماده یک جلسه تمرینی پرقدرت هستی؟ 💪`;
+      ? `Good afternoon ${profNameEn}! Ready for a powerful workout session? 💪`
+      : `عصر بخیر ${profNameFa}! آماده یک جلسه تمرینی پرقدرت هستی؟ 💪`;
   } else {
     greetingEl.innerText = isEn
-      ? `Good evening ${profName}! Recovery and consistency are key 🔥`
-      : `شب بخیر ${prof.name}! ریکاوری و ثبات کلید موفقیته 🔥`;
+      ? `Good evening ${profNameEn}! Recovery and consistency are key 🔥`
+      : `شب بخیر ${profNameFa}! ریکاوری و ثبات کلید موفقیته 🔥`;
   }
 }
 
@@ -5619,15 +5639,65 @@ function applyTheme(theme) {
   }
 }
 
-function toggleTheme() {
+function toggleTheme(event) {
   const current = document.documentElement.getAttribute('data-theme') || 'dark';
   const next = current === 'dark' ? 'light' : 'dark';
-  localStorage.setItem('chieftain_theme', next);
-  applyTheme(next);
   const isEn = currentLang === 'en';
-  showToast(next === 'light' 
-    ? (isEn ? '☀️ Light mode enabled' : '☀️ تم روشن (حالت روز) فعال شد') 
-    : (isEn ? '🌙 Dark mode enabled' : '🌙 تم تاریک (حالت شب) فعال شد'));
+
+  const applyChange = () => {
+    localStorage.setItem('chieftain_theme', next);
+    applyTheme(next);
+    showToast(next === 'light' 
+      ? (isEn ? '☀️ Light mode enabled' : '☀️ تم روشن (حالت روز) فعال شد') 
+      : (isEn ? '🌙 Dark mode enabled' : '🌙 تم تاریک (حالت شب) فعال شد'));
+  };
+
+  // If View Transitions API is not supported or user prefers reduced motion, fallback to instant switch
+  if (!document.startViewTransition || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    applyChange();
+    return;
+  }
+
+  // Determine click coordinates (or center of theme button)
+  let x = window.innerWidth / 2;
+  let y = 0;
+  if (event && (event.clientX || event.clientY)) {
+    x = event.clientX;
+    y = event.clientY;
+  } else {
+    const btn = document.getElementById('themeToggleBtn');
+    if (btn) {
+      const rect = btn.getBoundingClientRect();
+      x = rect.left + rect.width / 2;
+      y = rect.top + rect.height / 2;
+    }
+  }
+
+  const endRadius = Math.hypot(
+    Math.max(x, window.innerWidth - x),
+    Math.max(y, window.innerHeight - y)
+  );
+
+  const transition = document.startViewTransition(() => {
+    applyChange();
+  });
+
+  transition.ready.then(() => {
+    const clipPath = [
+      `circle(0px at ${x}px ${y}px)`,
+      `circle(${endRadius}px at ${x}px ${y}px)`
+    ];
+    document.documentElement.animate(
+      {
+        clipPath: clipPath
+      },
+      {
+        duration: 550,
+        easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+        pseudoElement: '::view-transition-new(root)'
+      }
+    );
+  });
 }
 
 try { initTheme(); } catch(e) {}
