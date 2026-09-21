@@ -1292,6 +1292,50 @@
   </div>
 </div>
 
+<!-- Search & Select Exercise Modal (Universal Fast Picker) -->
+<div id="exerciseSearchModal" class="modal-overlay" style="z-index: 1200;">
+  <div class="modal-dialog" style="max-width: 520px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="font-size:22px;">🔍</span>
+        <h3 id="exSearchModalTitle" style="margin:0;">انتخاب و تغییر حرکت</h3>
+      </div>
+      <button class="modal-close-btn" onclick="closeExerciseSearchModal()" style="position:static;">✕</button>
+    </div>
+
+    <p id="exSearchModalDesc" style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+      نام فارسی یا انگلیسی حرکت یا عضله هدف را تایپ کنید تا فوراً پیدا شود:
+    </p>
+
+    <!-- Search Input -->
+    <div style="margin-bottom:10px;">
+      <input type="text" id="exSearchModalInput" class="form-input" placeholder="جستجوی سریع حرکت (مثلاً: زیربغل، پرس، اسکوات، جلو بازو)..." style="font-size:13px; font-weight:700; padding:9px 12px;" oninput="filterExerciseSearchModal(this.value)">
+    </div>
+
+    <!-- Category / Muscle Quick Filters -->
+    <div id="exSearchCategoryFilter" style="display:flex; gap:5px; flex-wrap:wrap; margin-bottom:12px;">
+      <button class="btn-header-action active" onclick="filterExSearchByCat('all', this)" style="padding:4px 9px; font-size:11px;">همه</button>
+      <button class="btn-header-action" onclick="filterExSearchByCat('سینه', this)" style="padding:4px 9px; font-size:11px;">سینه</button>
+      <button class="btn-header-action" onclick="filterExSearchByCat('پشت', this)" style="padding:4px 9px; font-size:11px;">پشت / زیربغل</button>
+      <button class="btn-header-action" onclick="filterExSearchByCat('پا', this)" style="padding:4px 9px; font-size:11px;">پا / باسن</button>
+      <button class="btn-header-action" onclick="filterExSearchByCat('سرشانه', this)" style="padding:4px 9px; font-size:11px;">سرشانه</button>
+      <button class="btn-header-action" onclick="filterExSearchByCat('بازو', this)" style="padding:4px 9px; font-size:11px;">جلو بازو / پشت بازو</button>
+      <button class="btn-header-action" onclick="filterExSearchByCat('شکم', this)" style="padding:4px 9px; font-size:11px;">شکم / Core</button>
+    </div>
+
+    <!-- Results List -->
+    <div id="exSearchResultsList" style="display:flex; flex-direction:column; gap:6px; max-height:360px; overflow-y:auto; padding-right:2px;">
+      <!-- Populated via JS -->
+    </div>
+
+    <div style="margin-top:12px; text-align:center;">
+      <button class="btn-header-action" id="closeExSearchModalBtn" style="width:100%; justify-content:center; padding:9px;" onclick="closeExerciseSearchModal()">
+        بستن ✕
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- Floating Toast Message Container -->
 <div id="toastMsg" class="toast-msg">
   <span>✅</span>

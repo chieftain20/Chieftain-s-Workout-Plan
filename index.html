@@ -1447,6 +1447,38 @@ body[dir="ltr"],
   text-align: left;
 }
 
+/* Exercise Search Picker Modal Styling */
+.searchable-ex-picker-btn:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(56, 189, 248, 0.4) !important;
+}
+
+.exercise-search-result-item:hover {
+  border-color: #38bdf8 !important;
+  background: rgba(56, 189, 248, 0.09) !important;
+}
+
+[data-theme="light"] .searchable-ex-picker-btn {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .searchable-ex-picker-btn:hover {
+  background: #f1f5f9 !important;
+  border-color: #0284c7 !important;
+}
+
+[data-theme="light"] .exercise-search-result-item {
+  background: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] .exercise-search-result-item:hover {
+  background: #f1f5f9 !important;
+  border-color: #0284c7 !important;
+}
+
 
 
 </style>
@@ -2888,6 +2920,50 @@ body[dir="ltr"],
       </button>
       <button class="btn-header-action" style="flex:1; justify-content:center; padding:11px;" onclick="closeEditMasterExModal()">
         <span id="editMasterCancelBtnText">انصراف</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Search & Select Exercise Modal (Universal Fast Picker) -->
+<div id="exerciseSearchModal" class="modal-overlay" style="z-index: 1200;">
+  <div class="modal-dialog" style="max-width: 520px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="font-size:22px;">🔍</span>
+        <h3 id="exSearchModalTitle" style="margin:0;">انتخاب و تغییر حرکت</h3>
+      </div>
+      <button class="modal-close-btn" onclick="closeExerciseSearchModal()" style="position:static;">✕</button>
+    </div>
+
+    <p id="exSearchModalDesc" style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+      نام فارسی یا انگلیسی حرکت یا عضله هدف را تایپ کنید تا فوراً پیدا شود:
+    </p>
+
+    <!-- Search Input -->
+    <div style="margin-bottom:10px;">
+      <input type="text" id="exSearchModalInput" class="form-input" placeholder="جستجوی سریع حرکت (مثلاً: زیربغل، پرس، اسکوات، جلو بازو)..." style="font-size:13px; font-weight:700; padding:9px 12px;" oninput="filterExerciseSearchModal(this.value)">
+    </div>
+
+    <!-- Category / Muscle Quick Filters -->
+    <div id="exSearchCategoryFilter" style="display:flex; gap:5px; flex-wrap:wrap; margin-bottom:12px;">
+      <button class="btn-header-action active" onclick="filterExSearchByCat('all', this)" style="padding:4px 9px; font-size:11px;">همه</button>
+      <button class="btn-header-action" onclick="filterExSearchByCat('سینه', this)" style="padding:4px 9px; font-size:11px;">سینه</button>
+      <button class="btn-header-action" onclick="filterExSearchByCat('پشت', this)" style="padding:4px 9px; font-size:11px;">پشت / زیربغل</button>
+      <button class="btn-header-action" onclick="filterExSearchByCat('پا', this)" style="padding:4px 9px; font-size:11px;">پا / باسن</button>
+      <button class="btn-header-action" onclick="filterExSearchByCat('سرشانه', this)" style="padding:4px 9px; font-size:11px;">سرشانه</button>
+      <button class="btn-header-action" onclick="filterExSearchByCat('بازو', this)" style="padding:4px 9px; font-size:11px;">جلو بازو / پشت بازو</button>
+      <button class="btn-header-action" onclick="filterExSearchByCat('شکم', this)" style="padding:4px 9px; font-size:11px;">شکم / Core</button>
+    </div>
+
+    <!-- Results List -->
+    <div id="exSearchResultsList" style="display:flex; flex-direction:column; gap:6px; max-height:360px; overflow-y:auto; padding-right:2px;">
+      <!-- Populated via JS -->
+    </div>
+
+    <div style="margin-top:12px; text-align:center;">
+      <button class="btn-header-action" id="closeExSearchModalBtn" style="width:100%; justify-content:center; padding:9px;" onclick="closeExerciseSearchModal()">
+        بستن ✕
       </button>
     </div>
   </div>
@@ -6204,6 +6280,41 @@ function updateStaticUIText() {
   const editMasterCancelBtnText = document.getElementById('editMasterCancelBtnText');
   if (editMasterCancelBtnText) editMasterCancelBtnText.innerText = isEn ? 'Cancel' : 'انصراف';
 
+  // Search & Select Exercise Modal
+  const exSearchModalTitle = document.getElementById('exSearchModalTitle');
+  if (exSearchModalTitle) exSearchModalTitle.innerText = isEn ? '🔍 Select & Change Exercise' : '🔍 انتخاب و تغییر حرکت';
+  const exSearchModalDesc = document.getElementById('exSearchModalDesc');
+  if (exSearchModalDesc) exSearchModalDesc.innerText = isEn ? 'Type Persian or English exercise name, or target muscle to quickly filter:' : 'نام فارسی یا انگلیسی حرکت یا عضله هدف را تایپ کنید تا فوراً پیدا شود:';
+  const exSearchModalInput = document.getElementById('exSearchModalInput');
+  if (exSearchModalInput) exSearchModalInput.placeholder = isEn ? 'Quick search exercise (e.g. bench press, squat, curl)...' : 'جستجوی سریع حرکت (مثلاً: زیربغل، پرس، اسکوات، جلو بازو)...';
+  const closeExSearchModalBtn = document.getElementById('closeExSearchModalBtn');
+  if (closeExSearchModalBtn) closeExSearchModalBtn.innerText = isEn ? 'Close ✕' : 'بستن ✕';
+  const exSearchCategoryFilter = document.getElementById('exSearchCategoryFilter');
+  if (exSearchCategoryFilter) {
+    const cats = isEn 
+      ? [
+          { val: 'all', label: 'All' },
+          { val: 'سینه', label: 'Chest' },
+          { val: 'پشت', label: 'Back' },
+          { val: 'پا', label: 'Legs' },
+          { val: 'سرشانه', label: 'Shoulders' },
+          { val: 'بازو', label: 'Arms' },
+          { val: 'شکم', label: 'Core / Abs' }
+        ]
+      : [
+          { val: 'all', label: 'همه' },
+          { val: 'سینه', label: 'سینه' },
+          { val: 'پشت', label: 'پشت / زیربغل' },
+          { val: 'پا', label: 'پا / باسن' },
+          { val: 'سرشانه', label: 'سرشانه' },
+          { val: 'بازو', label: 'جلو بازو / پشت بازو' },
+          { val: 'شکم', label: 'شکم / Core' }
+        ];
+    exSearchCategoryFilter.innerHTML = cats.map((c, i) => `
+      <button type="button" class="btn-header-action ${activeSearchCategory === c.val ? 'active' : ''}" onclick="filterExSearchByCat('${c.val}', this)" style="padding:4px 9px; font-size:11px;">${c.label}</button>
+    `).join('');
+  }
+
   try { applyUiMode(); } catch(e) {}
 }
 
@@ -8154,7 +8265,7 @@ function closeAllModals() {
 function renderEditPlanDaysList() {
   const prof = getActiveProfile();
   const container = document.getElementById('editPlanDaysList');
-  const allEx = getAllExercises();
+  const isEn = (currentLang === 'en');
 
   container.innerHTML = prof.days.map((day, dIdx) => {
     // Supersets List HTML
@@ -8168,32 +8279,38 @@ function renderEditPlanDaysList() {
               <input type="text" value="${ss.title}" class="form-input" style="font-weight:700; width:220px; padding:4px 8px; font-size:12px;" onchange="updateSupersetTitle(${dIdx}, ${ssIdx}, this.value)">
             </div>
             <div style="display:flex; gap:6px;">
-              <button class="btn-header-action" style="padding:3px 8px; font-size:11px; color:#38bdf8; border-color:#38bdf855;" title="تفکیک این سوپرست به ۲ حرکت تکی مجزا" onclick="splitSupersetToSingles(${dIdx}, ${ssIdx})">🔓 تفکیک به ۲ حرکت تکی</button>
-              <button class="btn-header-action" style="padding:3px 8px; font-size:11px; color:#f87171; border-color:#f8717155;" onclick="removeSuperset(${dIdx}, ${ssIdx})">🗑️ حذف سوپرست</button>
+              <button class="btn-header-action" style="padding:3px 8px; font-size:11px; color:#38bdf8; border-color:#38bdf855;" title="${isEn ? `Split this superset into ${ss.exercises.length} singles` : `تفکیک این سوپرست به ${ss.exercises.length} حرکت تکی مجزا`}" onclick="splitSupersetToSingles(${dIdx}, ${ssIdx})">🔓 ${isEn ? `Split to ${ss.exercises.length} Singles` : `تفکیک به ${ss.exercises.length} حرکت تکی`}</button>
+              <button class="btn-header-action" style="padding:3px 8px; font-size:11px; color:#f87171; border-color:#f8717155;" title="${isEn ? 'Delete entire superset' : 'حذف کامل این سوپرست'}" onclick="removeSuperset(${dIdx}, ${ssIdx})">🗑️ ${isEn ? 'Delete Superset' : 'حذف سوپرست'}</button>
             </div>
           </div>
 
           ${ss.exercises.map((item, exIdx) => {
             const ex = findExerciseById(item.exId);
-            const exOptions = allEx.map(e => `<option value="${e.id}" ${e.id === item.exId ? 'selected' : ''}>${e.fa} ${e.en ? `(${e.en})` : ''}</option>`).join('');
             const currentSets = parseSetsFromReps(item.reps, item.sets);
+            const primaryName = isEn ? (ex.en || ex.fa) : (ex.fa || ex.en);
+            const secondaryName = isEn ? ex.fa : ex.en;
             return `
               <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px dashed rgba(255,255,255,0.08); flex-wrap:wrap; gap:6px;">
                 <div style="display:flex; align-items:center; gap:6px; flex:1; min-width:200px;">
-                  <span style="font-size:11px; color:#94a3b8; font-weight:800;">${exIdx === 0 ? 'حرکت ۱:' : 'حرکت ۲:'}</span>
-                  <select class="form-select" style="font-size:12px; padding:4px 8px;" onchange="updateSsExerciseId(${dIdx}, ${ssIdx}, ${exIdx}, this.value)">
-                    ${exOptions}
-                  </select>
+                  <span style="font-size:11px; color:#94a3b8; font-weight:800;">${isEn ? `Ex ${exIdx + 1}:` : `حرکت ${exIdx + 1}:`}</span>
+                  <button type="button" class="form-input searchable-ex-picker-btn" onclick="openExerciseSearchModal('ss', ${dIdx}, ${ssIdx}, ${exIdx})" style="flex:1; text-align:start; display:flex; align-items:center; justify-content:space-between; padding:5px 8px; cursor:pointer; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); border-radius:6px; color:var(--text-main); font-size:12px;" title="${isEn ? 'Click to search and change exercise' : 'کلیک برای جستجو و تغییر حرکت'}">
+                    <span style="font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                      ${primaryName}
+                      ${secondaryName ? `<span style="font-size:11px; color:var(--text-muted); font-weight:400; margin-inline-start:4px;">(${secondaryName})</span>` : ''}
+                    </span>
+                    <span style="font-size:10.5px; color:#38bdf8; background:rgba(56,189,248,0.12); padding:1px 5px; border-radius:4px; margin-inline-start:6px; flex-shrink:0;">🔍 ${isEn ? 'Change' : 'تغییر'}</span>
+                  </button>
                 </div>
                 <div style="display:flex; gap:6px; align-items:center;">
-                  <select class="form-select" style="width:75px; padding:4px 6px; font-size:11.5px;" title="تعداد ست" onchange="updateSsExSets(${dIdx}, ${ssIdx}, ${exIdx}, this.value)">
-                    <option value="1" ${currentSets===1?'selected':''}>۱ ست</option>
-                    <option value="2" ${currentSets===2?'selected':''}>۲ ست</option>
-                    <option value="3" ${currentSets===3?'selected':''}>۳ ست</option>
-                    <option value="4" ${currentSets===4?'selected':''}>۴ ست</option>
-                    <option value="5" ${currentSets===5?'selected':''}>۵ ست</option>
+                  <select class="form-select" style="width:75px; padding:4px 6px; font-size:11.5px;" title="${isEn ? 'Set Count' : 'تعداد ست'}" onchange="updateSsExSets(${dIdx}, ${ssIdx}, ${exIdx}, this.value)">
+                    <option value="1" ${currentSets===1?'selected':''}>${isEn ? '1 Set' : '۱ ست'}</option>
+                    <option value="2" ${currentSets===2?'selected':''}>${isEn ? '2 Sets' : '۲ ست'}</option>
+                    <option value="3" ${currentSets===3?'selected':''}>${isEn ? '3 Sets' : '۳ ست'}</option>
+                    <option value="4" ${currentSets===4?'selected':''}>${isEn ? '4 Sets' : '۴ ست'}</option>
+                    <option value="5" ${currentSets===5?'selected':''}>${isEn ? '5 Sets' : '۵ ست'}</option>
                   </select>
-                  <input type="text" value="${item.reps || '3 × 8–12'}" class="form-input" style="width:90px; padding:4px 6px; font-size:11.5px; direction:ltr;" title="متن ست و تکرار" onchange="updateSsExReps(${dIdx}, ${ssIdx}, ${exIdx}, this.value)">
+                  <input type="text" value="${item.reps || '3 × 8–12'}" class="form-input" style="width:90px; padding:4px 6px; font-size:11.5px; direction:ltr;" title="${isEn ? 'Reps / Set Text' : 'متن ست و تکرار'}" onchange="updateSsExReps(${dIdx}, ${ssIdx}, ${exIdx}, this.value)">
+                  <button type="button" class="btn-header-action" style="padding:3px 7px; font-size:11px; color:#f87171; border-color:#f8717155;" title="${isEn ? 'Delete this exercise from superset' : 'حذف این حرکت از سوپرست'}" onclick="removeSsExercise(${dIdx}, ${ssIdx}, ${exIdx})">✕</button>
                 </div>
               </div>
             `;
@@ -8207,33 +8324,38 @@ function renderEditPlanDaysList() {
     if (day.singles && day.singles.length > 0) {
       singlesHtml = day.singles.map((item, sIdx) => {
         const ex = findExerciseById(item.exId);
-        const exOptions = allEx.map(e => `<option value="${e.id}" ${e.id === item.exId ? 'selected' : ''}>${e.fa} ${e.en ? `(${e.en})` : ''}</option>`).join('');
         const currentSets = parseSetsFromReps(item.reps, item.sets);
+        const primaryName = isEn ? (ex.en || ex.fa) : (ex.fa || ex.en);
+        const secondaryName = isEn ? ex.fa : ex.en;
         return `
           <div class="editor-ex-card">
             <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-              <!-- Exercise Selector Dropdown -->
+              <!-- Exercise Selector Button -->
               <div style="display:flex; align-items:center; gap:6px; flex:1; min-width:200px;">
-                <span style="font-size:11px; color:var(--text-muted);">#${sIdx + 1}</span>
-                <select class="form-select" style="font-size:12.5px; font-weight:700; padding:5px 8px;" onchange="updateSingleExId(${dIdx}, ${sIdx}, this.value)">
-                  ${exOptions}
-                </select>
+                <span style="font-size:11px; color:var(--text-muted); font-weight:700;">#${sIdx + 1}</span>
+                <button type="button" class="form-input searchable-ex-picker-btn" onclick="openExerciseSearchModal('single', ${dIdx}, ${sIdx})" style="flex:1; text-align:start; display:flex; align-items:center; justify-content:space-between; padding:5px 8px; cursor:pointer; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); border-radius:6px; color:var(--text-main); font-size:12.5px;" title="${isEn ? 'Click to search and change exercise' : 'کلیک برای جستجو و تغییر حرکت'}">
+                  <span style="font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                    ${primaryName}
+                    ${secondaryName ? `<span style="font-size:11px; color:var(--text-muted); font-weight:400; margin-inline-start:4px;">(${secondaryName})</span>` : ''}
+                  </span>
+                  <span style="font-size:11px; color:#38bdf8; background:rgba(56,189,248,0.12); padding:2px 6px; border-radius:4px; margin-inline-start:6px; flex-shrink:0;">🔍 ${isEn ? 'Change' : 'تغییر'}</span>
+                </button>
               </div>
 
               <!-- Reps / Set Count / Convert to Superset / Reorder / Delete -->
               <div style="display:flex; gap:5px; align-items:center; flex-wrap:wrap;">
-                <select class="form-select" style="width:75px; padding:4px 6px; font-size:11.5px;" title="تعداد ست" onchange="updateSingleExSets(${dIdx}, ${sIdx}, this.value)">
-                  <option value="1" ${currentSets===1?'selected':''}>۱ ست</option>
-                  <option value="2" ${currentSets===2?'selected':''}>۲ ست</option>
-                  <option value="3" ${currentSets===3?'selected':''}>۳ ست</option>
-                  <option value="4" ${currentSets===4?'selected':''}>۴ ست</option>
-                  <option value="5" ${currentSets===5?'selected':''}>۵ ست</option>
+                <select class="form-select" style="width:75px; padding:4px 6px; font-size:11.5px;" title="${isEn ? 'Set Count' : 'تعداد ست'}" onchange="updateSingleExSets(${dIdx}, ${sIdx}, this.value)">
+                  <option value="1" ${currentSets===1?'selected':''}>${isEn ? '1 Set' : '۱ ست'}</option>
+                  <option value="2" ${currentSets===2?'selected':''}>${isEn ? '2 Sets' : '۲ ست'}</option>
+                  <option value="3" ${currentSets===3?'selected':''}>${isEn ? '3 Sets' : '۳ ست'}</option>
+                  <option value="4" ${currentSets===4?'selected':''}>${isEn ? '4 Sets' : '۴ ست'}</option>
+                  <option value="5" ${currentSets===5?'selected':''}>${isEn ? '5 Sets' : '۵ ست'}</option>
                 </select>
-                <input type="text" value="${item.reps || '3 × 8–12'}" class="form-input" style="width:85px; padding:4px 6px; font-size:11.5px; direction:ltr;" title="متن ست و تکرار" onchange="updateSingleExReps(${dIdx}, ${sIdx}, this.value)">
-                <button class="btn-header-action" style="padding:3px 7px; font-size:11px; color:#38bdf8;" title="تبدیل این حرکت به یک سوپرست دوتایی" onclick="openConvertToSupersetModal(${dIdx}, ${sIdx})">⚡ سوپرست</button>
-                <button class="btn-header-action" style="padding:3px 6px; font-size:11px;" title="حرکت به بالا" onclick="moveSingleEx(${dIdx}, ${sIdx}, -1)">▲</button>
-                <button class="btn-header-action" style="padding:3px 6px; font-size:11px;" title="حرکت به پایین" onclick="moveSingleEx(${dIdx}, ${sIdx}, 1)">▼</button>
-                <button class="btn-header-action" style="padding:3px 6px; font-size:11px; color:#f87171;" title="حذف حرکت" onclick="removeSingleEx(${dIdx}, ${sIdx})">✕</button>
+                <input type="text" value="${item.reps || '3 × 8–12'}" class="form-input" style="width:85px; padding:4px 6px; font-size:11.5px; direction:ltr;" title="${isEn ? 'Reps / Set Text' : 'متن ست و تکرار'}" onchange="updateSingleExReps(${dIdx}, ${sIdx}, this.value)">
+                <button class="btn-header-action" style="padding:3px 7px; font-size:11px; color:#38bdf8;" title="${isEn ? 'Convert this exercise to superset' : 'تبدیل این حرکت به یک سوپرست دوتایی'}" onclick="openConvertToSupersetModal(${dIdx}, ${sIdx})">⚡ ${isEn ? 'Superset' : 'سوپرست'}</button>
+                <button class="btn-header-action" style="padding:3px 6px; font-size:11px;" title="${isEn ? 'Move Up' : 'حرکت به بالا'}" onclick="moveSingleEx(${dIdx}, ${sIdx}, -1)">▲</button>
+                <button class="btn-header-action" style="padding:3px 6px; font-size:11px;" title="${isEn ? 'Move Down' : 'حرکت به پایین'}" onclick="moveSingleEx(${dIdx}, ${sIdx}, 1)">▼</button>
+                <button class="btn-header-action" style="padding:3px 6px; font-size:11px; color:#f87171;" title="${isEn ? 'Delete Exercise' : 'حذف حرکت'}" onclick="removeSingleEx(${dIdx}, ${sIdx})">✕</button>
               </div>
             </div>
           </div>
@@ -8254,23 +8376,23 @@ function renderEditPlanDaysList() {
               ${dayOptionsHtml}
             </select>
             <select class="form-select" style="width:110px; display:inline-block;" onchange="updateDayType(${dIdx}, this.value)">
-              <option value="gym" ${day.type==='gym'?'selected':''}>🏋️ باشگاه</option>
-              <option value="home" ${day.type==='home'?'selected':''}>🏠 خانه</option>
-              <option value="rest" ${day.type==='rest'?'selected':''}>🛌 استراحت</option>
+              <option value="gym" ${day.type==='gym'?'selected':''}>🏋️ ${isEn ? 'Gym' : 'باشگاه'}</option>
+              <option value="home" ${day.type==='home'?'selected':''}>🏠 ${isEn ? 'Home' : 'خانه'}</option>
+              <option value="rest" ${day.type==='rest'?'selected':''}>🛌 ${isEn ? 'Rest' : 'استراحت'}</option>
             </select>
           </div>
           <div style="display:flex; gap:6px;">
-            <button class="btn-header-action btn-action-primary" style="padding:5px 10px; font-size:12px;" onclick="openAddExToDayModal('${day.id}')">+ افزودن حرکت / سوپرست</button>
-            <button class="btn-header-action" style="padding:5px 8px; color:#f87171;" title="حذف این روز" onclick="removeDay(${dIdx})">🗑️</button>
+            <button class="btn-header-action btn-action-primary" style="padding:5px 10px; font-size:12px;" onclick="openAddExToDayModal('${day.id}')">${isEn ? '+ Add Exercise / Superset' : '+ افزودن حرکت / سوپرست'}</button>
+            <button class="btn-header-action" style="padding:5px 8px; color:#f87171;" title="${isEn ? 'Delete this day' : 'حذف این روز'}" onclick="removeDay(${dIdx})">🗑️</button>
           </div>
         </div>
 
         <!-- Note & Treadmill -->
         <div style="display:flex; gap:10px; margin-bottom:10px; flex-wrap:wrap;">
-          <input type="text" value="${day.note || ''}" placeholder="یادداشت این جلسه..." class="form-input" style="flex:1; min-width:180px; font-size:12px;" onchange="updateDayNote(${dIdx}, this.value)">
+          <input type="text" value="${day.note || ''}" placeholder="${isEn ? 'Session note...' : 'یادداشت این جلسه...'}" class="form-input" style="flex:1; min-width:180px; font-size:12px;" onchange="updateDayNote(${dIdx}, this.value)">
           <label style="display:flex; align-items:center; gap:5px; font-size:12px; color:#cbd5e1; cursor:pointer;">
             <input type="checkbox" ${day.treadmill ? 'checked' : ''} onchange="updateDayTreadmill(${dIdx}, this.checked)">
-            🏃 تردمیل آخر جلسه
+            🏃 ${isEn ? 'Treadmill at end of workout' : 'تردمیل آخر جلسه'}
           </label>
         </div>
 
@@ -8278,7 +8400,7 @@ function renderEditPlanDaysList() {
         <div style="margin-top:8px;">
           ${supersetsHtml}
           ${singlesHtml}
-          ${(!supersetsHtml && !singlesHtml) ? '<div style="font-size:12px; color:var(--text-muted); text-align:center; padding:10px;">هنوز حرکتی برای این روز ثبت نشده است.</div>' : ''}
+          ${(!supersetsHtml && !singlesHtml) ? `<div style="font-size:12px; color:var(--text-muted); text-align:center; padding:10px;">${isEn ? 'No exercises logged for this day yet.' : 'هنوز حرکتی برای این روز ثبت نشده است.'}</div>` : ''}
         </div>
       </div>
     `;
@@ -8355,11 +8477,15 @@ function moveSingleEx(dIdx, sIdx, dir) {
 function removeSingleEx(dIdx, sIdx) {
   const prof = getActiveProfile();
   const ex = findExerciseById(prof.days[dIdx].singles[sIdx].exId);
-  if (confirm(`آیا حرکت "${ex.fa}" حذف شود؟`)) {
+  const isEn = (currentLang === 'en');
+  const exName = isEn ? (ex.en || ex.fa) : (ex.fa || ex.en);
+  const confirmMsg = isEn ? `Are you sure you want to delete "${exName}"?` : `آیا حرکت "${exName}" حذف شود؟`;
+  if (confirm(confirmMsg)) {
     prof.days[dIdx].singles.splice(sIdx, 1);
     saveProfiles();
     renderEditPlanDaysList();
     renderApp();
+    showToast(isEn ? 'Exercise removed.' : 'حرکت حذف شد.');
   }
 }
 
@@ -8458,8 +8584,14 @@ function splitSupersetToSingles(dIdx, ssIdx) {
   const prof = getActiveProfile();
   const day = prof.days[dIdx];
   const ss = day.supersets[ssIdx];
+  const isEn = (currentLang === 'en');
+  const count = ss.exercises.length;
 
-  if (confirm(`آیا می‌خواهید سوپرست "${ss.title}" را تفکیک کنید و به ۲ حرکت تکی تبدیل شود؟`)) {
+  const msg = isEn 
+    ? `Do you want to split superset "${ss.title}" into ${count} single exercises?`
+    : `آیا می‌خواهید سوپرست "${ss.title}" را تفکیک کنید و به ${count} حرکت تکی تبدیل شود؟`;
+
+  if (confirm(msg)) {
     if (!day.singles) day.singles = [];
     ss.exercises.forEach(item => {
       day.singles.push({
@@ -8472,32 +8604,217 @@ function splitSupersetToSingles(dIdx, ssIdx) {
     saveProfiles();
     renderEditPlanDaysList();
     renderApp();
-    showToast('🔓 سوپرست به ۲ حرکت تکی تفکیک شد.');
+    showToast(isEn ? `Superset split into ${count} single exercises.` : `سوپرست به ${count} حرکت تکی تفکیک شد.`);
   }
 }
 
 function removeSuperset(dIdx, ssIdx) {
   const prof = getActiveProfile();
-  if (confirm(`آیا کل این سوپرست حذف شود؟`)) {
+  const isEn = (currentLang === 'en');
+  if (confirm(isEn ? 'Are you sure you want to delete this entire superset?' : 'آیا کل این سوپرست حذف شود؟')) {
     prof.days[dIdx].supersets.splice(ssIdx, 1);
     saveProfiles();
     renderEditPlanDaysList();
     renderApp();
+    showToast(isEn ? 'Superset removed.' : 'سوپرست حذف شد.');
   }
+}
+
+function removeSsExercise(dIdx, ssIdx, exIdx) {
+  const prof = getActiveProfile();
+  const day = prof.days[dIdx];
+  if (!day || !day.supersets || !day.supersets[ssIdx]) return;
+  const ss = day.supersets[ssIdx];
+  const item = ss.exercises[exIdx];
+  const ex = findExerciseById(item.exId);
+  const isEn = (currentLang === 'en');
+  const exName = isEn ? (ex.en || ex.fa) : (ex.fa || ex.en);
+
+  const confirmMsg = isEn 
+    ? `Are you sure you want to remove "${exName}" from this superset?` 
+    : `آیا از حذف حرکت "${exName}" از این سوپرست اطمینان دارید؟`;
+  
+  if (!confirm(confirmMsg)) return;
+
+  if (ss.exercises.length > 2) {
+    // Tri-set or more: remove just this exercise
+    ss.exercises.splice(exIdx, 1);
+    showToast(isEn ? 'Exercise removed from superset.' : 'حرکت از سوپرست حذف شد.');
+  } else {
+    // Exactly 2 exercises: removing one leaves 1 exercise.
+    // Convert the remaining exercise into a single exercise in day.singles
+    const remainingEx = ss.exercises[exIdx === 0 ? 1 : 0];
+    if (!day.singles) day.singles = [];
+    day.singles.push({
+      exId: remainingEx.exId,
+      reps: remainingEx.reps || '3 × 8–12',
+      sets: remainingEx.sets || 3
+    });
+    day.supersets.splice(ssIdx, 1);
+    showToast(isEn ? 'Superset converted to single exercise.' : 'حرکت باقیمانده به لیست حرکات تکی منتقل شد.');
+  }
+  saveProfiles();
+  renderEditPlanDaysList();
+  renderApp();
+}
+
+// Universal Search & Select Exercise Modal Engine
+let activeSearchPickerContext = null; // { type: 'single' | 'ss', dIdx, p2, p3 }
+let activeSearchCategory = 'all';
+
+function openExerciseSearchModal(type, dIdx, p2, p3) {
+  activeSearchPickerContext = { type, dIdx, p2, p3 };
+  activeSearchCategory = 'all';
+
+  const modal = document.getElementById('exerciseSearchModal');
+  const input = document.getElementById('exSearchModalInput');
+  if (input) input.value = '';
+
+  // Reset category buttons
+  const catButtons = document.querySelectorAll('#exSearchCategoryFilter button');
+  catButtons.forEach(btn => btn.classList.remove('active'));
+  if (catButtons[0]) catButtons[0].classList.add('active');
+
+  renderExerciseSearchResults('');
+  if (modal) modal.classList.add('open');
+  if (input) setTimeout(() => input.focus(), 150);
+}
+
+function closeExerciseSearchModal() {
+  const modal = document.getElementById('exerciseSearchModal');
+  if (modal) modal.classList.remove('open');
+  activeSearchPickerContext = null;
+}
+
+function filterExSearchByCat(cat, btn) {
+  activeSearchCategory = cat;
+  const catButtons = document.querySelectorAll('#exSearchCategoryFilter button');
+  catButtons.forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  const term = document.getElementById('exSearchModalInput')?.value || '';
+  renderExerciseSearchResults(term);
+}
+
+function filterExerciseSearchModal(term) {
+  renderExerciseSearchResults(term);
+}
+
+function renderExerciseSearchResults(term) {
+  const container = document.getElementById('exSearchResultsList');
+  if (!container) return;
+
+  const allEx = getAllExercises();
+  const q = (term || '').trim().toLowerCase();
+  const isEn = (currentLang === 'en');
+
+  // Determine currently selected exercise ID
+  let currentSelectedId = null;
+  if (activeSearchPickerContext) {
+    const prof = getActiveProfile();
+    const day = prof.days[activeSearchPickerContext.dIdx];
+    if (day) {
+      if (activeSearchPickerContext.type === 'single' && day.singles) {
+        currentSelectedId = day.singles[activeSearchPickerContext.p2]?.exId;
+      } else if (activeSearchPickerContext.type === 'ss' && day.supersets) {
+        currentSelectedId = day.supersets[activeSearchPickerContext.p2]?.exercises[activeSearchPickerContext.p3]?.exId;
+      }
+    }
+  }
+
+  // Filter exercises
+  const filtered = allEx.filter(ex => {
+    // Category match
+    if (activeSearchCategory !== 'all') {
+      const cat = (ex.category || '').toLowerCase();
+      const musc = (ex.targetMuscles || []).join(' ').toLowerCase();
+      const targetCat = activeSearchCategory.toLowerCase();
+      const matchCat = cat.includes(targetCat) || musc.includes(targetCat);
+      if (!matchCat) return false;
+    }
+
+    // Term match
+    if (!q) return true;
+    const faMatch = (ex.fa || '').toLowerCase().includes(q);
+    const enMatch = (ex.en || '').toLowerCase().includes(q);
+    const muscMatch = (ex.targetMuscles || []).some(m => m.toLowerCase().includes(q));
+    const catMatch = (ex.category || '').toLowerCase().includes(q);
+    return faMatch || enMatch || muscMatch || catMatch;
+  });
+
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center; padding:24px; color:var(--text-muted); font-size:13px;">
+        ${isEn ? 'No exercises found matching your search.' : 'هیچ حرکتی با این مشخصات یافت نشد.'}
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = filtered.map(ex => {
+    const isSelected = (ex.id === currentSelectedId);
+    const primaryName = isEn ? (ex.en || ex.fa) : (ex.fa || ex.en);
+    const secondaryName = isEn ? ex.fa : ex.en;
+    const muscleText = (ex.targetMuscles && ex.targetMuscles.length > 0) ? ex.targetMuscles.join(' · ') : (ex.category || '');
+
+    return `
+      <div class="exercise-search-result-item ${isSelected ? 'selected' : ''}" 
+           onclick="confirmExerciseSelection('${ex.id}')"
+           style="display:flex; justify-content:space-between; align-items:center; padding:10px 12px; background:${isSelected ? 'rgba(56,189,248,0.15)' : 'rgba(255,255,255,0.04)'}; border:1px solid ${isSelected ? '#38bdf8' : 'rgba(255,255,255,0.08)'}; border-radius:10px; cursor:pointer; transition:all 0.15s ease;">
+        <div style="display:flex; flex-direction:column; gap:3px; flex:1; min-width:0;">
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span style="font-weight:700; font-size:13px; color:${isSelected ? '#38bdf8' : 'var(--text-main)'}; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+              ${primaryName}
+            </span>
+            ${secondaryName ? `<span style="font-size:11px; color:var(--text-muted); font-weight:400; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">(${secondaryName})</span>` : ''}
+          </div>
+          ${muscleText ? `<span style="font-size:11px; color:var(--text-muted); display:flex; align-items:center; gap:4px;">🎯 ${muscleText}</span>` : ''}
+        </div>
+        <div style="display:flex; align-items:center; gap:8px; margin-inline-start:10px; flex-shrink:0;">
+          ${isSelected 
+            ? `<span style="font-size:11.5px; font-weight:700; color:#38bdf8; background:rgba(56,189,248,0.2); padding:3px 8px; border-radius:6px;">✓ ${isEn ? 'Selected' : 'انتخاب شده'}</span>`
+            : `<span style="font-size:11.5px; color:#94a3b8; background:rgba(255,255,255,0.06); padding:3px 8px; border-radius:6px;">${isEn ? 'Select' : 'انتخاب'}</span>`
+          }
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function confirmExerciseSelection(selectedExId) {
+  if (!activeSearchPickerContext) return;
+  const { type, dIdx, p2, p3 } = activeSearchPickerContext;
+  const isEn = (currentLang === 'en');
+
+  if (type === 'single') {
+    updateSingleExId(dIdx, p2, selectedExId);
+  } else if (type === 'ss') {
+    updateSsExerciseId(dIdx, p2, p3, selectedExId);
+  }
+
+  closeExerciseSearchModal();
+  renderEditPlanDaysList();
+  renderApp();
+  showToast(isEn ? 'Exercise updated successfully.' : 'حرکت با موفقیت تغییر کرد.');
 }
 
 function removeDay(dIdx) {
   const prof = getActiveProfile();
+  const isEn = (currentLang === 'en');
   if (prof.days.length <= 1) {
-    alert('حداقل یک روز باید در برنامه باقی بماند.');
+    alert(isEn ? 'At least one day must remain in the plan.' : 'حداقل یک روز باید در برنامه باقی بماند.');
     return;
   }
   const dayTitle = prof.days[dIdx].title;
-  if (confirm(`آیا از حذف روز "${dayTitle}" و تمام حرکات داخل آن اطمینان دارید؟`)) {
+  const confirmMsg = isEn 
+    ? `Are you sure you want to delete day "${dayTitle}" and all its exercises?` 
+    : `آیا از حذف روز "${dayTitle}" و تمام حرکات داخل آن اطمینان دارید؟`;
+  if (confirm(confirmMsg)) {
     prof.days.splice(dIdx, 1);
     saveProfiles();
     renderEditPlanDaysList();
     renderApp();
+    showToast(isEn ? 'Day removed.' : 'روز تمرینی حذف شد.');
   }
 }
 

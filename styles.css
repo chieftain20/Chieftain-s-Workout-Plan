@@ -1407,4 +1407,36 @@ body[dir="ltr"],
   text-align: left;
 }
 
+/* Exercise Search Picker Modal Styling */
+.searchable-ex-picker-btn:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(56, 189, 248, 0.4) !important;
+}
+
+.exercise-search-result-item:hover {
+  border-color: #38bdf8 !important;
+  background: rgba(56, 189, 248, 0.09) !important;
+}
+
+[data-theme="light"] .searchable-ex-picker-btn {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .searchable-ex-picker-btn:hover {
+  background: #f1f5f9 !important;
+  border-color: #0284c7 !important;
+}
+
+[data-theme="light"] .exercise-search-result-item {
+  background: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] .exercise-search-result-item:hover {
+  background: #f1f5f9 !important;
+  border-color: #0284c7 !important;
+}
+
 
