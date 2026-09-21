@@ -5316,8 +5316,8 @@ async function fetchUserProfileAndRole(user) {
 
     if (data) {
       currentUserProfile = data;
-      // app_metadata is the trusted server authority; fallback to profiles.role
-      serverAdminVerified = (user.app_metadata?.role === 'admin') || (data.role === 'admin');
+      // app_metadata is the sole authoritative server claim (tamper-proof)
+      serverAdminVerified = (user.app_metadata?.role === 'admin');
       return data;
     } else {
       // First time login: client always inserts with role: 'user' (never self-elevates)
@@ -5353,10 +5353,15 @@ function clearLocalUserData() {
     }
     keysToRemove.forEach(k => localStorage.removeItem(k));
 
-    // 2. Reset in-memory logs cache if present
+    // 2. Remove user-specific custom exercises and drop admin unlocked state
+    localStorage.removeItem('chieftain_custom_exercises');
+    customExercises = [];
+    localStorage.removeItem('chieftain_admin_unlocked');
+
+    // 3. Reset in-memory logs cache if present
     if (typeof cachedExerciseLogs !== 'undefined') cachedExerciseLogs = {};
 
-    // 3. Reset profiles to clean default templates
+    // 4. Reset profiles to clean default templates
     const maleTemplate = JSON.parse(JSON.stringify(TEMPLATE_MALE_PROFILE));
     maleTemplate.id = 'template_male';
     const femaleTemplate = JSON.parse(JSON.stringify(TEMPLATE_FEMALE_PROFILE));

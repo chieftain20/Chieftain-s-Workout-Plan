@@ -59,8 +59,6 @@ CREATE INDEX IF NOT EXISTS idx_body_metrics_user_id ON public.body_metrics(user_
 
 ## 2. Row Level Security (RLS) & Anti-Tamper Trigger
 
-Row Level Security guarantees that **no user can read, insert, update, or delete data belonging to another user**, even if requests are made directly with the public `anon` key.
-
 Execute the following SQL in the **SQL Editor**:
 
 ```sql
@@ -82,21 +80,32 @@ DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
 CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE TO authenticated USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
 
 -- Step 3: Anti-Tamper Trigger for Role Escalation Prevention
--- Prevents users from elevating themselves to 'admin' during INSERT or UPDATE
+-- Evaluates caller's JWT role claim (auth.role() / request.jwt.claims)
 CREATE OR REPLACE FUNCTION public.prevent_profile_role_escalation()
 RETURNS trigger
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
 AS $$
+DECLARE
+    caller_role text;
 BEGIN
-    IF current_user = 'authenticated' THEN
-        -- Prevent INSERT with any role other than 'user'
+    -- In Supabase PostgREST, extract caller's JWT role:
+    caller_role := COALESCE(
+        auth.role(),
+        (current_setting('request.jwt.claims', true)::jsonb ->> 'role'),
+        current_setting('request.jwt.claim.role', true),
+        ''
+    );
+
+    -- If caller is authenticated user or anon (calling via PostgREST / client API):
+    IF caller_role IN ('authenticated', 'anon') THEN
+        -- Prevent INSERT with elevated role
         IF TG_OP = 'INSERT' AND NEW.role IS DISTINCT FROM 'user' THEN
             RAISE EXCEPTION 'Cannot create profile with elevated role';
         END IF;
 
-        -- Prevent UPDATE of role column by authenticated client
+        -- Prevent UPDATE of role column
         IF TG_OP = 'UPDATE' AND OLD.role IS DISTINCT FROM NEW.role THEN
             RAISE EXCEPTION 'Cannot change profile role';
         END IF;
@@ -112,7 +121,11 @@ BEFORE INSERT OR UPDATE ON public.profiles
 FOR EACH ROW
 EXECUTE FUNCTION public.prevent_profile_role_escalation();
 
--- Step 4: Policy for user_routines
+-- Step 4: Defense-in-Depth: Revoke UPDATE permission on role column from authenticated role
+REVOKE UPDATE (role) ON public.profiles FROM authenticated;
+GRANT UPDATE (display_name, avatar_url, updated_at) ON public.profiles TO authenticated;
+
+-- Step 5: Policy for user_routines
 DROP POLICY IF EXISTS "Users can manage own routines" ON public.user_routines;
 CREATE POLICY "Users can manage own routines"
 ON public.user_routines
@@ -121,7 +134,7 @@ TO authenticated
 USING (auth.uid() = user_id)
 WITH CHECK (auth.uid() = user_id);
 
--- Step 5: Policy for workout_logs
+-- Step 6: Policy for workout_logs
 DROP POLICY IF EXISTS "Users can manage own logs" ON public.workout_logs;
 DROP POLICY IF EXISTS "Users can manage own workout logs" ON public.workout_logs;
 CREATE POLICY "Users can manage own workout logs"
@@ -131,7 +144,7 @@ TO authenticated
 USING (auth.uid() = user_id)
 WITH CHECK (auth.uid() = user_id);
 
--- Step 6: Policy for body_metrics
+-- Step 7: Policy for body_metrics
 DROP POLICY IF EXISTS "Users can manage own metrics" ON public.body_metrics;
 DROP POLICY IF EXISTS "Users can manage own body metrics" ON public.body_metrics;
 CREATE POLICY "Users can manage own body metrics"
@@ -146,69 +159,60 @@ WITH CHECK (auth.uid() = user_id);
 
 ## 3. Role-Based Access Control (RBAC) & Admin Promotion
 
-The application enforces a dual-source role verification:
-- `public.profiles.role`: Database metadata for display and profile information.
-- `user.app_metadata.role`: Trusted, tamper-proof server-side authorization claim. If there is any discrepancy, `app_metadata` is the authoritative source.
+The application enforces strict server-side role verification:
+- `user.app_metadata.role`: **The authoritative, tamper-proof source.** `app_metadata` can ONLY be modified via the Supabase Service Role or the Supabase Dashboard. Regular authenticated clients cannot write to `app_metadata`.
+- `public.profiles.role`: Display / profile metadata (protected by RLS and database trigger).
 
 ### How to Promote a User to Admin:
-Only trusted administrators with Supabase dashboard/service-role access can promote users:
+In your Supabase Dashboard:
 
-1. **Option A (SQL Editor in Supabase Dashboard):**
+1. **Option A (SQL Editor - Superuser):**
    ```sql
+   -- 1. Grant admin role in app_metadata (Authoritative):
+   UPDATE auth.users
+   SET raw_app_meta_data = raw_app_meta_data || '{"role": "admin"}'::jsonb
+   WHERE id = '<USER_UUID>';
+
+   -- 2. Update profiles table:
    UPDATE public.profiles
    SET role = 'admin'
    WHERE id = '<USER_UUID>';
    ```
-   *(Runs as superuser `postgres`, so it bypasses the `authenticated` trigger).*
 
-2. **Option B (Supabase Auth Admin API):**
-   Assign `role = 'admin'` to `app_metadata` using the service role key.
-
----
-
-## 4. Security Verification Plan (5 Critical Tests)
-
-To verify database security and isolation:
-
-### Test A — Normal user attempts self-promotion via UPDATE:
-```sql
--- Executed with an authenticated user's JWT / session:
-UPDATE public.profiles SET role = 'admin' WHERE id = auth.uid();
--- Expected result: ❌ Fails with exception: "Cannot change profile role"
-```
-
-### Test B — Normal user attempts admin injection via INSERT:
-```sql
--- Executed with an authenticated user's JWT / session:
-INSERT INTO public.profiles (id, display_name, role) VALUES (auth.uid(), 'Hacker', 'admin');
--- Expected result: ❌ Fails with exception: "Cannot create profile with elevated role"
-```
-
-### Test C — User A attempts to edit User B's profile:
-```sql
--- Executed as User A:
-UPDATE public.profiles SET display_name = 'Hacked' WHERE id = '<USER_B_UUID>';
--- Expected result: ❌ 0 rows affected / RLS violation
-```
-
-### Test D — User A attempts to read User B's workout logs:
-```sql
--- Executed as User A:
-SELECT * FROM public.workout_logs WHERE user_id = '<USER_B_UUID>';
--- Expected result: 0 rows returned
-```
-
-### Test E — User A attempts to overwrite User B's workout logs:
-```sql
--- Executed as User A:
-UPDATE public.workout_logs SET log_entry = '{"tampered":true}'::jsonb WHERE user_id = '<USER_B_UUID>';
--- Expected result: ❌ 0 rows affected / RLS violation
-```
+2. **Option B (Supabase Dashboard UI):**
+   - Go to **Authentication > Users**.
+   - Click on the user and edit **User Metadata / App Metadata**, setting `role` to `admin`.
 
 ---
 
-## 5. Client Session Isolation (Logout / Switch User)
+## 4. Verification Tests (5 Database Isolation Tests)
 
-To prevent cross-account data leakage in the browser:
-- When a user logs out (`handleSupabaseLogout`), all user-specific localStorage entries (`chieftain_logs_*`, `chieftain_metrics_*`, `chieftain_sets_*`) are wiped via `clearLocalUserData()`, and workout routines are reset to the standard templates (`TEMPLATE_MALE_PROFILE`, `TEMPLATE_FEMALE_PROFILE`).
-- When a new user logs in (`user.id !== lastAuthUserId`), the previous user's local state is automatically purged before loading the new user's remote cloud data.
+You can verify all policies and triggers directly in the Supabase SQL Editor using simulated authenticated sessions:
+
+```sql
+-- Setup: Simulate User A
+SET LOCAL ROLE authenticated;
+SET LOCAL "request.jwt.claims" = '{"sub": "11111111-1111-1111-1111-111111111111", "role": "authenticated"}';
+
+-- Test A: User A attempts self-promotion via UPDATE
+UPDATE public.profiles SET role = 'admin' WHERE id = '11111111-1111-1111-1111-111111111111';
+-- Result: ❌ ERROR: Cannot change profile role (or permission denied for column role)
+
+-- Test B: User A attempts to insert profile with role='admin'
+INSERT INTO public.profiles (id, display_name, role) VALUES ('11111111-1111-1111-1111-111111111111', 'Attacker', 'admin');
+-- Result: ❌ ERROR: Cannot create profile with elevated role
+
+-- Test C: User A attempts to update User B's profile
+UPDATE public.profiles SET display_name = 'Hacked' WHERE id = '22222222-2222-2222-2222-222222222222';
+-- Result: ❌ 0 rows affected (RLS violation)
+
+-- Test D: User A attempts to read User B's workout logs
+SELECT * FROM public.workout_logs WHERE user_id = '22222222-2222-2222-2222-222222222222';
+-- Result: 0 rows returned (RLS isolation)
+
+-- Test E: User A attempts to update User B's workout logs
+UPDATE public.workout_logs SET log_entry = '{"tampered":true}'::jsonb WHERE user_id = '22222222-2222-2222-2222-222222222222';
+-- Result: ❌ 0 rows affected (RLS isolation)
+
+RESET ROLE;
+```

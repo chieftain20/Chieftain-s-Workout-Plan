@@ -67,6 +67,7 @@ create policy "Users can update own profile" on public.profiles for update to au
 -- ==============================================================================
 -- 🛡️ تریگر حفاظتی ضد دستکاری سطح دسترسی (Role Escalation Protection Trigger)
 -- مرجع اصلی جلوگیری از ارتقای خودکار سطح دسترسی به ادمین در سطح دیتابیس
+-- تشخیص بر اساس Claim نقش در JWT کلاینت (auth.role() / request.jwt.claims)
 -- ==============================================================================
 create or replace function public.prevent_profile_role_escalation()
 returns trigger
@@ -74,8 +75,19 @@ language plpgsql
 security definer
 set search_path = public
 as $$
+declare
+    caller_role text;
 begin
-    if current_user = 'authenticated' then
+    -- در درخواست‌های PostgREST کلاینت، نقش از JWT خوانده می‌شود:
+    caller_role := coalesce(
+        auth.role(),
+        (current_setting('request.jwt.claims', true)::jsonb ->> 'role'),
+        current_setting('request.jwt.claim.role', true),
+        ''
+    );
+
+    -- اگر فراخواننده یک کاربر عادی (authenticated) یا مهمان (anon) باشد:
+    if caller_role in ('authenticated', 'anon') then
         -- جلوگیری از درج پروفایل با نقشی غیر از user
         if tg_op = 'INSERT' and new.role is distinct from 'user' then
             raise exception 'Cannot create profile with elevated role';
@@ -96,6 +108,10 @@ create trigger prevent_profile_role_escalation
 before insert or update on public.profiles
 for each row
 execute function public.prevent_profile_role_escalation();
+
+-- لایه حفاظتی مضاعف: سلب اجازه ویرایش ستون role در سطح مجوزهای ستونی PostgreSQL
+revoke update (role) on public.profiles from authenticated;
+grant update (display_name, avatar_url, updated_at) on public.profiles to authenticated;
 
 -- ==============================================================================
 -- سیاست‌های دسترسی سایر جداول داده‌های کاربران
