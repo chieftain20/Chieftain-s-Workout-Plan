@@ -2755,7 +2755,7 @@ body[dir="ltr"],
       <div id="authSignupForm" style="display:none;">
         <div style="margin-bottom:10px;">
           <label id="authSignupNameLabel" class="form-label">👤 نام یا نام مستعار:</label>
-          <input type="text" id="signupName" class="form-input" placeholder="مثلاً: علی، سارا">
+          <input type="text" id="signupName" class="form-input" placeholder="مثلاً: علی، سارا" data-en-placeholder="e.g. Sam, Sarah">
         </div>
         <div style="margin-bottom:10px;">
           <label id="authSignupEmailLabel" class="form-label">📧 ایمیل:</label>
@@ -2815,8 +2815,10 @@ body[dir="ltr"],
       </div>
     </div>
   </div>
+</div>
+
 <!-- Dedicated Master Exercise Editor Modal (Admin Only) -->
-<div id="editMasterExModal" class="modal-overlay">
+<div id="editMasterExModal" class="modal-overlay" style="z-index: 1100;">
   <div class="modal-dialog" style="max-width: 520px;">
     <button class="modal-close-btn" onclick="closeEditMasterExModal()">✕</button>
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
@@ -5703,6 +5705,9 @@ const UI_TRANSLATIONS_MAP = {
   "عضلات هدف": "Target Muscles",
   "عضلات هدف:": "Target Muscles:",
   "عنوان (مثلاً: آموزش ۱)": "Title (e.g. Video 1)",
+  "مثلاً: علی، سارا": "e.g. Sam, Sarah",
+  "علی، سارا": "Sam, Sarah",
+  "e.g. علی، سارا": "e.g. Sam, Sarah",
   "عنوان دلخواه سوپرست...": "Custom Superset Title...",
   "عنوان سوپرست": "Superset Title",
   "فیلتر بانک:": "Bank Filter:",
@@ -5915,9 +5920,12 @@ function applyDOMTranslations() {
     if (!el.hasAttribute('data-fa-placeholder')) {
       el.setAttribute('data-fa-placeholder', el.getAttribute('placeholder') || '');
     }
+    const enPh = el.getAttribute('data-en-placeholder');
     const faPh = el.getAttribute('data-fa-placeholder');
-    if (faPh) {
-      el.setAttribute('placeholder', isEn ? translateText(faPh) : faPh);
+    if (isEn) {
+      el.setAttribute('placeholder', enPh || translateText(faPh));
+    } else {
+      el.setAttribute('placeholder', faPh);
     }
   });
 
@@ -6064,7 +6072,7 @@ function updateStaticUIText() {
 
   // Confidential Coach & Admin Access Box in Auth Modal
   const signupName = document.getElementById('signupName');
-  if (signupName) signupName.placeholder = isEn ? 'e.g. Sam, Alex' : 'مثلاً: علی، سارا';
+  if (signupName) signupName.placeholder = isEn ? 'e.g. Sam, Sarah' : 'مثلاً: علی، سارا';
   const authAdminAccessTitle = document.getElementById('authAdminAccessTitle');
   if (authAdminAccessTitle) authAdminAccessTitle.innerText = isEn ? 'Coach & Admin Access' : 'ورود مربی و ادمین / Coach & Admin Access';
   const authAdminAccessDesc = document.getElementById('authAdminAccessDesc');

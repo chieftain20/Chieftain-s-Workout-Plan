@@ -1154,7 +1154,7 @@
       <div id="authSignupForm" style="display:none;">
         <div style="margin-bottom:10px;">
           <label id="authSignupNameLabel" class="form-label">👤 نام یا نام مستعار:</label>
-          <input type="text" id="signupName" class="form-input" placeholder="مثلاً: علی، سارا">
+          <input type="text" id="signupName" class="form-input" placeholder="مثلاً: علی، سارا" data-en-placeholder="e.g. Sam, Sarah">
         </div>
         <div style="margin-bottom:10px;">
           <label id="authSignupEmailLabel" class="form-label">📧 ایمیل:</label>
@@ -1214,8 +1214,10 @@
       </div>
     </div>
   </div>
+</div>
+
 <!-- Dedicated Master Exercise Editor Modal (Admin Only) -->
-<div id="editMasterExModal" class="modal-overlay">
+<div id="editMasterExModal" class="modal-overlay" style="z-index: 1100;">
   <div class="modal-dialog" style="max-width: 520px;">
     <button class="modal-close-btn" onclick="closeEditMasterExModal()">✕</button>
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">

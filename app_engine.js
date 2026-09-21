@@ -497,6 +497,9 @@ const UI_TRANSLATIONS_MAP = {
   "عضلات هدف": "Target Muscles",
   "عضلات هدف:": "Target Muscles:",
   "عنوان (مثلاً: آموزش ۱)": "Title (e.g. Video 1)",
+  "مثلاً: علی، سارا": "e.g. Sam, Sarah",
+  "علی، سارا": "Sam, Sarah",
+  "e.g. علی، سارا": "e.g. Sam, Sarah",
   "عنوان دلخواه سوپرست...": "Custom Superset Title...",
   "عنوان سوپرست": "Superset Title",
   "فیلتر بانک:": "Bank Filter:",
@@ -709,9 +712,12 @@ function applyDOMTranslations() {
     if (!el.hasAttribute('data-fa-placeholder')) {
       el.setAttribute('data-fa-placeholder', el.getAttribute('placeholder') || '');
     }
+    const enPh = el.getAttribute('data-en-placeholder');
     const faPh = el.getAttribute('data-fa-placeholder');
-    if (faPh) {
-      el.setAttribute('placeholder', isEn ? translateText(faPh) : faPh);
+    if (isEn) {
+      el.setAttribute('placeholder', enPh || translateText(faPh));
+    } else {
+      el.setAttribute('placeholder', faPh);
     }
   });
 
@@ -858,7 +864,7 @@ function updateStaticUIText() {
 
   // Confidential Coach & Admin Access Box in Auth Modal
   const signupName = document.getElementById('signupName');
-  if (signupName) signupName.placeholder = isEn ? 'e.g. Sam, Alex' : 'مثلاً: علی، سارا';
+  if (signupName) signupName.placeholder = isEn ? 'e.g. Sam, Sarah' : 'مثلاً: علی، سارا';
   const authAdminAccessTitle = document.getElementById('authAdminAccessTitle');
   if (authAdminAccessTitle) authAdminAccessTitle.innerText = isEn ? 'Coach & Admin Access' : 'ورود مربی و ادمین / Coach & Admin Access';
   const authAdminAccessDesc = document.getElementById('authAdminAccessDesc');
