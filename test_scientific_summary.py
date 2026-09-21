@@ -136,7 +136,15 @@ EXERCISE_MUSCLE_MAPPING = {
     'onhand_plank_knee_in': ['شکم'],
     'straight_arm_bear_plank_knee_extension': ['شکم'],
     'pike_plank_kickback': ['شکم'],
-    'push_up_plus': ['شکم']
+    'push_up_plus': ['شکم'],
+    'cust_1788626478522': ['ساق'],
+    'cust_1788626968174': ['ساق'],
+    'cust_1788627494546': ['سینه'],
+    'cust_1788627548162': ['سینه'],
+    'cust_1789820131011': ['شکم'],
+    'cust_1789844260437': ['شکم'],
+    'cust_1789848449999': ['شکم'],
+    'cust_1789848630225': ['شکم']
 }
 
 with open('master_exercises.json', 'r', encoding='utf-8') as f:

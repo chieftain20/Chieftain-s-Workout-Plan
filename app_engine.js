@@ -5316,21 +5316,21 @@ async function fetchUserProfileAndRole(user) {
 
     if (data) {
       currentUserProfile = data;
-      serverAdminVerified = (data.role === 'admin' || user.app_metadata?.role === 'admin');
+      // app_metadata is the trusted server authority; fallback to profiles.role
+      serverAdminVerified = (user.app_metadata?.role === 'admin') || (data.role === 'admin');
       return data;
     } else {
-      // First time login: insert profile record into profiles table
-      const initialRole = (user.app_metadata?.role === 'admin') ? 'admin' : 'user';
+      // First time login: client always inserts with role: 'user' (never self-elevates)
       const newProfile = {
         id: user.id,
         display_name: user.user_metadata?.display_name || user.email?.split('@')[0] || 'User',
         avatar_url: user.user_metadata?.avatar_url || '',
-        role: initialRole,
+        role: 'user',
         updated_at: new Date().toISOString()
       };
       await supabaseClient.from('profiles').insert(newProfile);
       currentUserProfile = newProfile;
-      serverAdminVerified = (initialRole === 'admin');
+      serverAdminVerified = (user.app_metadata?.role === 'admin');
       return newProfile;
     }
   } catch(e) {
@@ -5341,8 +5341,43 @@ async function fetchUserProfileAndRole(user) {
   }
 }
 
+function clearLocalUserData() {
+  try {
+    // 1. Remove all user-specific logs, metrics, and temporary sets from localStorage
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && (k.startsWith('chieftain_logs_') || k.startsWith('chieftain_metrics_') || k.startsWith('chieftain_sets_'))) {
+        keysToRemove.push(k);
+      }
+    }
+    keysToRemove.forEach(k => localStorage.removeItem(k));
+
+    // 2. Reset in-memory logs cache if present
+    if (typeof cachedExerciseLogs !== 'undefined') cachedExerciseLogs = {};
+
+    // 3. Reset profiles to clean default templates
+    const maleTemplate = JSON.parse(JSON.stringify(TEMPLATE_MALE_PROFILE));
+    maleTemplate.id = 'template_male';
+    const femaleTemplate = JSON.parse(JSON.stringify(TEMPLATE_FEMALE_PROFILE));
+    femaleTemplate.id = 'template_female';
+    allProfiles = [maleTemplate, femaleTemplate];
+    activeProfileId = 'template_male';
+    localStorage.setItem('chieftain_profiles_v9', JSON.stringify(allProfiles));
+    localStorage.setItem('chieftain_active_profile_id', activeProfileId);
+  } catch(e) {
+    console.error('Error in clearLocalUserData:', e);
+  }
+}
+
 async function handleAuthSessionChanged(user) {
   if (user) {
+    const lastUserId = localStorage.getItem('chieftain_last_auth_user_id');
+    if (lastUserId && lastUserId !== user.id) {
+      console.log('Account switch detected:', lastUserId, '->', user.id, '- clearing previous user local data');
+      clearLocalUserData();
+    }
+    localStorage.setItem('chieftain_last_auth_user_id', user.id);
     await fetchUserProfileAndRole(user);
   } else {
     serverAdminVerified = false;
@@ -5462,10 +5497,14 @@ async function handleSupabaseSignup() {
 
 async function handleSupabaseLogout() {
   if (!supabaseClient) return;
-  if (confirm('آیا مایلید از حساب کاربری خود خارج شوید؟')) {
+  const isEn = currentLang === 'en';
+  if (confirm(isEn ? 'Are you sure you want to log out?' : 'آیا مایلید از حساب کاربری خود خارج شوید؟')) {
     await supabaseClient.auth.signOut();
+    localStorage.removeItem('chieftain_last_auth_user_id');
+    clearLocalUserData();
     updateAuthUI(null);
-    showToast('از حساب کاربری خارج شدید.');
+    renderApp(true);
+    showToast(isEn ? 'Logged out successfully.' : 'از حساب کاربری خارج شدید.');
     closeAuthModal();
   }
 }
@@ -5775,6 +5814,13 @@ function openSyncBackupModal() {
     }
   }
 
+  const noticeEl = document.getElementById('backupPrivacyNotice');
+  if (noticeEl) {
+    noticeEl.innerHTML = isEn
+      ? '<strong>Privacy Notice:</strong> This file or link may contain personal workout routines, body metrics, and logs. Do not share it publicly or with untrusted individuals.'
+      : '<strong>هشدار حریم خصوصی:</strong> این فایل یا لینک ممکن است شامل اطلاعات شخصی، اندازه‌های بدن و سوابق تمرینی شما باشد. آن را با افراد ناشناس یا در مکان‌های عمومی به اشتراک نگذارید.';
+  }
+
   document.getElementById('syncBackupModal')?.classList.add('open');
 }
 
@@ -5784,19 +5830,20 @@ function closeSyncBackupModal() {
 
 function copyDirectSyncLink() {
   const syncInput = document.getElementById('syncUrlDisplayInput');
+  const isEn = currentLang === 'en';
   if (syncInput && syncInput.value) {
     syncInput.select();
     syncInput.setSelectionRange(0, 99999);
     try {
       navigator.clipboard.writeText(syncInput.value).then(() => {
-        showToast('📋 لینک با موفقیت کپی شد!');
+        showToast(isEn ? '📋 Sync link copied! (Keep private)' : '📋 لینک همگام‌سازی کپی شد! (حاوی اطلاعات شخصی؛ عمومی اشتراک نگذارید)');
       }).catch(() => {
         document.execCommand('copy');
-        showToast('📋 لینک کپی شد!');
+        showToast(isEn ? '📋 Sync link copied! (Keep private)' : '📋 لینک همگام‌سازی کپی شد! (حاوی اطلاعات شخصی؛ عمومی اشتراک نگذارید)');
       });
     } catch(e) {
       document.execCommand('copy');
-      showToast('📋 لینک کپی شد!');
+      showToast(isEn ? '📋 Sync link copied! (Keep private)' : '📋 لینک همگام‌سازی کپی شد! (حاوی اطلاعات شخصی؛ عمومی اشتراک نگذارید)');
     }
   }
 }
@@ -5868,7 +5915,8 @@ function downloadBackupJson() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    showToast('📥 فایل پشتیبان با موفقیت دانلود شد!');
+    const isEn = currentLang === 'en';
+    showToast(isEn ? '📥 Backup downloaded! (Contains personal data; keep private)' : '📥 فایل پشتیبان با موفقیت دانلود شد! (حاوی اطلاعات شخصی؛ خصوصی نگهداری شود)');
   } catch(e) {
     alert('خطا در دانلود پشتیبان: ' + e.message);
   }
