@@ -5305,8 +5305,6 @@ const TEMPLATE_FEMALE_PROFILE = {
     }
   ]
 };
-const HOSSEIN_PROFILE = TEMPLATE_MALE_PROFILE;
-const MORVARID_PROFILE = TEMPLATE_FEMALE_PROFILE;
 
 // --- Application State Management ---
 let currentAuthUser = null;
@@ -6398,7 +6396,7 @@ function loadAppData() {
 
   let tMale = allProfiles.find(p => p.id === 'template_male');
   if (!tMale) {
-    tMale = JSON.parse(JSON.stringify(HOSSEIN_PROFILE));
+    tMale = JSON.parse(JSON.stringify(TEMPLATE_MALE_PROFILE));
     tMale.id = 'template_male';
     tMale.name = 'برنامه نمونه آقایان (هایپرتروفی ۵ روزه)';
     allProfiles.unshift(tMale);
@@ -6406,7 +6404,7 @@ function loadAppData() {
 
   let tFemale = allProfiles.find(p => p.id === 'template_female');
   if (!tFemale) {
-    tFemale = JSON.parse(JSON.stringify(MORVARID_PROFILE));
+    tFemale = JSON.parse(JSON.stringify(TEMPLATE_FEMALE_PROFILE));
     tFemale.id = 'template_female';
     tFemale.name = 'برنامه نمونه بانوان (تناسب اندام و فرم‌دهی)';
     allProfiles.push(tFemale);
@@ -6440,13 +6438,16 @@ try {
 }
 
 function isAdminUnlocked() {
+  // 1. Server-verified role from Supabase profiles table or JWT app_metadata
+  if (typeof serverAdminVerified !== 'undefined' && serverAdminVerified) {
+    return true;
+  }
   if (typeof currentAuthUser !== 'undefined' && currentAuthUser) {
-    if (currentAuthUser.app_metadata?.role === 'admin' ||
-        currentAuthUser.user_metadata?.role === 'admin' ||
-        currentAuthUser.user_metadata?.is_admin === true) {
+    if (currentAuthUser.app_metadata?.role === 'admin') {
       return true;
     }
   }
+  // 2. Local offline PIN unlock (Device-level UI gate for offline PWA)
   return localStorage.getItem('chieftain_admin_unlocked') === 'true';
 }
 
@@ -6605,7 +6606,7 @@ function findExerciseById(id) {
 }
 
 function getActiveProfile() {
-  return allProfiles.find(p => p.id === activeProfileId) || HOSSEIN_PROFILE;
+  return allProfiles.find(p => p.id === activeProfileId) || TEMPLATE_MALE_PROFILE;
 }
 
 function parseSetsFromReps(repsStr, fallbackSets) {
@@ -6666,10 +6667,10 @@ function renderApp(preserveScroll = true, targetCardExId = null) {
     if (!workoutContent.innerHTML || workoutContent.innerHTML.trim() === '') {
       console.warn('[Chieftain] Detected empty workoutContent. Self-healing from built-in profile...');
       const prof = getActiveProfile();
-      if (prof.id === 'hossein_chieftain') {
-        prof.days = JSON.parse(JSON.stringify(HOSSEIN_PROFILE.days));
-      } else if (prof.id === 'morvarid') {
-        prof.days = JSON.parse(JSON.stringify(MORVARID_PROFILE.days));
+      if (prof.id === 'morvarid' || prof.id === 'template_female') {
+        prof.days = JSON.parse(JSON.stringify(TEMPLATE_FEMALE_PROFILE.days));
+      } else {
+        prof.days = JSON.parse(JSON.stringify(TEMPLATE_MALE_PROFILE.days));
       }
       saveProfiles();
       try { renderWorkoutDays(); } catch(err) {}
@@ -7912,10 +7913,10 @@ function renderWorkoutDays() {
   // Defensive validation: if prof or prof.days is missing/empty, self-heal immediately
   if (!prof || !Array.isArray(prof.days) || prof.days.length === 0) {
     console.warn('[Chieftain] Active profile days empty or invalid. Restoring from defaults...');
-    if (activeProfileId === 'morvarid') {
-      prof = JSON.parse(JSON.stringify(MORVARID_PROFILE));
+    if (activeProfileId === 'morvarid' || activeProfileId === 'template_female') {
+      prof = JSON.parse(JSON.stringify(TEMPLATE_FEMALE_PROFILE));
     } else {
-      prof = JSON.parse(JSON.stringify(HOSSEIN_PROFILE));
+      prof = JSON.parse(JSON.stringify(TEMPLATE_MALE_PROFILE));
     }
     const idx = allProfiles.findIndex(p => p.id === prof.id);
     if (idx >= 0) allProfiles[idx] = prof;
@@ -8024,7 +8025,7 @@ function renderWorkoutDays() {
 
   // Guaranteed fallback: If daysHtml is empty, render default profile directly
   if (!daysHtml || daysHtml.trim() === '') {
-    const fallbackDays = (activeProfileId === 'morvarid' ? MORVARID_PROFILE.days : HOSSEIN_PROFILE.days);
+    const fallbackDays = (activeProfileId === 'morvarid' || activeProfileId === 'template_female' ? TEMPLATE_FEMALE_PROFILE.days : TEMPLATE_MALE_PROFILE.days);
     daysHtml = fallbackDays.map(day => `
       <section id="${day.id}" class="day-section">
         <div class="day-header"><h2 class="day-title">${day.title}</h2></div>
@@ -8199,10 +8200,10 @@ function saveNewProfile() {
   const newId = 'prof_' + Date.now();
 
   let newDays = [];
-  if (template === 'clone') {
-    newDays = JSON.parse(JSON.stringify(HOSSEIN_PROFILE.days));
-  } else if (template === 'morvarid') {
-    newDays = JSON.parse(JSON.stringify(MORVARID_PROFILE.days));
+  if (template === 'clone' || template === 'male') {
+    newDays = JSON.parse(JSON.stringify(TEMPLATE_MALE_PROFILE.days));
+  } else if (template === 'morvarid' || template === 'female') {
+    newDays = JSON.parse(JSON.stringify(TEMPLATE_FEMALE_PROFILE.days));
   } else {
     newDays = [
       { id: 'd1', title: 'شنبه', type: 'gym', badge: '🏋️ باشگاه', note: '', treadmill: false, supersets: [], singles: [] }
@@ -8248,9 +8249,9 @@ function factoryResetActiveProfile() {
   const prof = getActiveProfile();
   if (confirm(`آیا می‌خواهید تمام روزهای اصلی برای "${prof.name}" بازیابی شوند؟`)) {
     if (prof.id === 'morvarid' || prof.id === 'template_female') {
-      prof.days = JSON.parse(JSON.stringify(MORVARID_PROFILE.days));
+      prof.days = JSON.parse(JSON.stringify(TEMPLATE_FEMALE_PROFILE.days));
     } else {
-      prof.days = JSON.parse(JSON.stringify(HOSSEIN_PROFILE.days));
+      prof.days = JSON.parse(JSON.stringify(TEMPLATE_MALE_PROFILE.days));
     }
     saveProfiles();
     renderEditPlanDaysList();
@@ -10559,17 +10560,25 @@ function updateAuthUI(user) {
 
   if (user) {
     currentAuthUser = user;
-    const name = user.user_metadata?.display_name || user.email?.split('@')[0] || 'کاربر';
-    if (btnText) btnText.innerText = name;
+    const name = currentUserProfile?.display_name || user.user_metadata?.display_name || user.email?.split('@')[0] || 'کاربر';
+    if (btnText) {
+      btnText.innerText = serverAdminVerified ? `👑 ${name}` : name;
+    }
     if (btn) {
-      btn.style.borderColor = '#10b981aa';
-      btn.style.color = '#34d399';
-      btn.style.background = 'rgba(16,185,129,0.18)';
+      btn.style.borderColor = serverAdminVerified ? '#fbbf24aa' : '#10b981aa';
+      btn.style.color = serverAdminVerified ? '#fbbf24' : '#34d399';
+      btn.style.background = serverAdminVerified ? 'rgba(245,158,11,0.18)' : 'rgba(16,185,129,0.18)';
     }
     if (loggedOutView) loggedOutView.style.display = 'none';
     if (loggedInView) loggedInView.style.display = 'block';
     if (emailDisplay) emailDisplay.innerText = user.email || '';
-    if (nameDisplay) nameDisplay.innerText = `خوش آمدید، ${name}`;
+    if (nameDisplay) {
+      const isEn = currentLang === 'en';
+      const roleBadge = serverAdminVerified 
+        ? (isEn ? ' (👑 Verified Admin)' : ' (👑 ادمین تایید شده سرور)') 
+        : (isEn ? ' (Member)' : ' (عضو)');
+      nameDisplay.innerText = isEn ? `Welcome, ${name}${roleBadge}` : `خوش آمدید، ${name}${roleBadge}`;
+    }
 
     const appTitleEl = document.getElementById('appTitle');
     if (appTitleEl) {
@@ -10582,6 +10591,8 @@ function updateAuthUI(user) {
     updateAdminUI();
   } else {
     currentAuthUser = null;
+    serverAdminVerified = false;
+    currentUserProfile = null;
     if (btnText) btnText.innerText = 'ورود / حساب';
     if (btn) {
       btn.style.borderColor = '#10b981aa';
@@ -10595,7 +10606,56 @@ function updateAuthUI(user) {
   }
 }
 
+let serverAdminVerified = false;
+let currentUserProfile = null;
+
+async function fetchUserProfileAndRole(user) {
+  if (!supabaseClient || !user) {
+    serverAdminVerified = false;
+    currentUserProfile = null;
+    return null;
+  }
+  try {
+    const { data, error } = await supabaseClient
+      .from('profiles')
+      .select('id, display_name, avatar_url, role')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    if (data) {
+      currentUserProfile = data;
+      serverAdminVerified = (data.role === 'admin' || user.app_metadata?.role === 'admin');
+      return data;
+    } else {
+      // First time login: insert profile record into profiles table
+      const initialRole = (user.app_metadata?.role === 'admin') ? 'admin' : 'user';
+      const newProfile = {
+        id: user.id,
+        display_name: user.user_metadata?.display_name || user.email?.split('@')[0] || 'User',
+        avatar_url: user.user_metadata?.avatar_url || '',
+        role: initialRole,
+        updated_at: new Date().toISOString()
+      };
+      await supabaseClient.from('profiles').insert(newProfile);
+      currentUserProfile = newProfile;
+      serverAdminVerified = (initialRole === 'admin');
+      return newProfile;
+    }
+  } catch(e) {
+    console.error('Error querying profiles table in Supabase:', e);
+    // Safe fallback to app_metadata if table query fails
+    serverAdminVerified = (user.app_metadata?.role === 'admin');
+    return null;
+  }
+}
+
 async function handleAuthSessionChanged(user) {
+  if (user) {
+    await fetchUserProfileAndRole(user);
+  } else {
+    serverAdminVerified = false;
+    currentUserProfile = null;
+  }
   updateAuthUI(user);
   if (user) {
     await syncCurrentDataWithSupabase();
@@ -10943,11 +11003,11 @@ function restoreBackedUpProfile(templateKey) {
   let prof = allProfiles.find(p => p.id === targetId);
   if (!prof) {
     if (targetId === 'template_female') {
-      prof = JSON.parse(JSON.stringify(MORVARID_PROFILE));
+      prof = JSON.parse(JSON.stringify(TEMPLATE_FEMALE_PROFILE));
       prof.id = 'template_female';
       allProfiles.push(prof);
     } else {
-      prof = JSON.parse(JSON.stringify(HOSSEIN_PROFILE));
+      prof = JSON.parse(JSON.stringify(TEMPLATE_MALE_PROFILE));
       prof.id = 'template_male';
       allProfiles.unshift(prof);
     }

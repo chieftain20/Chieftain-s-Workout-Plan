@@ -105,7 +105,28 @@ WITH CHECK (auth.uid() = user_id);
 
 ---
 
-## 3. Security Verification
+## 3. Role-Based Access Control (RBAC) & Admin Promotion
+
+The application supports server-side role enforcement:
+- Regular authenticated users are assigned `role = 'user'` upon sign-up.
+- Server-verified Admins are determined by `role = 'admin'` in the `public.profiles` table or `app_metadata.role = 'admin'`.
+
+### How to Promote a User to Admin:
+Execute this in the Supabase SQL Editor:
+```sql
+UPDATE public.profiles
+SET role = 'admin'
+WHERE id = '<USER_UUID>';
+```
+*(You can find the user's UUID in the **Authentication > Users** tab of your Supabase dashboard).*
+
+### Dual Security Model:
+1. **Server-Side Security (Database Level)**: Protected by PostgreSQL Row Level Security (RLS). No client-side DevTools modification can read, write, or tamper with another user's data or admin records.
+2. **Local Device Security (Offline PWA Level)**: When operating in offline mode without an active Supabase session, the app provides a customizable local Admin PIN to prevent accidental modifications on that specific physical device.
+
+---
+
+## 4. Security Verification
 
 To verify that the isolation works:
 1. Log in as **User A** (e.g. `userA@test.com`) and log a workout.

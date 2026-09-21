@@ -52,8 +52,6 @@ final_html = f"""{head_html}
 const MASTER_EXERCISES = {master_ex_json};
 const TEMPLATE_MALE_PROFILE = {template_male_json};
 const TEMPLATE_FEMALE_PROFILE = {template_female_json};
-const HOSSEIN_PROFILE = TEMPLATE_MALE_PROFILE;
-const MORVARID_PROFILE = TEMPLATE_FEMALE_PROFILE;
 
 {app_engine_code}
 </script>
