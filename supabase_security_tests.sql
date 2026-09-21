@@ -1,8 +1,35 @@
 -- ==============================================================================
 -- 🧪 Chieftain Pro Workout - Automated Database Security Verification Suite
--- Run this script in the Supabase SQL Editor to test RLS & Anti-Tamper Triggers
+-- Run this script in the Supabase SQL Editor to test RLS, Privileges & Triggers
 -- ==============================================================================
 
+-- ------------------------------------------------------------------------------
+-- 1. Schema & Privilege Diagnostic Checks
+-- ------------------------------------------------------------------------------
+-- Check 1: RLS enabled on all tables
+SELECT tablename, rowsecurity 
+FROM pg_tables 
+WHERE schemaname = 'public' 
+  AND tablename IN ('profiles', 'user_routines', 'workout_logs', 'body_metrics');
+
+-- Check 2: Table-level privileges for 'authenticated' (UPDATE should NOT be present on profiles)
+SELECT table_name, privilege_type 
+FROM information_schema.table_privileges 
+WHERE grantee = 'authenticated' AND table_schema = 'public' AND table_name = 'profiles';
+
+-- Check 3: Column-level privileges for 'authenticated' (UPDATE only on non-sensitive columns)
+SELECT column_name, privilege_type 
+FROM information_schema.column_privileges 
+WHERE grantee = 'authenticated' AND table_schema = 'public' AND table_name = 'profiles';
+
+-- Check 4: Trigger status
+SELECT trigger_name, event_manipulation, action_statement 
+FROM information_schema.triggers 
+WHERE trigger_schema = 'public' AND event_object_table = 'profiles';
+
+-- ------------------------------------------------------------------------------
+-- 2. Five Executable Security & Isolation Tests
+-- ------------------------------------------------------------------------------
 DO $$
 DECLARE
   user_a uuid := '11111111-1111-1111-1111-111111111111';
@@ -12,7 +39,7 @@ DECLARE
 BEGIN
   RAISE NOTICE '🚀 Starting Chieftain Pro Database Security Test Suite...';
 
-  -- 1. Setup Mock User Profiles & Data (as postgres superuser)
+  -- Setup: Create Mock User Profiles & Data (as postgres superuser)
   DELETE FROM public.profiles WHERE id IN (user_a, user_b);
   DELETE FROM public.workout_logs WHERE user_id IN (user_a, user_b);
 
@@ -40,10 +67,10 @@ BEGIN
     RAISE EXCEPTION 'TEST A FAILED: User A was able to update role to admin!';
   EXCEPTION
     WHEN OTHERS THEN
-      IF SQLERRM LIKE '%Cannot change profile role%' OR SQLERRM LIKE '%permission denied for column role%' OR SQLERRM LIKE '%permission denied%' THEN
+      IF SQLERRM LIKE '%Cannot change profile role%' OR SQLERRM LIKE '%permission denied for column role%' OR SQLERRM LIKE '%permission denied%' OR SQLERRM LIKE '%permission denied for table profiles%' THEN
         RAISE NOTICE '✅ TEST A PASSED: Self-promotion via UPDATE correctly blocked. Error: %', SQLERRM;
       ELSE
-        RAISE NOTICE '⚠️ TEST A: Blocked with unexpected error: %', SQLERRM;
+        RAISE NOTICE '⚠️ TEST A: Blocked with error: %', SQLERRM;
       END IF;
   END;
 

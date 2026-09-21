@@ -66,27 +66,26 @@ create policy "Users can update own profile" on public.profiles for update to au
 
 -- ==============================================================================
 -- 🛡️ تریگر حفاظتی ضد دستکاری سطح دسترسی (Role Escalation Protection Trigger)
--- مرجع اصلی جلوگیری از ارتقای خودکار سطح دسترسی به ادمین در سطح دیتابیس
--- تشخیص بر اساس Claim نقش در JWT کلاینت (auth.role() / request.jwt.claims)
+-- مرجع دفاع در عمق (Defense-in-Depth) جهت جلوگیری از ارتقای خودکار سطح دسترسی به ادمین
+-- با search_path کاملاً مسدود ('') و بررسی مستقیم ادعای JWT
 -- ==============================================================================
 create or replace function public.prevent_profile_role_escalation()
 returns trigger
 language plpgsql
 security definer
-set search_path = public
+set search_path = ''
 as $$
 declare
     caller_role text;
 begin
-    -- در درخواست‌های PostgREST کلاینت، نقش از JWT خوانده می‌شود:
-    caller_role := coalesce(
-        auth.role(),
-        (current_setting('request.jwt.claims', true)::jsonb ->> 'role'),
-        current_setting('request.jwt.claim.role', true),
+    -- استخراج مستقیم نقش کلاینت از ادعای JWT در محیط PostgREST
+    caller_role := pg_catalog.coalesce(
+        (pg_catalog.nullif(pg_catalog.current_setting('request.jwt.claims', true), '')::jsonb ->> 'role'),
+        (pg_catalog.nullif(pg_catalog.current_setting('request.jwt.claim.role', true), '')),
         ''
     );
 
-    -- اگر فراخواننده یک کاربر عادی (authenticated) یا مهمان (anon) باشد:
+    -- اگر فراخواننده کاربر احراز هویت شده (authenticated) یا مهمان (anon) باشد:
     if caller_role in ('authenticated', 'anon') then
         -- جلوگیری از درج پروفایل با نقشی غیر از user
         if tg_op = 'INSERT' and new.role is distinct from 'user' then
@@ -109,9 +108,12 @@ before insert or update on public.profiles
 for each row
 execute function public.prevent_profile_role_escalation();
 
--- لایه حفاظتی مضاعف: سلب اجازه ویرایش ستون role در سطح مجوزهای ستونی PostgreSQL
-revoke update (role) on public.profiles from authenticated;
-grant update (display_name, avatar_url, updated_at) on public.profiles to authenticated;
+-- ==============================================================================
+-- 🔐 لایه حفاظت ستونی (Column-Level Privilege Security)
+-- سلب کامل مجوز UPDATE در سطح جدول از نقش authenticated و اعطای انحصاری روی ستون‌های مجاز
+-- ==============================================================================
+revoke update on table public.profiles from authenticated;
+grant update (display_name, avatar_url, updated_at) on table public.profiles to authenticated;
 
 -- ==============================================================================
 -- سیاست‌های دسترسی سایر جداول داده‌های کاربران

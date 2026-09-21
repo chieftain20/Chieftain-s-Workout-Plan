@@ -57,7 +57,7 @@ CREATE INDEX IF NOT EXISTS idx_body_metrics_user_id ON public.body_metrics(user_
 
 ---
 
-## 2. Row Level Security (RLS) & Anti-Tamper Trigger
+## 2. Row Level Security (RLS), Column Privileges & Anti-Tamper Trigger
 
 Execute the following SQL in the **SQL Editor**:
 
@@ -79,26 +79,30 @@ CREATE POLICY "Users can insert own profile" ON public.profiles FOR INSERT TO au
 DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
 CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE TO authenticated USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
 
--- Step 3: Anti-Tamper Trigger for Role Escalation Prevention
--- Evaluates caller's JWT role claim (auth.role() / request.jwt.claims)
+-- Step 3: Column-Level Privilege Security
+-- Revoke table-level UPDATE from authenticated, then grant only to non-sensitive columns
+REVOKE UPDATE ON TABLE public.profiles FROM authenticated;
+GRANT UPDATE (display_name, avatar_url, updated_at) ON TABLE public.profiles TO authenticated;
+
+-- Step 4: Defense-in-Depth Anti-Tamper Trigger
+-- Evaluates caller's JWT role claim from request context with search_path = ''
 CREATE OR REPLACE FUNCTION public.prevent_profile_role_escalation()
 RETURNS trigger
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = ''
 AS $$
 DECLARE
     caller_role text;
 BEGIN
-    -- In Supabase PostgREST, extract caller's JWT role:
-    caller_role := COALESCE(
-        auth.role(),
-        (current_setting('request.jwt.claims', true)::jsonb ->> 'role'),
-        current_setting('request.jwt.claim.role', true),
+    -- Extract caller role directly from request JWT claims in PostgREST
+    caller_role := pg_catalog.coalesce(
+        (pg_catalog.nullif(pg_catalog.current_setting('request.jwt.claims', true), '')::jsonb ->> 'role'),
+        (pg_catalog.nullif(pg_catalog.current_setting('request.jwt.claim.role', true), '')),
         ''
     );
 
-    -- If caller is authenticated user or anon (calling via PostgREST / client API):
+    -- If caller is authenticated user or anon (via PostgREST client API):
     IF caller_role IN ('authenticated', 'anon') THEN
         -- Prevent INSERT with elevated role
         IF TG_OP = 'INSERT' AND NEW.role IS DISTINCT FROM 'user' THEN
@@ -120,10 +124,6 @@ CREATE TRIGGER prevent_profile_role_escalation
 BEFORE INSERT OR UPDATE ON public.profiles
 FOR EACH ROW
 EXECUTE FUNCTION public.prevent_profile_role_escalation();
-
--- Step 4: Defense-in-Depth: Revoke UPDATE permission on role column from authenticated role
-REVOKE UPDATE (role) ON public.profiles FROM authenticated;
-GRANT UPDATE (display_name, avatar_url, updated_at) ON public.profiles TO authenticated;
 
 -- Step 5: Policy for user_routines
 DROP POLICY IF EXISTS "Users can manage own routines" ON public.user_routines;
@@ -157,11 +157,43 @@ WITH CHECK (auth.uid() = user_id);
 
 ---
 
-## 3. Role-Based Access Control (RBAC) & Admin Promotion
+## 3. Production Verification Queries (Schema & Privileges)
+
+To verify the production database configuration, run these queries in the **SQL Editor**:
+
+```sql
+-- 1. Verify RLS is enabled on all tables:
+SELECT tablename, rowsecurity 
+FROM pg_tables 
+WHERE schemaname = 'public' 
+  AND tablename IN ('profiles', 'user_routines', 'workout_logs', 'body_metrics');
+-- Expected: rowsecurity = true for all 4 tables.
+
+-- 2. Verify table-level and column-level privileges for 'authenticated':
+SELECT table_name, privilege_type 
+FROM information_schema.table_privileges 
+WHERE grantee = 'authenticated' AND table_schema = 'public' AND table_name = 'profiles';
+-- Expected: UPDATE should NOT be in the list of table-level privileges.
+
+SELECT column_name, privilege_type 
+FROM information_schema.column_privileges 
+WHERE grantee = 'authenticated' AND table_schema = 'public' AND table_name = 'profiles';
+-- Expected: UPDATE only on display_name, avatar_url, updated_at (NOT role).
+
+-- 3. Verify trigger exists and is active:
+SELECT trigger_name, event_manipulation, action_statement 
+FROM information_schema.triggers 
+WHERE trigger_schema = 'public' AND event_object_table = 'profiles';
+-- Expected: prevent_profile_role_escalation active on INSERT and UPDATE.
+```
+
+---
+
+## 4. Role-Based Access Control (RBAC) & Admin Promotion
 
 The application enforces strict server-side role verification:
 - `user.app_metadata.role`: **The authoritative, tamper-proof source.** `app_metadata` can ONLY be modified via the Supabase Service Role or the Supabase Dashboard. Regular authenticated clients cannot write to `app_metadata`.
-- `public.profiles.role`: Display / profile metadata (protected by RLS and database trigger).
+- `public.profiles.role`: Display / profile metadata (protected by RLS, column privileges, and database trigger).
 
 ### How to Promote a User to Admin:
 In your Supabase Dashboard:
@@ -182,37 +214,3 @@ In your Supabase Dashboard:
 2. **Option B (Supabase Dashboard UI):**
    - Go to **Authentication > Users**.
    - Click on the user and edit **User Metadata / App Metadata**, setting `role` to `admin`.
-
----
-
-## 4. Verification Tests (5 Database Isolation Tests)
-
-You can verify all policies and triggers directly in the Supabase SQL Editor using simulated authenticated sessions:
-
-```sql
--- Setup: Simulate User A
-SET LOCAL ROLE authenticated;
-SET LOCAL "request.jwt.claims" = '{"sub": "11111111-1111-1111-1111-111111111111", "role": "authenticated"}';
-
--- Test A: User A attempts self-promotion via UPDATE
-UPDATE public.profiles SET role = 'admin' WHERE id = '11111111-1111-1111-1111-111111111111';
--- Result: ❌ ERROR: Cannot change profile role (or permission denied for column role)
-
--- Test B: User A attempts to insert profile with role='admin'
-INSERT INTO public.profiles (id, display_name, role) VALUES ('11111111-1111-1111-1111-111111111111', 'Attacker', 'admin');
--- Result: ❌ ERROR: Cannot create profile with elevated role
-
--- Test C: User A attempts to update User B's profile
-UPDATE public.profiles SET display_name = 'Hacked' WHERE id = '22222222-2222-2222-2222-222222222222';
--- Result: ❌ 0 rows affected (RLS violation)
-
--- Test D: User A attempts to read User B's workout logs
-SELECT * FROM public.workout_logs WHERE user_id = '22222222-2222-2222-2222-222222222222';
--- Result: 0 rows returned (RLS isolation)
-
--- Test E: User A attempts to update User B's workout logs
-UPDATE public.workout_logs SET log_entry = '{"tampered":true}'::jsonb WHERE user_id = '22222222-2222-2222-2222-222222222222';
--- Result: ❌ 0 rows affected (RLS isolation)
-
-RESET ROLE;
-```
