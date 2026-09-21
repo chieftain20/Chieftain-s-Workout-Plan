@@ -8,11 +8,322 @@ let activeDayForAdding = null;
 let convertTargetDayIdx = null;
 let convertTargetSingleIdx = null;
 let pendingActionAfterPin = null;
+let currentLang = localStorage.getItem('chieftain_lang') || 'fa';
+window.currentLang = currentLang;
 
 // Currently active log target
 let currentLogTarget = { exId: '', exFa: '', dayId: '', setsCount: 3 };
 
 const WEEK_DAYS = ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'روز تمرینی ۱', 'روز تمرینی ۲', 'روز تمرینی ۳', 'روز تمرینی ۴'];
+
+// --- Multilingual Support (i18n: Persian / English) ---
+const I18N = {
+  fa: {
+    appTitle: 'سامانه تخصصی بدنسازی و تمرین | Chieftain Pro',
+    appSubtitle: 'برنامه تخصصی هایپرتروفی، ثبات مفاصل و کنترل تنه',
+    planLabel: '📋 برنامه:',
+    loginAccount: 'ورود / حساب',
+    loginTitle: 'ورود به حساب کاربری اختصاصی یا ثبت‌نام',
+    lightMode: 'حالت روز',
+    darkMode: 'حالت شب',
+    langBtn: 'EN',
+    installApp: 'نصب اپ',
+    searchPlaceholder: 'جستجوی حرکت یا عضله هدف در برنامه...',
+    exerciseBank: 'بانک حرکات',
+    newPlan: 'برنامه جدید',
+    editPlan: 'ویرایش برنامه',
+    resetSets: 'ریست ست‌ها',
+    cloudSync: 'همگام‌سازی ابری',
+    settings: 'تنظیمات',
+    updateRefresh: 'به‌روزرسانی و رفرش',
+    bodyAnalysis: 'سایز و بادی‌آنالیز',
+    today: 'امروز',
+    simpleMode: 'حالت ساده',
+    advMode: 'حالت پیشرفته',
+    summaryTab: '📊 جمع‌بندی',
+    metricsTab: '📏 سایز و ابعاد',
+    analysisBadge: 'آنالیز',
+    gym: 'باشگاه',
+    home: 'خانه',
+    rest: 'استراحت',
+    fullRest: 'استراحت کامل',
+    superset: 'سوپرست',
+    exercisesCount: 'حرکت',
+    addExerciseToSS: '+ حرکت به سوپرست',
+    moveUp: '⬆️ بالا',
+    moveDown: '⬇️ پایین',
+    moveDay: '📅 تغییر روز',
+    splitToSingle: '✂️ تفکیک به تکی',
+    targetMuscles: 'عضلات هدف:',
+    logWeight: 'لاگ / وزنه',
+    chart: 'نمودار',
+    edit: 'ویرایش',
+    timer: 'تایمر',
+    timerSec: 'ث',
+    videoGuide: 'ویدیو آموزش',
+    formImage: 'تصویر آموزش فرم',
+    textGuide: 'آموزش متنی / بزودی',
+    workoutTimer: 'تایمر تمرین',
+    restDayTitle: 'روز استراحت و ریکاوری کامل',
+    restDayDesc: 'امروز بدن شما نیاز به تغذیه با کیفیت، آب‌رسانی کافی و خواب با کیفیت دارد تا عضلات بازسازی شوند.',
+    treadmillBanner: '🏃 آخر جلسه: ۱۵ دقیقه تردمیل',
+    start15mTimer: 'شروع ۱۵ دقیقه تایمر',
+    sessionCompleted: 'جلسه تمرینی {day} ۱۰۰٪ تکمیل شد · خسته نباشی قهرمان! ✨',
+    greatRecovery: '💪 ریکاوری عالی',
+    templateMale: 'برنامه نمونه آقایان (هایپرتروفی ۵ روزه)',
+    templateFemale: 'برنامه نمونه بانوان (تناسب اندام و فرم‌دهی)',
+    addToPlan: '+ افزودن به برنامه',
+    editMaster: '✏️ مرجع',
+    approvePublic: 'تایید بانک عمومی'
+  },
+  en: {
+    appTitle: 'Chieftain Pro | Specialized Workout System',
+    appSubtitle: 'Hypertrophy, Joint Stability & Core Control Program',
+    planLabel: '📋 Plan:',
+    loginAccount: 'Login / Account',
+    loginTitle: 'Sign in to personal account or register',
+    lightMode: 'Light Mode',
+    darkMode: 'Dark Mode',
+    langBtn: 'FA',
+    installApp: 'Install App',
+    searchPlaceholder: 'Search exercise or target muscle in plan...',
+    exerciseBank: 'Exercise Bank',
+    newPlan: 'New Plan',
+    editPlan: 'Edit Plan',
+    resetSets: 'Reset Sets',
+    cloudSync: 'Cloud Sync',
+    settings: 'Settings',
+    updateRefresh: 'Update & Refresh',
+    bodyAnalysis: 'Body Analysis',
+    today: 'Today',
+    simpleMode: 'Simple Mode',
+    advMode: 'Advanced Mode',
+    summaryTab: '📊 Summary',
+    metricsTab: '📏 Body Metrics',
+    analysisBadge: 'Analysis',
+    gym: 'Gym',
+    home: 'Home',
+    rest: 'Rest',
+    fullRest: 'Full Rest',
+    superset: 'Superset',
+    exercisesCount: 'Exercises',
+    addExerciseToSS: '+ Exercise to SS',
+    moveUp: '⬆️ Up',
+    moveDown: '⬇️ Down',
+    moveDay: '📅 Move Day',
+    splitToSingle: '✂️ Split to Single',
+    targetMuscles: 'Target:',
+    logWeight: 'Log / Weight',
+    chart: 'Chart',
+    edit: 'Edit',
+    timer: 'Timer',
+    timerSec: 's',
+    videoGuide: 'Watch Video',
+    formImage: 'Form Image',
+    textGuide: 'Guide / Coming Soon',
+    workoutTimer: 'Workout Timer',
+    restDayTitle: 'Full Rest & Recovery Day',
+    restDayDesc: 'Today your body needs quality nutrition, adequate hydration, and restorative sleep to rebuild muscle tissue.',
+    treadmillBanner: '🏃 Post-workout: 15-min Treadmill',
+    start15mTimer: 'Start 15m Timer',
+    sessionCompleted: 'Workout session {day} 100% completed · Great job champion! ✨',
+    greatRecovery: '💪 Great recovery',
+    templateMale: "Men's Sample Plan (5-Day Hypertrophy)",
+    templateFemale: "Women's Sample Plan (Tone & Fitness)",
+    addToPlan: '+ Add to Plan',
+    editMaster: '✏️ Master',
+    approvePublic: 'Approve to Public'
+  }
+};
+
+function t(key, defaultVal) {
+  if (I18N[currentLang] && I18N[currentLang][key]) return I18N[currentLang][key];
+  if (I18N['fa'] && I18N['fa'][key]) return I18N['fa'][key];
+  return defaultVal !== undefined ? defaultVal : key;
+}
+
+const MUSCLE_MAP_EN = {
+  'سینه': 'Chest',
+  'بالا سینه': 'Incline Chest',
+  'زیر سینه': 'Decline Chest',
+  'پشت / زیر بغل': 'Back / Lats',
+  'زیر بغل': 'Lats',
+  'پشت': 'Back',
+  'عضلات پشت': 'Back',
+  'سرشانه': 'Shoulders',
+  'جلو بازو': 'Biceps',
+  'پشت بازو': 'Triceps',
+  'پا': 'Legs',
+  'پا / چهارسر': 'Quads / Legs',
+  'چهارسر': 'Quads',
+  'همسترینگ': 'Hamstrings',
+  'باسن': 'Glutes',
+  'سرینی': 'Glutes',
+  'سرینی میانی/کوچک': 'Glute Med/Min',
+  'ساق': 'Calves',
+  'شکم': 'Abs',
+  'میان‌تنه': 'Core',
+  'شکم / میان‌تنه': 'Abs / Core',
+  'ساعد': 'Forearms',
+  'گردن': 'Neck',
+  'فیله': 'Lower Back',
+  'موبیلیتی': 'Mobility',
+  'عمومی': 'General'
+};
+
+function translateMuscles(musclesStr) {
+  if (!musclesStr) return currentLang === 'en' ? 'General' : 'عمومی';
+  if (currentLang !== 'en') return musclesStr;
+  const parts = String(musclesStr).split(/[\،,]/).map(s => s.trim()).filter(Boolean);
+  const translated = parts.map(p => MUSCLE_MAP_EN[p] || p);
+  return translated.join(', ');
+}
+
+const DAY_MAP_EN = {
+  'شنبه': 'Saturday',
+  'یکشنبه': 'Sunday',
+  'دوشنبه': 'Monday',
+  'سه‌شنبه': 'Tuesday',
+  'چهارشنبه': 'Wednesday',
+  'پنجشنبه': 'Thursday',
+  'جمعه': 'Friday',
+  'روز تمرینی ۱': 'Training Day 1',
+  'روز تمرینی ۲': 'Training Day 2',
+  'روز تمرینی ۳': 'Training Day 3',
+  'روز تمرینی ۴': 'Training Day 4',
+  'روز تمرینی ۵': 'Training Day 5'
+};
+
+function translateDayTitle(title) {
+  if (!title) return '';
+  if (currentLang !== 'en') return title;
+  
+  if (DAY_MAP_EN[title]) return DAY_MAP_EN[title];
+
+  let result = title;
+  for (const [fa, en] of Object.entries(DAY_MAP_EN)) {
+    result = result.replace(new RegExp(fa, 'g'), en);
+  }
+  for (const [fa, en] of Object.entries(MUSCLE_MAP_EN)) {
+    result = result.replace(new RegExp(fa, 'g'), en);
+  }
+  result = result.replace(/باشگاه/g, 'Gym')
+                 .replace(/خانه/g, 'Home')
+                 .replace(/استراحت کامل/g, 'Full Rest')
+                 .replace(/استراحت/g, 'Rest')
+                 .replace(/هایپرتروفی/g, 'Hypertrophy')
+                 .replace(/توان/g, 'Power')
+                 .replace(/ثبات شانه/g, 'Shoulder Stability')
+                 .replace(/ثبات مفاصل/g, 'Joint Stability')
+                 .replace(/کنترل تنه/g, 'Core Control')
+                 .replace(/بازو/g, 'Arms');
+  return result;
+}
+
+function translateReps(repsStr) {
+  if (!repsStr) return '';
+  if (currentLang !== 'en') return repsStr;
+  return repsStr
+    .replace(/۰/g, '0').replace(/۱/g, '1').replace(/۲/g, '2').replace(/۳/g, '3').replace(/۴/g, '4')
+    .replace(/۵/g, '5').replace(/۶/g, '6').replace(/۷/g, '7').replace(/۸/g, '8').replace(/۹/g, '9')
+    .replace(/هر طرف/g, 'each side')
+    .replace(/هر پا/g, 'each leg')
+    .replace(/ثانیه/g, 'sec')
+    .replace(/تکرار/g, 'reps')
+    .replace(/دقیقه/g, 'min');
+}
+
+function initLanguage() {
+  const saved = localStorage.getItem('chieftain_lang') || 'fa';
+  setLanguage(saved, false);
+}
+
+function setLanguage(lang, doRender = true) {
+  currentLang = (lang === 'en') ? 'en' : 'fa';
+  window.currentLang = currentLang;
+  localStorage.setItem('chieftain_lang', currentLang);
+  document.documentElement.lang = currentLang;
+  document.documentElement.dir = (currentLang === 'en') ? 'ltr' : 'rtl';
+
+  const btn = document.getElementById('langToggleBtn');
+  const text = document.getElementById('langToggleText');
+  if (btn) {
+    btn.title = currentLang === 'en' ? 'تغییر زبان به فارسی / Switch to Persian' : 'Switch to English / تغییر زبان به انگلیسی';
+  }
+  if (text) {
+    text.innerText = currentLang === 'en' ? 'FA' : 'EN';
+  }
+
+  updateStaticUIText();
+  if (doRender) {
+    renderApp(true);
+  }
+}
+
+function toggleLanguage() {
+  const next = (currentLang === 'fa') ? 'en' : 'fa';
+  setLanguage(next, true);
+  showToast(next === 'en' ? '🌐 Language switched to English' : '🌐 زبان به فارسی تغییر یافت');
+}
+
+function updateStaticUIText() {
+  const isEn = currentLang === 'en';
+
+  const pWrap = document.getElementById('profileSelectWrapLabel');
+  if (pWrap) pWrap.innerText = isEn ? '📋 Plan:' : '📋 برنامه:';
+
+  const searchInput = document.getElementById('searchInput');
+  if (searchInput) searchInput.placeholder = t('searchPlaceholder');
+
+  const libBtnText = document.getElementById('libBtnText');
+  if (libBtnText) libBtnText.innerText = t('exerciseBank');
+
+  const newProfileBtnText = document.getElementById('newProfileBtnText');
+  if (newProfileBtnText) newProfileBtnText.innerText = t('newPlan');
+
+  const editPlanBtnText = document.getElementById('editPlanBtnText');
+  if (editPlanBtnText) editPlanBtnText.innerText = t('editPlan');
+
+  const resetSetsBtnText = document.getElementById('resetSetsBtnText');
+  if (resetSetsBtnText) resetSetsBtnText.innerText = t('resetSets');
+
+  const quickCloudSyncBtnText = document.getElementById('quickCloudSyncBtnText');
+  if (quickCloudSyncBtnText) quickCloudSyncBtnText.innerText = t('cloudSync');
+
+  const quickRefreshCloudBtnText = document.getElementById('quickRefreshCloudBtnText');
+  if (quickRefreshCloudBtnText) quickRefreshCloudBtnText.innerText = t('updateRefresh');
+
+  const bodyMetricsBtnText = document.getElementById('bodyMetricsBtnText');
+  if (bodyMetricsBtnText) bodyMetricsBtnText.innerText = t('bodyAnalysis');
+
+  const todayJumpBtnText = document.getElementById('todayJumpBtnText');
+  if (todayJumpBtnText) todayJumpBtnText.innerText = t('today');
+
+  const fabTimerLabel = document.getElementById('fabTimerLabel');
+  if (fabTimerLabel) fabTimerLabel.innerText = t('workoutTimer');
+
+  const headerInstallBtnText = document.getElementById('headerInstallBtnText');
+  if (headerInstallBtnText) headerInstallBtnText.innerText = t('installApp');
+
+  const authBtnText = document.getElementById('authBtnText');
+  if (authBtnText) {
+    if (typeof currentAuthUser !== 'undefined' && currentAuthUser) {
+      const email = currentAuthUser.email || '';
+      const name = currentAuthUser.user_metadata?.display_name || email.split('@')[0] || (isEn ? 'Account' : 'حساب');
+      authBtnText.innerText = name;
+    } else {
+      authBtnText.innerText = t('loginAccount');
+    }
+  }
+
+  const themeText = document.getElementById('themeToggleText');
+  if (themeText) {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+    themeText.innerText = currentTheme === 'light' ? t('darkMode') : t('lightMode');
+  }
+}
+
+try { initLanguage(); } catch(e) {}
 
 function loadAppData() {
   try {
@@ -300,28 +611,42 @@ function renderApp(preserveScroll = true, targetCardExId = null) {
 function renderProfileSelect() {
   const select = document.getElementById('profileSelect');
   if (!select) return;
+  const isEn = currentLang === 'en';
   select.innerHTML = allProfiles.map(p => {
-    const badge = (p.id === 'hossein_chieftain') ? ' (پیش‌فرض)' : '';
-    return `<option value="${p.id}" ${p.id === activeProfileId ? 'selected' : ''}>${p.name}${badge}</option>`;
+    let name = p.name;
+    if (isEn) {
+      if (p.id === 'template_male' || p.id === 'hossein_chieftain') {
+        name = (currentAuthUser && (p.id === 'hossein_chieftain' || (currentAuthUser.email || '').toLowerCase().includes('hossein')))
+          ? "Hossein's Plan (5-Day Hypertrophy)"
+          : "Men's Sample Plan (5-Day Hypertrophy)";
+      } else if (p.id === 'template_female' || p.id === 'morvarid') {
+        name = (currentAuthUser && (p.id === 'morvarid' || (currentAuthUser.email || '').toLowerCase().includes('morvarid')))
+          ? "Morvarid's Plan (Tone & Fitness)"
+          : "Women's Sample Plan (Tone & Fitness)";
+      }
+    }
+    const badge = (p.id === 'hossein_chieftain' || p.id === 'template_male') ? (isEn ? ' (Default)' : ' (پیش‌فرض)') : '';
+    return `<option value="${p.id}" ${p.id === activeProfileId ? 'selected' : ''}>${name}${badge}</option>`;
   }).join('');
 }
 
 function renderHeader() {
   const prof = getActiveProfile();
   const titleEl = document.getElementById('appTitle');
+  const isEn = currentLang === 'en';
   if (titleEl) {
     if (typeof currentAuthUser !== 'undefined' && currentAuthUser) {
       const name = currentAuthUser.user_metadata?.display_name || currentAuthUser.email?.split('@')[0] || '';
       const emailLower = (currentAuthUser.email || '').toLowerCase();
       if (emailLower.includes('hossein') || emailLower.includes('chieftain')) {
-        titleEl.innerText = 'برنامه تمرینی تخصصی حسین';
+        titleEl.innerText = isEn ? "Hossein's Specialized Workout Plan" : 'برنامه تمرینی تخصصی حسین';
       } else if (emailLower.includes('morvarid')) {
-        titleEl.innerText = 'برنامه تمرینی تخصصی مروارید';
+        titleEl.innerText = isEn ? "Morvarid's Specialized Workout Plan" : 'برنامه تمرینی تخصصی مروارید';
       } else {
-        titleEl.innerText = `برنامه تمرینی ${name || prof.name}`;
+        titleEl.innerText = isEn ? `Workout Plan: ${name || prof.name}` : `برنامه تمرینی ${name || prof.name}`;
       }
     } else {
-      titleEl.innerText = 'سامانه تخصصی بدنسازی و تمرین | Chieftain Pro';
+      titleEl.innerText = isEn ? 'Chieftain Pro | Specialized Workout System' : 'سامانه تخصصی بدنسازی و تمرین | Chieftain Pro';
     }
   }
 
@@ -333,14 +658,14 @@ function renderHeader() {
   // Dynamic Badges in Header
   const badgesEl = document.getElementById('headerBadges');
   if (badgesEl) {
-    const gymDays = prof.days.filter(d => d.type === 'gym').map(d => d.title).join('، ');
-    const homeDays = prof.days.filter(d => d.type === 'home').map(d => d.title).join('، ');
-    const restDays = prof.days.filter(d => d.type === 'rest').map(d => d.title).join('، ');
+    const gymDays = prof.days.filter(d => d.type === 'gym').map(d => translateDayTitle(d.title)).join(isEn ? ', ' : '، ');
+    const homeDays = prof.days.filter(d => d.type === 'home').map(d => translateDayTitle(d.title)).join(isEn ? ', ' : '، ');
+    const restDays = prof.days.filter(d => d.type === 'rest').map(d => translateDayTitle(d.title)).join(isEn ? ', ' : '، ');
 
     let html = '';
-    if (gymDays) html += `<div class="header-badge">🏋️ ${gymDays}: باشگاه</div>`;
-    if (homeDays) html += `<div class="header-badge">🏠 ${homeDays}: خانه</div>`;
-    if (restDays) html += `<div class="header-badge">🛌 ${restDays}: استراحت</div>`;
+    if (gymDays) html += `<div class="header-badge">🏋️ ${gymDays}: ${t('gym')}</div>`;
+    if (homeDays) html += `<div class="header-badge">🏠 ${homeDays}: ${t('home')}</div>`;
+    if (restDays) html += `<div class="header-badge">🛌 ${restDays}: ${t('rest')}</div>`;
     badgesEl.innerHTML = html;
   }
 
@@ -351,6 +676,7 @@ function updateGreetingText() {
   const prof = getActiveProfile();
   const greetingEl = document.getElementById('greetingText');
   if (!greetingEl) return;
+  const isEn = currentLang === 'en';
 
   const todaySecId = getTodaySectionId();
   const todaySec = document.getElementById(todaySecId);
@@ -363,18 +689,30 @@ function updateGreetingText() {
     }
   }
 
+  const profName = isEn 
+    ? (prof.id === 'template_male' ? 'Champion' : (prof.id === 'template_female' ? 'Champion' : prof.name))
+    : prof.name;
+
   if (isToday100) {
-    greetingEl.innerText = `🎉 دمت گرم ${prof.name}! تمرین امروز رو ۱۰۰٪ با موفقیت ترکوندی و تموم کردی! 🔥 عضلات در حال رشد و ریکاوری‌ان 💪`;
+    greetingEl.innerText = isEn
+      ? `🎉 Great job ${profName}! Today's workout is 100% completed! 🔥 Keep growing & recovering 💪`
+      : `🎉 دمت گرم ${prof.name}! تمرین امروز رو ۱۰۰٪ با موفقیت ترکوندی و تموم کردی! 🔥 عضلات در حال رشد و ریکاوری‌ان 💪`;
     return;
   }
 
   const hour = new Date().getHours();
   if (hour >= 5 && hour < 12) {
-    greetingEl.innerText = `صبح بخیر ${prof.name}! وقت انرژی و ساختن عضلاته ⚡`;
+    greetingEl.innerText = isEn
+      ? `Good morning ${profName}! Time to energize and build strength ⚡`
+      : `صبح بخیر ${prof.name}! وقت انرژی و ساختن عضلاته ⚡`;
   } else if (hour >= 12 && hour < 18) {
-    greetingEl.innerText = `عصر بخیر ${prof.name}! آماده یک جلسه تمرینی پرقدرت هستی؟ 💪`;
+    greetingEl.innerText = isEn
+      ? `Good afternoon ${profName}! Ready for a powerful workout session? 💪`
+      : `عصر بخیر ${prof.name}! آماده یک جلسه تمرینی پرقدرت هستی؟ 💪`;
   } else {
-    greetingEl.innerText = `شب بخیر ${prof.name}! ریکاوری و ثبات کلید موفقیته 🔥`;
+    greetingEl.innerText = isEn
+      ? `Good evening ${profName}! Recovery and consistency are key 🔥`
+      : `شب بخیر ${prof.name}! ریکاوری و ثبات کلید موفقیته 🔥`;
   }
 }
 
@@ -382,26 +720,28 @@ function renderDayNav() {
   const prof = getActiveProfile();
   const nav = document.getElementById('dayNav');
   if (!nav) return;
+  const isEn = currentLang === 'en';
   
   const todaySecId = (typeof getTodaySectionId === 'function') ? getTodaySectionId() : 'd1';
 
   const tabsHtml = prof.days.map((d, idx) => {
-    const typeLabel = d.type === 'gym' ? 'باشگاه' : (d.type === 'home' ? 'خانه' : 'استراحت');
+    const typeLabel = d.type === 'gym' ? t('gym') : (d.type === 'home' ? t('home') : t('rest'));
     const isToday = (d.id === todaySecId);
     const isActive = (activeMainTab === 'workout') && (isToday || (!prof.days.some(x => x.id === todaySecId) && idx === 0));
+    const dayTitle = translateDayTitle(d.title);
     return `
       <a href="javascript:void(0)" onclick="navigateToDaySection(event, '${d.id}')" class="nav-tab ${isActive ? 'active' : ''} ${isToday ? 'is-today' : ''}" data-day="${idx}" data-target-id="${d.id}">
-        <span>${d.title}</span>
+        <span>${dayTitle}</span>
         <span class="tab-badge">${typeLabel}</span>
-        <span id="nav-pill-${d.id}" class="tab-prog-pill" style="display:none;">۰٪</span>
+        <span id="nav-pill-${d.id}" class="tab-prog-pill" style="display:none;">${isEn ? '0%' : '۰٪'}</span>
       </a>
     `;
   }).join('');
 
-  const metricsBadge = `<span class="tab-badge" style="background:rgba(56,189,248,0.2); color:#38bdf8; font-weight:800;">آنالیز</span>`;
-  const metricsTab = `<a href="javascript:void(0)" onclick="switchMainTab('metrics')" class="nav-tab ${activeMainTab === 'metrics' ? 'active' : ''}" data-target-id="body-metrics" style="border-color:rgba(56,189,248,0.4);"><span>📏 سایز و ابعاد</span>${metricsBadge}</a>`;
+  const metricsBadge = `<span class="tab-badge" style="background:rgba(56,189,248,0.2); color:#38bdf8; font-weight:800;">${t('analysisBadge')}</span>`;
+  const metricsTab = `<a href="javascript:void(0)" onclick="switchMainTab('metrics')" class="nav-tab ${activeMainTab === 'metrics' ? 'active' : ''}" data-target-id="body-metrics" style="border-color:rgba(56,189,248,0.4);"><span>${t('metricsTab')}</span>${metricsBadge}</a>`;
 
-  nav.innerHTML = tabsHtml + `<a href="javascript:void(0)" onclick="navigateToDaySection(event, 'weekly-summary')" class="nav-tab" data-day="summary" data-target-id="weekly-summary">📊 جمع‌بندی</a>` + metricsTab;
+  nav.innerHTML = tabsHtml + `<a href="javascript:void(0)" onclick="navigateToDaySection(event, 'weekly-summary')" class="nav-tab" data-day="summary" data-target-id="weekly-summary">${t('summaryTab')}</a>` + metricsTab;
 }
 
 function navigateToDaySection(e, secId) {
@@ -431,18 +771,21 @@ function navigateToDaySection(e, secId) {
 
 function renderVideoButtons(videos) {
   if (!videos || videos.length === 0) {
-    return `<span class="video-missing">آموزش متنی / بزودی</span>`;
+    return `<span class="video-missing">${t('textGuide')}</span>`;
   }
+
+  const isEn = currentLang === 'en';
 
   return videos.map((v, i) => {
     if (v.isImage || (v.url && v.url.startsWith('data:image'))) {
       return `<button class="video-btn" onclick="openImageModal('${v.url}')" style="background:rgba(234,179,8,0.15); color:#facc15; border-color:rgba(234,179,8,0.35); cursor:pointer;">
-        <span>🖼️</span> <span>${v.title || 'تصویر آموزش فرم'}</span>
+        <span>🖼️</span> <span>${v.title || t('formImage')}</span>
       </button>`;
     }
+    const defTitle = (videos.length === 1 ? t('videoGuide') : ((isEn ? 'Video ' : 'ویدیو ') + (i+1)));
     return `
       <a href="${v.url}" target="_blank" rel="noopener" class="video-btn">
-        <span>▶</span> <span>${v.title || (videos.length === 1 ? 'ویدیو آموزش' : ('ویدیو ' + (i+1)))}</span>
+        <span>▶</span> <span>${v.title || defTitle}</span>
       </a>
     `;
   }).join('');
@@ -461,15 +804,29 @@ function closeImageModal() {
 function renderExerciseCard(item, dayId, isSuperset = false, singleIdx = -1, totalSingles = 0, ssIdx = -1, exIdx = -1, totalSSExercises = 0, seqNum = null, totalDayExercises = 0) {
   if (!item || !item.exId) return '';
   const ex = findExerciseById(item.exId) || { id: item.exId, fa: item.exId, en: '', muscles: 'عمومی', videos: [] };
-  const reps = String(item.reps || ex.defaultReps || '3 × 8–12');
-  const setsCount = parseSetsFromReps(reps, item.sets);
-  const displayNameFa = item.customName ? item.customName : (ex.fa || item.exId);
-  const originalSubtext = item.customName && item.customName !== ex.fa 
-    ? `<div class="exercise-name-en" style="color:#94a3b8; font-size:11px;">حرکت پایه: ${ex.fa || item.exId}</div>` 
-    : (ex.en ? `<div class="exercise-name-en">${ex.en}</div>` : '');
+  const reps = translateReps(String(item.reps || ex.defaultReps || '3 × 8–12'));
+  const setsCount = parseSetsFromReps(item.reps || ex.defaultReps || '3 × 8–12', item.sets);
+  const isEn = currentLang === 'en';
+
+  let displayName = '';
+  let subtextHtml = '';
+
+  if (isEn) {
+    displayName = ex.en || item.customName || ex.fa || item.exId;
+    if (item.customName && item.customName !== ex.en) {
+      subtextHtml = `<div class="exercise-name-en" style="color:#94a3b8; font-size:11px;">Base: ${ex.en || ex.fa}</div>`;
+    } else if (ex.fa) {
+      subtextHtml = `<div class="exercise-name-en">${ex.fa}</div>`;
+    }
+  } else {
+    displayName = item.customName ? item.customName : (ex.fa || item.exId);
+    subtextHtml = item.customName && item.customName !== ex.fa 
+      ? `<div class="exercise-name-en" style="color:#94a3b8; font-size:11px;">حرکت پایه: ${ex.fa || item.exId}</div>` 
+      : (ex.en ? `<div class="exercise-name-en">${ex.en}</div>` : '');
+  }
 
   const seqBadgeHtml = (seqNum && seqNum > 0)
-    ? `<span class="exercise-seq-badge" title="حرکت ${seqNum} از ${totalDayExercises}">حرکت ${seqNum}</span>`
+    ? `<span class="exercise-seq-badge" title="${isEn ? `Exercise ${seqNum} of ${totalDayExercises}` : `حرکت ${seqNum} از ${totalDayExercises}`}">${isEn ? `Exercise ${seqNum}` : `حرکت ${seqNum}`}</span>`
     : '';
 
   const setBtns = Array.from({length: setsCount}, (_, i) => 
@@ -480,9 +837,9 @@ function renderExerciseCard(item, dayId, isSuperset = false, singleIdx = -1, tot
   let isoBtnHtml = '';
   const lowerFa = String(ex.fa || '').toLowerCase();
   const lowerEn = String(ex.en || '').toLowerCase();
-  const repsStr = String(reps || '');
+  const repsStr = String(item.reps || reps || '');
   const isExcluded = lowerFa.includes('خرسی') || lowerFa.includes('پایک') || lowerFa.includes('کیک') || lowerEn.includes('bear') || lowerEn.includes('pike') || lowerEn.includes('kickback');
-  const isIso = !isExcluded && (ex.isIsometric === true || ((lowerFa.includes('ایزومتریک') || lowerFa.includes('پلانک آرنج') || lowerFa.includes('ساید پلانک') || lowerFa.includes('وال سیت') || lowerEn.includes('wall sit') || repsStr.includes('ثانیه')) && !repsStr.includes('تکرار')));
+  const isIso = !isExcluded && (ex.isIsometric === true || ((lowerFa.includes('ایزومتریک') || lowerFa.includes('پلانک آرنج') || lowerFa.includes('ساید پلانک') || lowerFa.includes('وال سیت') || lowerEn.includes('wall sit') || repsStr.includes('ثانیه') || repsStr.includes('sec')) && !repsStr.includes('تکرار') && !repsStr.includes('reps')));
 
   if (isIso || item.isoDuration) {
     let defaultSeconds = item.isoDuration || 30;
@@ -493,21 +850,21 @@ function renderExerciseCard(item, dayId, isSuperset = false, singleIdx = -1, tot
     }
     
     isoBtnHtml = `
-      <button class="quick-iso-btn" onclick="quickStartIsoTimer(${defaultSeconds}, '${displayNameFa}')" title="باز کردن تایمر ${defaultSeconds} ثانیه">
-        <span>⏱️</span> <span>تایمر ${defaultSeconds}ث</span>
+      <button class="quick-iso-btn" onclick="quickStartIsoTimer(${defaultSeconds}, '${escapeHtml(displayName)}')" title="${isEn ? `Open ${defaultSeconds}s timer` : `باز کردن تایمر ${defaultSeconds} ثانیه`}">
+        <span>⏱️</span> <span>${t('timer')} ${defaultSeconds}${t('timerSec')}</span>
       </button>
     `;
   }
 
   const logBtnHtml = `
-    <button class="log-btn" data-day-id="${dayId}" data-ex-id="${ex.id}" onclick="openLogForCard(this)" title="ثبت وزنه، تکرار و RIR برای اضافه بار تدریجی">
-      <span>📝</span> <span>لاگ / وزنه</span>
+    <button class="log-btn" data-day-id="${dayId}" data-ex-id="${ex.id}" onclick="openLogForCard(this)" title="${isEn ? 'Log weight, reps and RIR for progressive overload' : 'ثبت وزنه، تکرار و RIR برای اضافه بار تدریجی'}">
+      <span>📝</span> <span>${t('logWeight')}</span>
     </button>
-    <button class="chart-btn" data-ex-id="${ex.id}" onclick="openChartForCard(this)" title="نمودار پیشرفت و افزایش وزنه نسبت به جلسه اول">
-      <span>📈</span> <span>نمودار</span>
+    <button class="chart-btn" data-ex-id="${ex.id}" onclick="openChartForCard(this)" title="${isEn ? 'Progress chart and weight increase over time' : 'نمودار پیشرفت و افزایش وزنه نسبت به جلسه اول'}">
+      <span>📈</span> <span>${t('chart')}</span>
     </button>
-    <button class="edit-card-btn" data-day-id="${dayId}" data-ex-id="${ex.id}" data-is-superset="${isSuperset ? '1' : '0'}" onclick="openQuickEditForCard(this)" title="ویرایش سریع این حرکت">
-      <span>✏️</span> <span>ویرایش</span>
+    <button class="edit-card-btn" data-day-id="${dayId}" data-ex-id="${ex.id}" data-is-superset="${isSuperset ? '1' : '0'}" onclick="openQuickEditForCard(this)" title="${isEn ? 'Quick edit this exercise' : 'ویرایش سریع این حرکت'}">
+      <span>✏️</span> <span>${t('edit')}</span>
     </button>
   `;
 
@@ -515,17 +872,17 @@ function renderExerciseCard(item, dayId, isSuperset = false, singleIdx = -1, tot
   if (!isSuperset && singleIdx >= 0) {
     moveBtnsHtml = `
       <div class="card-reorder-toolbar">
-        ${singleIdx > 0 ? `<button class="btn-move-action" onclick="moveSingleItem('${dayId}', ${singleIdx}, -1)" title="انتقال حرکت به بالا">⬆️ بالا</button>` : ''}
-        ${singleIdx < totalSingles - 1 ? `<button class="btn-move-action" onclick="moveSingleItem('${dayId}', ${singleIdx}, 1)" title="انتقال حرکت به پایین">⬇️ پایین</button>` : ''}
-        <button class="btn-move-action" style="color:#fcd34d; border-color:rgba(252,211,77,0.3);" onclick="openMoveDayModal('single', '${dayId}', -1, ${singleIdx})" title="انتقال این حرکت به روز دیگر">📅 تغییر روز</button>
+        ${singleIdx > 0 ? `<button class="btn-move-action" onclick="moveSingleItem('${dayId}', ${singleIdx}, -1)" title="${isEn ? 'Move exercise up' : 'انتقال حرکت به بالا'}">${t('moveUp')}</button>` : ''}
+        ${singleIdx < totalSingles - 1 ? `<button class="btn-move-action" onclick="moveSingleItem('${dayId}', ${singleIdx}, 1)" title="${isEn ? 'Move exercise down' : 'انتقال حرکت به پایین'}">${t('moveDown')}</button>` : ''}
+        <button class="btn-move-action" style="color:#fcd34d; border-color:rgba(252,211,77,0.3);" onclick="openMoveDayModal('single', '${dayId}', -1, ${singleIdx})" title="${isEn ? 'Move this exercise to another day' : 'انتقال این حرکت به روز دیگر'}">${t('moveDay')}</button>
       </div>
     `;
   } else if (isSuperset && ssIdx >= 0 && totalSSExercises > 1) {
     moveBtnsHtml = `
       <div class="card-reorder-toolbar">
-        ${exIdx > 0 ? `<button class="btn-move-action" onclick="moveSupersetExercise('${dayId}', ${ssIdx}, ${exIdx}, -1)" title="انتقال حرکت در سوپرست به بالا">⬆️ بالا</button>` : ''}
-        ${exIdx < totalSSExercises - 1 ? `<button class="btn-move-action" onclick="moveSupersetExercise('${dayId}', ${ssIdx}, ${exIdx}, 1)" title="انتقال حرکت در سوپرست به پایین">⬇️ پایین</button>` : ''}
-        <button class="btn-move-action" style="color:#fcd34d; border-color:rgba(252,211,77,0.3);" onclick="splitSingleExerciseFromSuperset('${dayId}', ${ssIdx}, ${exIdx})" title="تفکیک این حرکت از سوپرست به عنوان حرکت مستقل">✂️ تفکیک به تکی</button>
+        ${exIdx > 0 ? `<button class="btn-move-action" onclick="moveSupersetExercise('${dayId}', ${ssIdx}, ${exIdx}, -1)" title="${isEn ? 'Move exercise in superset up' : 'انتقال حرکت در سوپرست به بالا'}">${t('moveUp')}</button>` : ''}
+        ${exIdx < totalSSExercises - 1 ? `<button class="btn-move-action" onclick="moveSupersetExercise('${dayId}', ${ssIdx}, ${exIdx}, 1)" title="${isEn ? 'Move exercise in superset down' : 'انتقال حرکت در سوپرست به پایین'}">${t('moveDown')}</button>` : ''}
+        <button class="btn-move-action" style="color:#fcd34d; border-color:rgba(252,211,77,0.3);" onclick="splitSingleExerciseFromSuperset('${dayId}', ${ssIdx}, ${exIdx})" title="${isEn ? 'Split exercise from superset to single' : 'تفکیک این حرکت از سوپرست به عنوان حرکت مستقل'}">${t('splitToSingle')}</button>
       </div>
     `;
   }
@@ -534,17 +891,17 @@ function renderExerciseCard(item, dayId, isSuperset = false, singleIdx = -1, tot
     <article class="exercise-card" data-ex-id="${dayId}_${ex.id}" data-day-id="${dayId}" data-is-ss="${isSuperset ? '1' : '0'}" data-ss-idx="${ssIdx}" data-ex-idx="${isSuperset ? exIdx : singleIdx}">
       <div class="exercise-header">
         <div style="display:flex; align-items:center; gap:8px;">
-          <span class="card-drag-handle" title="لمس یا کشیدن برای جابجایی سریع">⠿</span>
+          <span class="card-drag-handle" title="${isEn ? 'Drag or tap to reorder' : 'لمس یا کشیدن برای جابجایی سریع'}">⠿</span>
           ${seqBadgeHtml}
           <div>
-            <div class="exercise-name-fa">${displayNameFa}</div>
-            ${originalSubtext}
+            <div class="exercise-name-fa">${displayName}</div>
+            ${subtextHtml}
           </div>
         </div>
         <div class="reps-badge">${reps}</div>
       </div>
       <div class="muscles-row">
-        <span class="muscle-tag">عضلات هدف: ${ex.muscles || 'عمومی'}</span>
+        <span class="muscle-tag">${t('targetMuscles')} ${translateMuscles(ex.muscles)}</span>
         ${isoBtnHtml}
         ${logBtnHtml}
       </div>
@@ -1306,14 +1663,14 @@ function renderDaySupersetsHTML(day, startSeqNum = 0, totalDayExercises = 0) {
         <div class="superset-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
           <div style="display:flex; align-items:center; gap:8px;">
             <span class="card-drag-handle" title="لمس یا کشیدن برای جابجایی کل سوپرست">⠿</span>
-            <span>⚡ ${ss.title || 'سوپرست'}</span>
-            <span style="font-size:10.5px; background:rgba(0,242,254,0.15); color:#00f2fe; padding:2px 8px; border-radius:10px; border:1px solid rgba(0,242,254,0.3); font-weight:700;">${ss.exercises.length} حرکت</span>
+            <span>⚡ ${ss.title || t('superset')}</span>
+            <span style="font-size:10.5px; background:rgba(0,242,254,0.15); color:#00f2fe; padding:2px 8px; border-radius:10px; border:1px solid rgba(0,242,254,0.3); font-weight:700;">${ss.exercises.length} ${t('exercisesCount')}</span>
           </div>
           <div class="card-reorder-toolbar" style="margin-top:0;">
-            <button class="btn-move-action" style="color:#38bdf8; border-color:rgba(56,189,248,0.4);" onclick="openAddExerciseToSupersetModal('${day.id}', ${ssIdx})" title="افزودن حرکت دیگر به این سوپرست (ساخت تری‌ست یا جاینت‌ست)">+ حرکت به سوپرست</button>
-            ${ssIdx > 0 ? `<button class="btn-move-action" onclick="moveSupersetItem('${day.id}', ${ssIdx}, -1)" title="انتقال کل سوپرست به بالا">⬆️ بالا</button>` : ''}
-            ${ssIdx < totalSS - 1 ? `<button class="btn-move-action" onclick="moveSupersetItem('${day.id}', ${ssIdx}, 1)" title="انتقال کل سوپرست به پایین">⬇️ پایین</button>` : ''}
-            <button class="btn-move-action" style="color:#fcd34d; border-color:rgba(252,211,77,0.3);" onclick="openMoveDayModal('superset', '${day.id}', ${ssIdx})" title="انتقال کل سوپرست به روز دیگر">📅 انتقال به روز دیگر</button>
+            <button class="btn-move-action" style="color:#38bdf8; border-color:rgba(56,189,248,0.4);" onclick="openAddExerciseToSupersetModal('${day.id}', ${ssIdx})" title="افزودن حرکت دیگر به این سوپرست (ساخت تری‌ست یا جاینت‌ست)">${t('addExerciseToSS')}</button>
+            ${ssIdx > 0 ? `<button class="btn-move-action" onclick="moveSupersetItem('${day.id}', ${ssIdx}, -1)" title="انتقال کل سوپرست به بالا">${t('moveUp')}</button>` : ''}
+            ${ssIdx < totalSS - 1 ? `<button class="btn-move-action" onclick="moveSupersetItem('${day.id}', ${ssIdx}, 1)" title="انتقال کل سوپرست به پایین">${t('moveDown')}</button>` : ''}
+            <button class="btn-move-action" style="color:#fcd34d; border-color:rgba(252,211,77,0.3);" onclick="openMoveDayModal('superset', '${day.id}', ${ssIdx})" title="انتقال کل سوپرست به روز دیگر">${t('moveDay')}</button>
           </div>
         </div>
         ${ssExercisesHtml}
@@ -1337,6 +1694,7 @@ function renderWorkoutDays() {
   let prof = getActiveProfile();
   const container = document.getElementById('workoutContent');
   if (!container) return;
+  const isEn = currentLang === 'en';
 
   // Defensive validation: if prof or prof.days is missing/empty, self-heal immediately
   if (!prof || !Array.isArray(prof.days) || prof.days.length === 0) {
@@ -1357,9 +1715,9 @@ function renderWorkoutDays() {
     daysHtml = prof.days.map(day => {
       try {
         const typeBadge = {
-          'gym': '<span class="day-location-badge badge-gym">🏋️ باشگاه</span>',
-          'home': '<span class="day-location-badge badge-home">🏠 خانه</span>',
-          'rest': '<span class="day-location-badge badge-rest">🛌 استراحت کامل</span>'
+          'gym': `<span class="day-location-badge badge-gym">🏋️ ${t('gym')}</span>`,
+          'home': `<span class="day-location-badge badge-home">🏠 ${t('home')}</span>`,
+          'rest': `<span class="day-location-badge badge-rest">🛌 ${t('fullRest')}</span>`
         }[day.type] || '';
 
         let totalDayExercises = (day.singles ? day.singles.length : 0);
@@ -1380,8 +1738,8 @@ function renderWorkoutDays() {
           restHtml = `
             <div class="rest-day-card">
               <div class="rest-icon">🛌💤</div>
-              <h3>روز استراحت و ریکاوری کامل</h3>
-              <p>امروز بدن شما نیاز به تغذیه با کیفیت، آب‌رسانی کافی و خواب با کیفیت دارد تا عضلات بازسازی شوند.</p>
+              <h3>${t('restDayTitle')}</h3>
+              <p>${t('restDayDesc')}</p>
             </div>
           `;
         }
@@ -1390,33 +1748,35 @@ function renderWorkoutDays() {
         if (day.treadmill) {
           treadmillHtml = `
             <div class="treadmill-banner">
-              <span>🏃 آخر جلسه: ۱۵ دقیقه تردمیل</span>
-              <button class="btn-header-action" onclick="quickTimer(900)" style="padding:4px 10px;font-size:12px">شروع ۱۵ دقیقه تایمر</button>
+              <span>${t('treadmillBanner')}</span>
+              <button class="btn-header-action" onclick="quickTimer(900)" style="padding:4px 10px;font-size:12px">${t('start15mTimer')}</button>
             </div>
           `;
         }
 
         const countBadgeHtml = (totalDayExercises > 0 && day.type !== 'rest')
-          ? `<span class="day-total-badge">🎯 ${totalDayExercises} حرکت</span>`
+          ? `<span class="day-total-badge">🎯 ${totalDayExercises} ${t('exercisesCount')}</span>`
           : '';
+
+        const dayTitle = translateDayTitle(day.title);
 
         return `
           <section id="${day.id}" class="day-section">
             <div class="day-header">
               <div class="day-title-wrap">
-                <h2 class="day-title">${day.title}</h2>
+                <h2 class="day-title">${dayTitle}</h2>
                 ${typeBadge}
                 ${countBadgeHtml}
               </div>
               <div class="day-progress-wrap">
                 <div class="day-progress-bar"><div class="day-progress-fill" id="prog-${day.id}"></div></div>
-                <span id="prog-text-${day.id}">۰٪</span>
+                <span id="prog-text-${day.id}">${isEn ? '0%' : '۰٪'}</span>
               </div>
             </div>
 
             <div id="complete-banner-${day.id}" class="day-complete-banner" style="display:none;">
-              <span>🏆 جلسه تمرینی ${day.title} ۱۰۰٪ تکمیل شد · خسته نباشی قهرمان! ✨</span>
-              <span>💪 ریکاوری عالی</span>
+              <span>🏆 ${t('sessionCompleted').replace('{day}', dayTitle)}</span>
+              <span>${t('greatRecovery')}</span>
             </div>
 
             ${day.note ? `
@@ -2617,8 +2977,9 @@ function applyLibraryFilters() {
 function renderLibraryList(list) {
   const container = document.getElementById('libraryListContainer');
   if (!container) return;
+  const isEn = currentLang === 'en';
   if (!list || list.length === 0) {
-    container.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding:20px;">حرکتی با این مشخصات یافت نشد. می‌توانید از بخش زیر در MuscleWiki جستجو کنید یا حرکت دلخواه بسازید.</div>';
+    container.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:20px;">${isEn ? 'No exercises found matching your search. You can search MuscleWiki below or create a custom exercise.' : 'حرکتی با این مشخصات یافت نشد. می‌توانید از بخش زیر در MuscleWiki جستجو کنید یا حرکت دلخواه بسازید.'}</div>`;
     return;
   }
 
@@ -2628,30 +2989,35 @@ function renderLibraryList(list) {
     let bankBadge = '';
     if (ex.isCustom) {
       if (ex.isApproved) {
-        bankBadge = '<span class="muscle-tag" style="background:#05966933; color:#34d399; border-color:#059669;">🌐 بانک عمومی</span>';
+        bankBadge = `<span class="muscle-tag" style="background:#05966933; color:#34d399; border-color:#059669;">🌐 ${isEn ? 'Public Bank' : 'بانک عمومی'}</span>`;
       } else {
-        bankBadge = '<span class="muscle-tag" style="background:#854d0e33; color:#facc15; border-color:#854d0e;">🔒 بانک خصوصی</span>';
+        bankBadge = `<span class="muscle-tag" style="background:#854d0e33; color:#facc15; border-color:#854d0e;">🔒 ${isEn ? 'Private Bank' : 'بانک خصوصی'}</span>`;
       }
     } else {
-      bankBadge = '<span class="muscle-tag" style="background:#0369a133; color:#38bdf8; border-color:#0284c7;">🌐 بانک مرجع</span>';
+      bankBadge = `<span class="muscle-tag" style="background:#0369a133; color:#38bdf8; border-color:#0284c7;">🌐 ${isEn ? 'Master Bank' : 'بانک مرجع'}</span>`;
     }
+
+    const titleText = isEn ? (ex.en || ex.fa) : (ex.fa || ex.en);
+    const subText = isEn 
+      ? (ex.fa ? `<div style="font-size:12px; color:var(--accent-cyan); text-align:left;">${escapeHtml(ex.fa)}</div>` : '')
+      : (ex.en ? `<div style="font-size:12px; color:var(--accent-cyan); direction:ltr; text-align:right;">${escapeHtml(ex.en)}</div>` : '');
 
     return `
       <div class="library-item-card" style="${ex.isCustom && !ex.isApproved ? 'border-color:#854d0e88;' : ''}">
         <div class="library-item-top">
           <div>
             <div style="display:flex; align-items:center; gap:6px;">
-              <span style="font-size:14.5px; font-weight:800; color:#fff;">${escapeHtml(ex.fa)}</span>
+              <span style="font-size:14.5px; font-weight:800; color:#fff;">${escapeHtml(titleText)}</span>
               ${bankBadge}
             </div>
-            ${ex.en ? `<div style="font-size:12px; color:var(--accent-cyan); direction:ltr; text-align:right;">${escapeHtml(ex.en)}</div>` : ''}
+            ${subText}
           </div>
-          <span class="muscle-tag">${ex.category === 'home' ? '🏠 خانه' : '🏋️ باشگاه'}</span>
+          <span class="muscle-tag">${ex.category === 'home' ? `🏠 ${t('home')}` : `🏋️ ${t('gym')}`}</span>
         </div>
 
         <div class="muscles-row" style="margin:6px 0;">
-          <span class="muscle-tag">عضلات: ${escapeHtml(ex.muscles || 'عمومی')}</span>
-          <span class="muscle-tag" style="direction:ltr">${escapeHtml(ex.defaultReps || '3 × 8–12')}</span>
+          <span class="muscle-tag">${t('targetMuscles')} ${translateMuscles(ex.muscles)}</span>
+          <span class="muscle-tag" style="direction:ltr">${translateReps(escapeHtml(ex.defaultReps || '3 × 8–12'))}</span>
         </div>
 
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; flex-wrap:wrap; gap:6px;">
@@ -2660,15 +3026,15 @@ function renderLibraryList(list) {
           </div>
           <div style="display:flex; gap:4px; flex-wrap:wrap;">
             <button class="btn-header-action btn-action-primary" style="padding:4px 9px; font-size:11.5px" onclick="quickAddExFromLibrary('${ex.id}')">
-              + افزودن به برنامه
+              ${t('addToPlan')}
             </button>
             ${adminUnlocked ? `
               <button class="btn-header-action" style="padding:4px 7px; font-size:11px; border-color:#fbbf2488; color:#fbbf24;" onclick="openQuickEditForExercise('${ex.id}')" title="ویرایش مشخصات مرجع و ویدیوها">
-                ✏️ مرجع
+                ${t('editMaster')}
               </button>
               ${ex.isCustom && !ex.isApproved ? `
                 <button class="btn-header-action" style="padding:4px 7px; font-size:11px; border-color:#22c55e88; color:#22c55e;" onclick="approveCustomExercise('${ex.id}')" title="تایید برای بانک عمومی">
-                  ✅ تایید عمومی
+                  ${t('approvePublic')}
                 </button>
               ` : ''}
               ${ex.isCustom ? `
@@ -4016,10 +4382,10 @@ function applyTheme(theme) {
   const text = document.getElementById('themeToggleText');
   if (theme === 'light') {
     if (icon) icon.innerText = '🌙';
-    if (text) text.innerText = 'حالت شب';
+    if (text) text.innerText = t('darkMode');
   } else {
     if (icon) icon.innerText = '☀️';
-    if (text) text.innerText = 'حالت روز';
+    if (text) text.innerText = t('lightMode');
   }
 }
 
@@ -4028,7 +4394,10 @@ function toggleTheme() {
   const next = current === 'dark' ? 'light' : 'dark';
   localStorage.setItem('chieftain_theme', next);
   applyTheme(next);
-  showToast(next === 'light' ? '☀️ تم روشن (حالت روز) فعال شد' : '🌙 تم تاریک (حالت شب) فعال شد');
+  const isEn = currentLang === 'en';
+  showToast(next === 'light' 
+    ? (isEn ? '☀️ Light mode enabled' : '☀️ تم روشن (حالت روز) فعال شد') 
+    : (isEn ? '🌙 Dark mode enabled' : '🌙 تم تاریک (حالت شب) فعال شد'));
 }
 
 try { initTheme(); } catch(e) {}

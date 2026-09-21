@@ -29,7 +29,7 @@
 
       <div class="header-controls">
         <div class="profile-selector-wrap">
-          <span style="font-size:12px; color:var(--text-muted)">📋 برنامه:</span>
+          <span id="profileSelectWrapLabel" style="font-size:12px; color:var(--text-muted)">📋 برنامه:</span>
           <select id="profileSelect" class="profile-select" onchange="onProfileChange(this.value)">
             <option value="template_male">برنامه نمونه آقایان (هایپرتروفی ۵ روزه)</option>
             <option value="template_female">برنامه نمونه بانوان (تناسب اندام و فرم‌دهی)</option>
@@ -39,13 +39,17 @@
           <span>👤</span>
           <span id="authBtnText">ورود / حساب</span>
         </button>
+        <button id="langToggleBtn" class="btn-header-action" onclick="toggleLanguage()" title="Switch to English / تغییر زبان" style="border-color:#38bdf888; color:#38bdf8;">
+          <span id="langToggleIcon">🌐</span>
+          <span id="langToggleText">EN</span>
+        </button>
         <button id="themeToggleBtn" class="btn-header-action" onclick="toggleTheme()" title="تغییر تم (حالت روز / شب)" style="border-color:#38bdf888;">
           <span id="themeToggleIcon">☀️</span>
           <span id="themeToggleText">حالت روز</span>
         </button>
         <button id="headerInstallBtn" class="btn-header-action">
           <span>📲</span>
-          <span>نصب اپ</span>
+          <span id="headerInstallBtnText">نصب اپ</span>
         </button>
       </div>
     </div>
@@ -64,53 +68,53 @@
       <input type="text" id="searchInput" class="search-input" placeholder="جستجوی حرکت یا عضله هدف در برنامه...">
     </div>
     
-    <button class="btn-header-action" onclick="openLibraryModal()" title="مشاهده بانک کامل تمام حرکات با ویدیو">
+    <button id="libBtn" class="btn-header-action" onclick="openLibraryModal()" title="مشاهده بانک کامل تمام حرکات با ویدیو">
       <span>📚</span>
-      <span>بانک حرکات</span>
+      <span id="libBtnText">بانک حرکات</span>
     </button>
 
-    <button class="btn-header-action" onclick="openMuscleWikiModal()" title="دسترسی به بانک جهانی و ویدیوهای تمام حرکات در MuscleWiki" style="border-color:#38bdf888; color:#38bdf8;">
+    <button id="muscleWikiBtn" class="btn-header-action" onclick="openMuscleWikiModal()" title="دسترسی به بانک جهانی و ویدیوهای تمام حرکات در MuscleWiki" style="border-color:#38bdf888; color:#38bdf8;">
       <span>🌐</span>
       <span>MuscleWiki</span>
     </button>
 
-    <button class="btn-header-action" onclick="openNewProfileModal()" title="ایجاد کاربر یا برنامه شخصی جدید">
+    <button id="newProfileBtn" class="btn-header-action" onclick="openNewProfileModal()" title="ایجاد کاربر یا برنامه شخصی جدید">
       <span>➕</span>
-      <span>برنامه جدید</span>
+      <span id="newProfileBtnText">برنامه جدید</span>
     </button>
 
     <button id="editPlanBtn" class="btn-header-action btn-action-primary" onclick="requestEditPlanAccess()" title="ویرایش و افزودن حرکات به این برنامه (نیازمند رمز عبور)">
       <span>🔒</span>
-      <span>ویرایش برنامه</span>
+      <span id="editPlanBtnText">ویرایش برنامه</span>
     </button>
 
-    <button class="btn-header-action" onclick="resetCurrentSets()" title="ریست کردن تیک تمام ست‌های انجام‌شده برای جلسه جدید" style="color:#fcd34d; border-color:#fcd34d55;">
+    <button id="resetSetsBtn" class="btn-header-action" onclick="resetCurrentSets()" title="ریست کردن تیک تمام ست‌های انجام‌شده برای جلسه جدید" style="color:#fcd34d; border-color:#fcd34d55;">
       <span>🔄</span>
-      <span>ریست ست‌ها</span>
+      <span id="resetSetsBtnText">ریست ست‌ها</span>
     </button>
 
     <button id="quickCloudSyncBtn" class="btn-header-action" onclick="quickCloudSyncAction(this)" title="همگام‌سازی دوطرفه زنده و ذخیره فوری در سرور ابری" style="border-color:#00f2fe88; color:#00f2fe; background:rgba(0,242,254,0.12);">
       <span>☁️</span>
-      <span>همگام‌سازی ابری</span>
+      <span id="quickCloudSyncBtnText">همگام‌سازی ابری</span>
     </button>
 
-    <button class="btn-header-action" onclick="openSyncBackupModal()" title="تنظیمات شناسه ابری و فایل JSON" style="padding:6px 9px; font-size:11.5px; opacity:0.85;">
+    <button id="syncSettingsBtn" class="btn-header-action" onclick="openSyncBackupModal()" title="تنظیمات شناسه ابری و فایل JSON" style="padding:6px 9px; font-size:11.5px; opacity:0.85;">
       <span>⚙️</span>
     </button>
 
     <button id="quickRefreshCloudBtn" class="btn-header-action" onclick="forceSyncAndHardRefresh(this)" title="دریافت آخرین نسخه از سرور ابری و رفرش کامل بدون کش" style="border-color:#10b98188; color:#34d399; background:rgba(16,185,129,0.08);">
       <span>🔄</span>
-      <span>به‌روزرسانی و رفرش</span>
+      <span id="quickRefreshCloudBtnText">به‌روزرسانی و رفرش</span>
     </button>
 
-    <button class="btn-header-action" onclick="switchMainTab('metrics')" title="ثبت، مقایسه و تحلیل علمی ابعاد بدنی و آنتروپومتری" style="border-color:#38bdf8; color:#38bdf8; background:rgba(56,189,248,0.12);">
+    <button id="bodyMetricsBtn" class="btn-header-action" onclick="switchMainTab('metrics')" title="ثبت، مقایسه و تحلیل علمی ابعاد بدنی و آنتروپومتری" style="border-color:#38bdf8; color:#38bdf8; background:rgba(56,189,248,0.12);">
       <span>📏</span>
-      <span>سایز و بادی‌آنالیز</span>
+      <span id="bodyMetricsBtnText">سایز و بادی‌آنالیز</span>
     </button>
 
     <button id="todayJumpBtn" class="btn-header-action" title="پرش به روز جاری">
       <span>🎯</span>
-      <span>امروز</span>
+      <span id="todayJumpBtnText">امروز</span>
     </button>
 
     <button id="uiModeToggleBtn" class="btn-header-action" onclick="toggleUiMode()" title="تغییر بین حالت ساده (خلوت و تمرکز روی حرکات) و حالت پیشرفته" style="border-color:#a855f7aa; color:#d8b4fe; background:rgba(168,85,247,0.14); font-weight:800;">
