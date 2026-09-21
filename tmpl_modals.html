@@ -188,7 +188,7 @@
         <button id="libScopePrivate" class="btn-header-action" onclick="filterLibraryScope('private')" style="padding:3px 8px; font-size:11px;">🔒 بانک خصوصی من</button>
       </div>
       <button id="libAdminToggleBtn" class="btn-header-action" onclick="toggleAdminModePrompt()" style="padding:3px 8px; font-size:11px; border-color:#fbbf2488; color:#fbbf24;">
-        👑 حالت ادمین
+        🔑 ورود ادمین
       </button>
     </div>
 
@@ -1212,6 +1212,80 @@
           <span id="adminAccessSubmitBtnText">ورود</span>
         </button>
       </div>
+    </div>
+  </div>
+<!-- Dedicated Master Exercise Editor Modal (Admin Only) -->
+<div id="editMasterExModal" class="modal-overlay">
+  <div class="modal-dialog" style="max-width: 520px;">
+    <button class="modal-close-btn" onclick="closeEditMasterExModal()">✕</button>
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+      <span style="font-size:22px;">✏️</span>
+      <h3 id="editMasterExModalTitle" style="margin:0;">ویرایش حرکت در بانک (ادمین)</h3>
+    </div>
+    <p id="editMasterExModalSubtitle" style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
+      ویرایش مشخصات اصلی، نام فارسی و انگلیسی، عضلات هدف و مدیریت ویدیوهای آموزشی
+    </p>
+
+    <input type="hidden" id="editMasterExId">
+
+    <div class="form-group" style="margin-bottom:10px;">
+      <label id="editMasterExFaLabel" class="form-label" style="font-weight:700; color:#38bdf8;">نام فارسی حرکت:</label>
+      <input type="text" id="editMasterExFa" class="form-input" placeholder="مثلاً: پرس بالاسینه هالتر" style="font-size:13px; font-weight:700;">
+    </div>
+
+    <div class="form-group" style="margin-bottom:10px;">
+      <label id="editMasterExEnLabel" class="form-label" style="font-weight:700; color:#38bdf8;">نام انگلیسی حرکت:</label>
+      <input type="text" id="editMasterExEn" class="form-input" placeholder="e.g. Incline Barbell Bench Press" style="font-size:13px; font-weight:700; direction:ltr;">
+    </div>
+
+    <div style="display:flex; gap:8px; margin-bottom:10px;">
+      <div class="form-group" style="flex:2; margin-bottom:0;">
+        <label id="editMasterExMusclesLabel" class="form-label" style="font-weight:700; color:#38bdf8;">عضلات هدف:</label>
+        <input type="text" id="editMasterExMuscles" class="form-input" placeholder="مثلاً: بالاسینه، پشت بازو">
+      </div>
+      <div class="form-group" style="flex:1; margin-bottom:0;">
+        <label id="editMasterExCatLabel" class="form-label" style="font-weight:700; color:#38bdf8;">محیط تمرین:</label>
+        <select id="editMasterExCategory" class="form-select">
+          <option value="gym">🏋️ باشگاه</option>
+          <option value="home">🏠 خانه</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Video Links Section -->
+    <div style="background:#0b1320; border:1px solid #1e293b; border-radius:10px; padding:10px 12px; margin-top:12px; margin-bottom:14px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <label id="editMasterExVideosLabel" class="form-label" style="font-size:12px; font-weight:800; color:#fbbf24; margin:0; display:flex; align-items:center; gap:6px;">
+          <span>📹</span>
+          <span>ویدیوهای آموزشی حرکت:</span>
+        </label>
+        <span id="editMasterExVideosCount" style="font-size:11px; color:#94a3b8;">۰ ویدیو</span>
+      </div>
+
+      <div id="editMasterExVideosList" style="display:flex; flex-direction:column; gap:6px; max-height:180px; overflow-y:auto; margin-bottom:10px;">
+        <!-- Dynamically rendered via renderEditMasterVideosList() -->
+      </div>
+
+      <!-- Add New Video Box -->
+      <div style="background:#152033; border:1px dashed #334155; border-radius:8px; padding:8px;">
+        <div id="editMasterExAddVidHeading" style="font-size:11px; font-weight:700; color:#38bdf8; margin-bottom:6px;">➕ افزودن ویدیوی جدید:</div>
+        <div style="display:flex; gap:6px; margin-bottom:6px;">
+          <input type="text" id="editMasterNewVidTitle" class="form-input" placeholder="عنوان (مثلاً: آموزش ۱)" style="flex:1; font-size:11.5px; padding:6px;">
+          <input type="text" id="editMasterNewVidUrl" class="form-input" placeholder="لینک ویدیو (یوتیوب / آپارات)" style="flex:2; font-size:11.5px; padding:6px; direction:ltr;">
+        </div>
+        <button type="button" class="btn-header-action btn-action-primary" style="width:100%; justify-content:center; padding:6px; font-size:11.5px;" onclick="addVideoInEditMasterModal()">
+          <span id="editMasterAddVidBtnText">+ افزودن این ویدیو به لیست</span>
+        </button>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:8px;">
+      <button class="btn-header-action btn-action-success" style="flex:2; justify-content:center; padding:11px; font-weight:800;" onclick="saveEditMasterExercise()">
+        <span id="editMasterSaveBtnText">💾 ذخیره تغییرات در بانک حرکات</span>
+      </button>
+      <button class="btn-header-action" style="flex:1; justify-content:center; padding:11px;" onclick="closeEditMasterExModal()">
+        <span id="editMasterCancelBtnText">انصراف</span>
+      </button>
     </div>
   </div>
 </div>
