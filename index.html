@@ -2456,38 +2456,21 @@ body[dir="ltr"],
     <button class="modal-close-btn" onclick="closeSyncBackupModal()">✕</button>
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
       <span style="font-size:24px;">☁️</span>
-      <h3 id="syncModalTitle" style="margin:0;">پایگاه ابری اختصاصی و همگام‌سازی خودکار</h3>
+      <h3 id="syncModalTitle" style="margin:0;">پایگاه ابری و همگام‌سازی</h3>
     </div>
     <p id="syncModalSubtitle" style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
-      برنامه تمرینی شما بدون نیاز به هیچ فایلی، به طور زنده و خودکار بین تمام دستگاه‌ها و مرورگرها همگام می‌شود:
+      همگام‌سازی زنده و ابری برنامه‌ها و لاگ‌ها، یا دانلود و بارگذاری فایل پشتیبان:
     </p>
 
     <!-- Cloud Sync Database System -->
     <div style="background:#152033; border:1px solid rgba(0,242,254,0.35); border-radius:12px; padding:14px; margin-bottom:12px;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <span id="syncCardTitle" style="font-size:13px; font-weight:800; color:#00f2fe;">☁️ حساب ابری همگام‌سازی (<bdi>Live Cloud Sync</bdi>)</span>
-        <span id="cloudStatusBadge" style="font-size:10.5px; padding:2px 8px; border-radius:10px; background:rgba(16,185,129,0.15); color:#34d399; font-weight:800;">🟢 آماده اتصال</span>
+        <span id="syncCardTitle" style="font-size:13px; font-weight:800; color:#00f2fe;">☁️ پایگاه ابری Supabase (<bdi>Live Cloud Sync</bdi>)</span>
+        <span id="cloudStatusBadge" style="font-size:10.5px; padding:2px 8px; border-radius:10px; background:rgba(16,185,129,0.15); color:#34d399; font-weight:800;">🟢 آماده</span>
       </div>
 
-      <div class="form-group" style="margin-bottom:10px;">
-        <label id="syncKeyLabel" class="form-label" style="font-size:11.5px;">شناسه اختصاصی شما در سرور ابری (<bdi>Cloud Sync Key</bdi>):</label>
-        <div style="display:flex; gap:6px;">
-          <input type="text" id="cloudSyncKeyInput" class="form-input" placeholder="شناسه اختصاصی شما مثلا my_gym_key..." style="font-size:13px; font-weight:800; direction:ltr; text-align:center; color:#38bdf8; letter-spacing:1px;">
-          <button class="btn-header-action" style="flex-shrink:0; padding:8px 12px;" onclick="generateRandomSyncKey()" title="تولید شناسه رندوم جدید">🎲</button>
-        </div>
-        <div id="syncKeyTip" style="font-size:10.5px; color:#94a3b8; margin-top:3px;">
-          💡 فقط کافیست همین شناسه را در گوشی یا هر مرورگر دیگری وارد کنید تا برنامه‌تان متصل شود.
-        </div>
-      </div>
-
-      <div style="display:flex; gap:8px; margin-bottom:8px;">
-        <button class="btn-header-action btn-action-primary" style="flex:1; justify-content:center; padding:10px; font-weight:800;" onclick="pushToCloudStorage()">
-          <span id="pushCloudBtnText">☁️ ذخیره در سرور ابری</span>
-        </button>
-        <button class="btn-header-action btn-action-success" style="flex:1; justify-content:center; padding:10px; font-weight:800;" onclick="pullFromCloudStorage()">
-          <span id="pullCloudBtnText">📥 دریافت از سرور ابری</span>
-        </button>
-      </div>
+      <!-- Cloud User Status View -->
+      <div id="syncModalUserBox" style="margin-bottom:12px;"></div>
 
       <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-light); border-radius:10px; padding:10px 12px; display:flex; align-items:center; justify-content:space-between;">
         <div>
@@ -2496,7 +2479,7 @@ body[dir="ltr"],
             <span id="autoSyncStateBadge" style="font-size:10.5px; padding:1px 6px; border-radius:8px; background:rgba(16,185,129,0.2); color:#34d399; font-weight:800;">🟢 روشن و فعال</span>
           </div>
           <div id="autoSyncDesc" style="font-size:10.5px; color:#94a3b8; margin-top:2px;">
-            هر تغییری در برنامه بدهید، خودکار و بدون نیاز به کلیک در سرور ابری ذخیره می‌شود.
+            هر تغییری در برنامه، خودکار در حساب ابری شما ثبت و ذخیره می‌گردد.
           </div>
         </div>
         <label class="switch">
@@ -6364,13 +6347,13 @@ function updateStaticUIText() {
 function handleAdminPinLogin() {
   const pinInput = document.getElementById('adminAccessPinInput');
   if (!pinInput) return;
-  const pin = pinInput.value.trim().toLowerCase();
+  const pin = pinInput.value.trim();
   pinInput.value = '';
+  if (!pin) return;
 
-  if (pin === 'gym') {
-    restoreBackedUpProfile('hossein', true);
-  } else if (pin === 'inci') {
-    restoreBackedUpProfile('morvarid', true);
+  if (unlockAdminMode(pin)) {
+    closeAuthModal();
+    renderApp(true);
   } else {
     showToast(currentLang === 'en' ? '⚠️ Invalid access code.' : '⚠️ کد دسترسی وارد شده نادرست است.');
   }
@@ -6434,8 +6417,8 @@ function loadAppData() {
   const savedActiveId = localStorage.getItem('chieftain_active_profile_id');
   if (savedActiveId && allProfiles.some(p => p.id === savedActiveId)) {
     activeProfileId = savedActiveId;
-  } else if (allProfiles.some(p => p.id === 'hossein_chieftain') && isAdminUnlocked()) {
-    activeProfileId = 'hossein_chieftain';
+  } else if (allProfiles.length > 0) {
+    activeProfileId = allProfiles[0].id;
   } else {
     activeProfileId = 'template_male';
   }
@@ -6457,17 +6440,34 @@ try {
 }
 
 function isAdminUnlocked() {
-  return localStorage.getItem('chieftain_admin_unlocked') === 'true' ||
-    activeProfileId === 'hossein_chieftain' ||
-    (typeof currentAuthUser !== 'undefined' && currentAuthUser && (currentAuthUser.email || '').toLowerCase().includes('hossein'));
+  if (typeof currentAuthUser !== 'undefined' && currentAuthUser) {
+    if (currentAuthUser.app_metadata?.role === 'admin' ||
+        currentAuthUser.user_metadata?.role === 'admin' ||
+        currentAuthUser.user_metadata?.is_admin === true) {
+      return true;
+    }
+  }
+  return localStorage.getItem('chieftain_admin_unlocked') === 'true';
 }
 
 function unlockAdminMode(pwd) {
-  const validPasswords = ['gym', 'chieftain20', 'admin123'];
-  if (validPasswords.includes(pwd)) {
+  if (!pwd || !pwd.trim()) return false;
+  const cleanPwd = pwd.trim();
+  const storedPin = localStorage.getItem('chieftain_admin_pin');
+
+  // First time configuration: store entered PIN as the user's custom admin PIN
+  if (!storedPin) {
+    localStorage.setItem('chieftain_admin_pin', cleanPwd);
     localStorage.setItem('chieftain_admin_unlocked', 'true');
     updateAdminUI();
-    showToast('👑 حالت مدیریت ادمین فعال شد!');
+    showToast(currentLang === 'en' ? '👑 Admin PIN configured and unlocked!' : '👑 رمز عبور ادمین با موفقیت تعیین شد و حالت مدیریت فعال گردید!');
+    return true;
+  }
+
+  if (cleanPwd === storedPin) {
+    localStorage.setItem('chieftain_admin_unlocked', 'true');
+    updateAdminUI();
+    showToast(currentLang === 'en' ? '👑 Admin Mode Unlocked!' : '👑 حالت مدیریت ادمین فعال شد!');
     return true;
   }
   return false;
@@ -6476,22 +6476,35 @@ function unlockAdminMode(pwd) {
 function lockAdminMode() {
   localStorage.removeItem('chieftain_admin_unlocked');
   updateAdminUI();
-  showToast('🔒 از حالت مدیریت ادمین خارج شدید.');
+  showToast(currentLang === 'en' ? '🔒 Admin Mode locked.' : '🔒 از حالت مدیریت ادمین خارج شدید.');
 }
 
 function toggleAdminModePrompt() {
   const isEn = currentLang === 'en';
   if (isAdminUnlocked()) {
-    if (confirm(isEn ? 'Do you wish to log out of Admin Mode?' : 'آیا مایلید از حالت مدیریت ادمین خارج شوید؟')) {
+    const choice = confirm(isEn 
+      ? 'Admin Mode is active.\n\nClick OK to log out of Admin Mode, or Cancel to change your Admin PIN.' 
+      : 'حالت ادمین در حال حاضر فعال است.\n\nبرای خروج از حالت ادمین روی OK کلیک کنید، یا برای تغییر رمز عبور ادمین روی Cancel کلیک نمایید.');
+    if (choice) {
       lockAdminMode();
+    } else {
+      const newPin = prompt(isEn ? 'Enter new Admin PIN:' : 'لطفاً رمز عبور جدید ادمین را وارد کنید:');
+      if (newPin && newPin.trim()) {
+        localStorage.setItem('chieftain_admin_pin', newPin.trim());
+        showToast(isEn ? '✅ Admin PIN updated successfully!' : '✅ رمز عبور ادمین با موفقیت ذخیره شد!');
+      }
     }
   } else {
-    const pwd = prompt(isEn ? 'Please enter Admin PIN:' : 'لطفاً رمز عبور ادمین را وارد نمایید:');
+    const storedPin = localStorage.getItem('chieftain_admin_pin');
+    const promptMsg = !storedPin
+      ? (isEn ? 'Set an Admin PIN to protect administrative actions:' : 'جهت فعال‌سازی حالت ادمین، لطفاً یک رمز عبور جدید تعیین نمایید:')
+      : (isEn ? 'Please enter Admin PIN:' : 'لطفاً رمز عبور ادمین را وارد نمایید:');
+    const pwd = prompt(promptMsg);
     if (pwd === null) return;
     if (unlockAdminMode(pwd.trim())) {
-      // success toast already shown
+      // Toast shown inside unlockAdminMode
     } else {
-      alert(isEn ? '❌ Incorrect admin password.' : '❌ رمز عبور ادمین اشتباه است.');
+      alert(isEn ? '❌ Incorrect admin PIN.' : '❌ رمز عبور ادمین اشتباه است.');
     }
   }
 }
@@ -6553,7 +6566,7 @@ function getAllExercises() {
   const visibleCustom = (customExercises || []).filter(e => {
     if (isAdminUnlocked()) return true;
     if (e.isApproved) return true;
-    return e.ownerId === currentUserId || (!e.ownerId && String(activeProfileId).includes('hossein'));
+    return e.ownerId === currentUserId || (!e.ownerId && isAdminUnlocked());
   });
 
   // Deduplicate by ID and by normalized title to prevent any duplicate exercise from ever appearing
@@ -6738,14 +6751,7 @@ function renderHeader() {
   if (titleEl) {
     if (typeof currentAuthUser !== 'undefined' && currentAuthUser) {
       const name = currentAuthUser.user_metadata?.display_name || currentAuthUser.email?.split('@')[0] || '';
-      const emailLower = (currentAuthUser.email || '').toLowerCase();
-      if (emailLower.includes('hossein') || emailLower.includes('chieftain')) {
-        titleEl.innerText = isEn ? "Hossein's Specialized Workout Plan" : 'برنامه تمرینی تخصصی حسین';
-      } else if (emailLower.includes('morvarid')) {
-        titleEl.innerText = isEn ? "Morvarid's Specialized Workout Plan" : 'برنامه تمرینی تخصصی مروارید';
-      } else {
-        titleEl.innerText = isEn ? `Workout Plan: ${name || prof.name}` : `برنامه تمرینی ${name || prof.name}`;
-      }
+      titleEl.innerText = isEn ? `Workout Plan: ${name || prof.name}` : `برنامه تمرینی ${name || prof.name}`;
     } else {
       titleEl.innerText = isEn ? 'Chieftain Pro | Specialized Workout System' : 'سامانه تخصصی بدنسازی و تمرین | Chieftain Pro';
     }
@@ -8230,8 +8236,8 @@ function deleteActiveProfile() {
   if (confirm(`آیا از حذف کامل برنامه "${prof.name}" اطمینان دارید؟`)) {
     allProfiles = allProfiles.filter(p => p.id !== prof.id);
     saveProfiles();
-    activeProfileId = 'hossein_chieftain';
-    localStorage.setItem('chieftain_active_profile_id', 'hossein_chieftain');
+    activeProfileId = allProfiles.length > 0 ? allProfiles[0].id : 'template_male';
+    localStorage.setItem('chieftain_active_profile_id', activeProfileId);
     closeEditPlanModal();
     renderApp();
     showToast('برنامه با موفقیت حذف شد.');
@@ -8241,12 +8247,10 @@ function deleteActiveProfile() {
 function factoryResetActiveProfile() {
   const prof = getActiveProfile();
   if (confirm(`آیا می‌خواهید تمام روزهای اصلی برای "${prof.name}" بازیابی شوند؟`)) {
-    if (prof.id === 'morvarid') {
+    if (prof.id === 'morvarid' || prof.id === 'template_female') {
       prof.days = JSON.parse(JSON.stringify(MORVARID_PROFILE.days));
-      prof.pin = 'inci';
     } else {
       prof.days = JSON.parse(JSON.stringify(HOSSEIN_PROFILE.days));
-      if (prof.id === 'hossein_chieftain') prof.pin = 'gym';
     }
     saveProfiles();
     renderEditPlanDaysList();
@@ -10190,50 +10194,7 @@ function setupSectionObserver() {
 }
 
 // --- Sync & Cloud Backup / Restore Handlers ---
-// --- Chieftain Real-Time Cloud Sync Database Engine ---
-const CLOUD_KV_BUCKET = 'https://kvdb.io/BgbDquBYHnhVdJyQMuGqds/';
-
-function getEffectiveCloudKey() {
-  let savedKey = localStorage.getItem('chieftain_cloud_sync_key');
-  // Check if authenticated user exists in Supabase
-  if (typeof currentAuthUser !== 'undefined' && currentAuthUser) {
-    const emailLower = (currentAuthUser.email || '').toLowerCase();
-    if (emailLower.includes('hossein') || emailLower.includes('chieftain')) return 'hossein';
-    if (emailLower.includes('morvarid')) return 'morvarid';
-    return 'user_' + (currentAuthUser.id ? currentAuthUser.id.substring(0, 8) : 'sync');
-  }
-  // If user has unlocked admin mode
-  if (typeof isAdminUnlocked === 'function' && isAdminUnlocked()) {
-    if (activeProfileId === 'hossein_chieftain') return 'hossein';
-    if (activeProfileId === 'morvarid') return 'morvarid';
-  }
-  // Security guard for guests/strangers: never default to hossein or morvarid
-  if (savedKey === 'hossein' || savedKey === 'morvarid') {
-    if (typeof isAdminUnlocked !== 'function' || !isAdminUnlocked()) {
-      savedKey = 'guest_' + Math.random().toString(36).substring(2, 8);
-      localStorage.setItem('chieftain_cloud_sync_key', savedKey);
-    }
-  }
-  if (!savedKey) {
-    savedKey = 'guest_' + Math.random().toString(36).substring(2, 8);
-    localStorage.setItem('chieftain_cloud_sync_key', savedKey);
-  }
-  return savedKey;
-}
-
-function setCloudSyncKey(key) {
-  const cleanKey = key.trim().toLowerCase().replace(/[^a-zA-Z0-9_\-]/g, '');
-  if (!cleanKey) return;
-  localStorage.setItem('chieftain_cloud_sync_key', cleanKey);
-}
-
-function generateRandomSyncKey() {
-  const newKey = 'user_' + Math.random().toString(36).substring(2, 8);
-  const input = document.getElementById('cloudSyncKeyInput');
-  if (input) input.value = newKey;
-  setCloudSyncKey(newKey);
-  showToast('🎲 شناسه جدید ابری تولید شد: ' + newKey);
-}
+// --- Chieftain Real-Time Cloud Sync Database Engine (Supabase Exclusive) ---
 
 function isAutoCloudSyncEnabled() {
   const val = localStorage.getItem('chieftain_auto_cloud_sync');
@@ -10243,18 +10204,21 @@ function isAutoCloudSyncEnabled() {
 function toggleAutoCloudSync(enabled) {
   localStorage.setItem('chieftain_auto_cloud_sync', enabled ? 'true' : 'false');
   const badge = document.getElementById('autoSyncStateBadge');
+  const isEn = currentLang === 'en';
   if (badge) {
     if (enabled) {
-      badge.innerHTML = '🟢 روشن و فعال';
+      badge.innerHTML = isEn ? '🟢 Active' : '🟢 روشن و فعال';
       badge.style.background = 'rgba(16,185,129,0.2)';
       badge.style.color = '#34d399';
     } else {
-      badge.innerHTML = '⚪ خاموش';
+      badge.innerHTML = isEn ? '⚪ Off' : '⚪ خاموش';
       badge.style.background = 'rgba(148,163,184,0.15)';
       badge.style.color = '#94a3b8';
     }
   }
-  showToast(enabled ? '✅ همگام‌سازی خودکار ابری فعال شد' : '⏸ همگام‌سازی خودکار غیرفعال شد');
+  showToast(enabled 
+    ? (isEn ? '✅ Auto cloud sync enabled' : '✅ همگام‌سازی خودکار ابری فعال شد') 
+    : (isEn ? '⏸ Auto cloud sync paused' : '⏸ همگام‌سازی خودکار غیرفعال شد'));
 }
 
 function getAllProfilesMetricsMap() {
@@ -10359,131 +10323,65 @@ function restoreProfilesSetsMap(setsMap) {
 }
 
 async function pushToCloudStorage(silent = false) {
-  const keyInput = document.getElementById('cloudSyncKeyInput');
-  if (keyInput && keyInput.value) {
-    setCloudSyncKey(keyInput.value);
-  }
-  const syncKey = getEffectiveCloudKey();
-  const badge = document.getElementById('cloudStatusBadge');
-
-  if (badge) {
-    badge.innerHTML = '🔄 در حال ارسال...';
-    badge.style.color = '#38bdf8';
-  }
-
-  const payload = {
-    version: 'v9',
-    syncKey: syncKey,
-    updatedAt: new Date().toISOString(),
-    activeId: activeProfileId,
-    profiles: allProfiles,
-    custom: customExercises,
-    metrics: getAllProfilesMetricsMap(),
-    logs: getAllProfilesLogsMap(),
-    sets: getAllProfilesSetsMap()
-  };
-
-  try {
-    const resp = await fetch(CLOUD_KV_BUCKET + syncKey, {
-      method: 'POST',
-      body: JSON.stringify(payload)
-    });
-
-    if (resp.ok) {
-      const now = new Date().toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
-      if (badge) {
-        badge.innerHTML = `🟢 متصل و همگام (${now})`;
-        badge.style.color = '#34d399';
-      }
-      if (!silent) {
-        showToast('☁️ تمام برنامه‌ها، لاگ‌ها و تغییرات با موفقیت در سرور ابری ذخیره شدند!');
-      }
-    } else {
-      if (badge) {
-        badge.innerHTML = '⚠️ خطا در اتصال';
-        badge.style.color = '#f87171';
-      }
-      if (!silent) alert('خطا در ذخیره ابری: ' + resp.statusText);
+  if (typeof supabaseClient !== 'undefined' && supabaseClient && typeof currentAuthUser !== 'undefined' && currentAuthUser) {
+    try {
+      await syncCurrentDataWithSupabase();
+      return true;
+    } catch(err) {
+      if (!silent) console.error('Cloud push error:', err);
+      return false;
     }
-  } catch(e) {
-    if (badge) {
-      badge.innerHTML = '⚠️ آفلاین';
-      badge.style.color = '#f87171';
-    }
-    if (!silent) console.error('Cloud push error:', e);
   }
+
+  // If user is not authenticated, data is preserved safely in localStorage
+  if (!silent) {
+    showToast(currentLang === 'en' 
+      ? 'ℹ️ Log in to Supabase to enable secure cloud sync.' 
+      : 'ℹ️ جهت همگام‌سازی ابری و امن، لطفاً وارد حساب کاربری شوید.');
+    openAuthModal();
+  }
+  return false;
 }
 
 async function pullFromCloudStorage(silent = false) {
-  const keyInput = document.getElementById('cloudSyncKeyInput');
-  if (keyInput && keyInput.value) {
-    setCloudSyncKey(keyInput.value);
-  }
-  const syncKey = getEffectiveCloudKey();
-  const badge = document.getElementById('cloudStatusBadge');
-
-  if (badge) {
-    badge.innerHTML = '🔄 در حال دریافت...';
-    badge.style.color = '#38bdf8';
-  }
-
-  try {
-    const resp = await fetch(CLOUD_KV_BUCKET + syncKey);
-    if (resp.ok) {
-      const data = await resp.json();
-      if (data && data.profiles && Array.isArray(data.profiles)) {
-        allProfiles = data.profiles;
-        if (data.custom) customExercises = data.custom;
-
-        // Preserve this device's own active profile! (Prevent cross-device profile switching)
-        const localSavedActiveId = localStorage.getItem('chieftain_active_profile_id');
-        if (localSavedActiveId && allProfiles.some(p => p.id === localSavedActiveId)) {
-          activeProfileId = localSavedActiveId;
-        } else if (!allProfiles.some(p => p.id === activeProfileId)) {
-          activeProfileId = allProfiles[0].id;
-        }
-
-        if (data.metrics) restoreProfilesMetricsMap(data.metrics);
-        if (data.logs) restoreProfilesLogsMap(data.logs);
-        if (data.sets) restoreProfilesSetsMap(data.sets);
-        localStorage.setItem('chieftain_profiles_v9', JSON.stringify(allProfiles));
-        saveCustomExercises();
-        renderApp();
-
-        const now = new Date().toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
-        if (badge) {
-          badge.innerHTML = `🟢 همگام با ابر (${now})`;
-          badge.style.color = '#34d399';
-        }
-        if (!silent) {
-          showToast('✅ آخرین نسخه برنامه، لاگ‌ها و ابعاد بدنی با موفقیت دریافت شد!');
-        }
-        return true;
-      }
-    } else if (resp.status === 404) {
-      if (!silent) {
-        alert('شناسه ابری "' + syncKey + '" هنوز در سرور ابری اطلاعاتی ندارد. لطفاً ابتدا روی "ذخیره در سرور ابری" بزنید.');
-      }
+  if (typeof supabaseClient !== 'undefined' && supabaseClient && typeof currentAuthUser !== 'undefined' && currentAuthUser) {
+    try {
+      await syncCurrentDataWithSupabase();
+      return true;
+    } catch(err) {
+      if (!silent) console.error('Cloud pull error:', err);
+      return false;
     }
-  } catch(e) {
-    if (!silent) console.error('Cloud pull error:', e);
+  }
+
+  if (!silent) {
+    showToast(currentLang === 'en' 
+      ? 'ℹ️ Log in to Supabase to pull your cloud data.' 
+      : 'ℹ️ جهت دریافت اطلاعات ابری، لطفاً وارد حساب کاربری شوید.');
+    openAuthModal();
   }
   return false;
 }
 
 async function forceSyncAndHardRefresh(btn) {
+  const isEn = currentLang === 'en';
   if (btn) {
     btn.style.opacity = '0.6';
-    btn.innerHTML = '<span>⏳</span> <span>در حال دریافت از سرور ابری و پاک‌سازی کش...</span>';
+    btn.innerHTML = isEn 
+      ? '<span>⏳</span> <span>Syncing and clearing cache...</span>'
+      : '<span>⏳</span> <span>در حال همگام‌سازی و پاک‌سازی کش...</span>';
   }
-  showToast('🔄 در حال دریافت آخرین اطلاعات از سرور ابری و پاک‌سازی کش مرورگر...');
+  showToast(isEn 
+    ? '🔄 Syncing cloud data and clearing browser cache...' 
+    : '🔄 در حال دریافت آخرین اطلاعات ابری و پاک‌سازی کش مرورگر...');
 
-  // 1. Pull latest from Cloud KV DB first so no data is missed
-  let cloudSuccess = false;
-  try {
-    cloudSuccess = await pullFromCloudStorage(true);
-  } catch(e) {
-    console.error('Cloud pull error during refresh:', e);
+  // 1. Sync from Supabase first if authenticated
+  if (typeof supabaseClient !== 'undefined' && supabaseClient && typeof currentAuthUser !== 'undefined' && currentAuthUser) {
+    try {
+      await syncCurrentDataWithSupabase();
+    } catch(e) {
+      console.error('Supabase sync error during refresh:', e);
+    }
   }
 
   // 2. Clear all Service Worker caches and CacheStorage
@@ -10512,11 +10410,9 @@ async function forceSyncAndHardRefresh(btn) {
     renderApp();
   } catch(e) {}
 
-  if (cloudSuccess) {
-    showToast('🎉 اطلاعات از سرور ابری دریافت و کش مرورگر پاک شد! در حال رفرش نهایی... 🟢');
-  } else {
-    showToast('✅ کش مرورگر پاک شد و نسخه محلی رفرش گردید. در حال رفرش نهایی...');
-  }
+  showToast(isEn 
+    ? '🎉 Cache cleared and refreshed! 🟢' 
+    : '🎉 کش مرورگر پاک شد و اطلاعات همگام گردید! 🟢');
 
   // 5. Force hard-reload the window bypassing browser cache
   setTimeout(() => {
@@ -10530,26 +10426,32 @@ async function forceSyncAndHardRefresh(btn) {
 }
 
 async function quickCloudSyncAction(btn) {
+  const isEn = currentLang === 'en';
   if (btn) {
     btn.style.opacity = '0.6';
-    btn.innerHTML = '<span>⏳</span> <span>در حال ذخیره...</span>';
+    btn.innerHTML = isEn ? '<span>⏳</span> <span>Syncing...</span>' : '<span>⏳</span> <span>در حال ذخیره...</span>';
   }
-  showToast('☁️ در حال ارسال تمام داده‌ها و لاگ‌ها به سرور ابری...');
-  try {
-    const pushed = await pushToCloudStorage(true);
-    await pullFromCloudStorage(true);
-    if (pushed) {
-      showToast('✅ تمام اطلاعات، لاگ‌ها و ست‌ها در سرور ابری ذخیره شدند! 🟢');
-    } else {
-      showToast('✅ اطلاعات در حافظه دستگاه ذخیره شد و آماده همگام‌سازی ابری است.');
+
+  if (typeof supabaseClient !== 'undefined' && supabaseClient && typeof currentAuthUser !== 'undefined' && currentAuthUser) {
+    showToast(isEn ? '☁️ Syncing all data with Supabase...' : '☁️ در حال همگام‌سازی تمام داده‌ها با پایگاه داده Supabase...');
+    try {
+      await syncCurrentDataWithSupabase();
+      showToast(isEn ? '✅ All data synchronized with Supabase! 🟢' : '✅ تمام اطلاعات با موفقیت در دیتابیس Supabase همگام شد! 🟢');
+    } catch(e) {
+      showToast(isEn ? '⚠️ Cloud sync error. Data is saved locally.' : '⚠️ خطا در اتصال ابری؛ اطلاعات در حافظه محلی ذخیره شد.');
+    } finally {
+      if (btn) {
+        btn.style.opacity = '1';
+        btn.innerHTML = `<span>☁️</span> <span id="quickCloudSyncBtnText">${t('cloudSync')}</span>`;
+      }
     }
-  } catch(e) {
-    showToast('⚠️ ذخیره محلی با موفقیت انجام شد (اتصال اینترنت را بررسی کنید).');
-  } finally {
+  } else {
+    showToast(isEn ? 'ℹ️ Please log in to enable cloud sync.' : 'ℹ️ جهت همگام‌سازی ابری، لطفاً ابتدا وارد حساب شوید.');
     if (btn) {
       btn.style.opacity = '1';
       btn.innerHTML = `<span>☁️</span> <span id="quickCloudSyncBtnText">${t('cloudSync')}</span>`;
     }
+    openAuthModal();
   }
 }
 
@@ -10670,14 +10572,12 @@ function updateAuthUI(user) {
     if (nameDisplay) nameDisplay.innerText = `خوش آمدید، ${name}`;
 
     const appTitleEl = document.getElementById('appTitle');
-    const emailLower = (user.email || '').toLowerCase();
-    if (emailLower.includes('hossein') || emailLower.includes('chieftain')) {
-      localStorage.setItem('chieftain_admin_unlocked', 'true');
-      if (appTitleEl) appTitleEl.innerText = 'برنامه تمرینی تخصصی حسین';
-    } else if (emailLower.includes('morvarid')) {
-      if (appTitleEl) appTitleEl.innerText = 'برنامه تمرینی تخصصی مروارید';
-    } else {
-      if (appTitleEl) appTitleEl.innerText = `سامانه تمرینی ${name} | Chieftain Pro`;
+    if (appTitleEl) {
+      if (currentLang === 'en') {
+        appTitleEl.innerText = `${name}'s Workout System | Chieftain Pro`;
+      } else {
+        appTitleEl.innerText = `سامانه تمرینی ${name} | Chieftain Pro`;
+      }
     }
     updateAdminUI();
   } else {
@@ -11035,111 +10935,93 @@ const BACKUP_PRELOADED_DATA = {
   "logs": {}
 };
 
-function restoreBackedUpProfile(userKey, skipPrompt = false) {
-  if (userKey === 'hossein') {
-    if (!skipPrompt) {
-      const pwd = prompt(currentLang === 'en' ? 'Enter private access code:' : 'لطفاً کد دسترسی اختصاصی را وارد کنید:');
-      if (pwd === null) return;
-      if (pwd.trim() !== 'gym') {
-        alert(currentLang === 'en' ? '❌ Invalid access code.' : '❌ کد دسترسی نادرست است.');
-        return;
-      }
-    }
+function restoreBackedUpProfile(templateKey) {
+  const targetId = (templateKey === 'morvarid' || templateKey === 'template_female') ? 'template_female' : 'template_male';
+  activeProfileId = targetId;
+  localStorage.setItem('chieftain_active_profile_id', targetId);
 
-    // Set admin unlocked & active profile
-    localStorage.setItem('chieftain_admin_unlocked', 'true');
-    activeProfileId = 'template_male';
-    localStorage.setItem('chieftain_active_profile_id', 'template_male');
-
-    // 1. Ensure Profile in allProfiles
-    let hProf = allProfiles.find(p => p.id === 'template_male');
-    if (!hProf) {
-      hProf = JSON.parse(JSON.stringify(HOSSEIN_PROFILE));
-      hProf.id = 'template_male';
-      allProfiles.unshift(hProf);
+  let prof = allProfiles.find(p => p.id === targetId);
+  if (!prof) {
+    if (targetId === 'template_female') {
+      prof = JSON.parse(JSON.stringify(MORVARID_PROFILE));
+      prof.id = 'template_female';
+      allProfiles.push(prof);
+    } else {
+      prof = JSON.parse(JSON.stringify(HOSSEIN_PROFILE));
+      prof.id = 'template_male';
+      allProfiles.unshift(prof);
     }
     saveProfiles();
-
-    // 2. If Supabase is connected, sync everything from user's private cloud
-    if (typeof supabaseClient !== 'undefined' && supabaseClient && currentAuthUser) {
-      syncCurrentDataWithSupabase();
-    }
-
-    updateAdminUI();
-    closeAuthModal();
-    renderApp(true);
-    showToast(currentLang === 'en' ? '🎉 Welcome! Routine loaded.' : '🎉 برنامه و تنظیمات با موفقیت بارگذاری شد!');
-  } else if (userKey === 'morvarid') {
-    if (!skipPrompt) {
-      const pwd = prompt(currentLang === 'en' ? 'Enter private access code:' : 'لطفاً کد دسترسی اختصاصی را وارد کنید:');
-      if (pwd === null) return;
-      if (pwd.trim() !== 'inci') {
-        alert(currentLang === 'en' ? '❌ Invalid access code.' : '❌ کد دسترسی نادرست است.');
-        return;
-      }
-    }
-
-    activeProfileId = 'template_female';
-    localStorage.setItem('chieftain_active_profile_id', 'template_female');
-
-    // 1. Ensure Profile in allProfiles
-    let mProf = allProfiles.find(p => p.id === 'template_female');
-    if (!mProf) {
-      mProf = JSON.parse(JSON.stringify(MORVARID_PROFILE));
-      mProf.id = 'template_female';
-      allProfiles.push(mProf);
-    }
-    saveProfiles();
-
-    // 2. If Supabase is connected, sync
-    if (typeof supabaseClient !== 'undefined' && supabaseClient && currentAuthUser) {
-      syncCurrentDataWithSupabase();
-    }
-
-    closeAuthModal();
-    renderApp(true);
-    showToast(currentLang === 'en' ? '🎉 Welcome! Routine loaded.' : '🎉 برنامه با موفقیت بارگذاری شد!');
   }
+
+  if (typeof supabaseClient !== 'undefined' && supabaseClient && currentAuthUser) {
+    syncCurrentDataWithSupabase();
+  }
+
+  closeAuthModal();
+  renderApp(true);
+  showToast(currentLang === 'en' ? '🎉 Routine loaded successfully!' : '🎉 برنامه با موفقیت بارگذاری شد!');
 }
 
 function openSyncBackupModal() {
-  const syncKey = getEffectiveCloudKey();
-  const keyInput = document.getElementById('cloudSyncKeyInput');
-  if (keyInput) keyInput.value = syncKey;
+  const isEn = currentLang === 'en';
+  const userBox = document.getElementById('syncModalUserBox');
+  const badge = document.getElementById('cloudStatusBadge');
+
+  if (typeof currentAuthUser !== 'undefined' && currentAuthUser) {
+    if (badge) {
+      badge.innerHTML = isEn ? '🟢 Connected' : '🟢 متصل به حساب ابری';
+      badge.style.background = 'rgba(16,185,129,0.15)';
+      badge.style.color = '#34d399';
+    }
+    if (userBox) {
+      userBox.innerHTML = `
+        <div style="background:rgba(15,23,42,0.6); border:1px solid var(--border-color); border-radius:8px; padding:10px; margin-bottom:10px;">
+          <div style="font-size:11.5px; color:var(--text-muted);">${isEn ? 'Logged in as:' : 'متصل به عنوان:'}</div>
+          <div style="font-size:13px; font-weight:800; color:#38bdf8; direction:ltr; text-align:left;">${currentAuthUser.email || ''}</div>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn-header-action btn-action-primary" style="flex:1; justify-content:center; padding:10px; font-weight:800;" onclick="syncCurrentDataWithSupabase()">
+            <span>🔄</span> <span>${isEn ? 'Sync with Cloud Now' : 'همگام‌سازی فوری با دیتابیس'}</span>
+          </button>
+        </div>
+      `;
+    }
+  } else {
+    if (badge) {
+      badge.innerHTML = isEn ? '⚪ Offline / Guest' : '⚪ آفلاین / مهمان';
+      badge.style.background = 'rgba(148,163,184,0.15)';
+      badge.style.color = '#94a3b8';
+    }
+    if (userBox) {
+      userBox.innerHTML = `
+        <div style="font-size:11.5px; color:#cbd5e1; margin-bottom:10px; line-height:1.6;">
+          ${isEn 
+            ? 'You are currently not logged into a cloud account. Your routines and logs are safely stored in this browser. To automatically sync across devices, log in or create a free account.'
+            : 'شما در حال حاضر وارد حساب ابری نشده‌اید. برنامه‌ها و لاگ‌های شما در حافظه همین دستگاه ذخیره می‌شوند. جهت همگام‌سازی بین گوشی و کامپیوتر، وارد حساب کاربری شوید:'}
+        </div>
+        <button class="btn-header-action btn-action-primary" style="width:100%; justify-content:center; padding:10px; font-weight:800;" onclick="closeSyncBackupModal(); openAuthModal();">
+          <span>🚀</span> <span>${isEn ? 'Log in or Sign Up' : 'ورود / ایجاد حساب کاربری ابری'}</span>
+        </button>
+      `;
+    }
+  }
 
   const autoToggle = document.getElementById('autoCloudSyncToggle');
   const isAuto = isAutoCloudSyncEnabled();
   if (autoToggle) autoToggle.checked = isAuto;
-  const badge = document.getElementById('autoSyncStateBadge');
-  if (badge) {
+  const autoBadge = document.getElementById('autoSyncStateBadge');
+  if (autoBadge) {
     if (isAuto) {
-      badge.innerHTML = '🟢 روشن و فعال';
-      badge.style.background = 'rgba(16,185,129,0.2)';
-      badge.style.color = '#34d399';
+      autoBadge.innerHTML = isEn ? '🟢 Active' : '🟢 روشن و فعال';
+      autoBadge.style.background = 'rgba(16,185,129,0.2)';
+      autoBadge.style.color = '#34d399';
     } else {
-      badge.innerHTML = '⚪ خاموش';
-      badge.style.background = 'rgba(148,163,184,0.15)';
-      badge.style.color = '#94a3b8';
+      autoBadge.innerHTML = isEn ? '⚪ Off' : '⚪ خاموش';
+      autoBadge.style.background = 'rgba(148,163,184,0.15)';
+      autoBadge.style.color = '#94a3b8';
     }
   }
-
-  const syncInput = document.getElementById('syncUrlDisplayInput');
-  try {
-    const payload = {
-      version: 'v9',
-      activeId: activeProfileId,
-      profiles: allProfiles,
-      custom: customExercises,
-      metrics: getAllProfilesMetricsMap(),
-      logs: getAllProfilesLogsMap(),
-      sets: getAllProfilesSetsMap(),
-      timestamp: Date.now()
-    };
-    const jsonStr = JSON.stringify(payload);
-    const b64 = btoa(encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode('0x' + p1)));
-    const syncUrl = window.location.origin + window.location.pathname + '#sync=' + b64;
-    if (syncInput) syncInput.value = syncUrl;
-  } catch(e) {}
 
   document.getElementById('syncBackupModal')?.classList.add('open');
 }

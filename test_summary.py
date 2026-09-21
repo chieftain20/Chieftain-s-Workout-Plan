@@ -4,10 +4,10 @@ sys.stdout.reconfigure(encoding='utf-8')
 with open('master_exercises.json', 'r', encoding='utf-8') as f:
     master_ex = json.load(f)
 
-with open('hossein_profile.json', 'r', encoding='utf-8') as f:
+with open('template_male.json', 'r', encoding='utf-8') as f:
     h_prof = json.load(f)
 
-with open('morvarid_profile.json', 'r', encoding='utf-8') as f:
+with open('template_female.json', 'r', encoding='utf-8') as f:
     m_prof = json.load(f)
 
 ex_map = {e['id']: e for e in master_ex}

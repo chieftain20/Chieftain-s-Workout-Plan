@@ -1,4 +1,4 @@
-﻿import json
+import json
 
 with open('part1.json', 'r', encoding='utf-8') as f:
     p1 = json.load(f)
@@ -11,9 +11,9 @@ master_exercises = p1 + p2 + p3
 with open('master_exercises.json', 'w', encoding='utf-8') as f:
     json.dump(master_exercises, f, ensure_ascii=False, indent=2)
 
-hossein_profile = {
-    "id": "hossein_chieftain",
-    "name": "Hossein Chieftain",
+template_male_profile = {
+    "id": "template_male",
+    "name": "برنامه نمونه آقایان (هایپرتروفی ۵ روزه)",
     "isDefault": True,
     "days": [
         {
@@ -217,7 +217,7 @@ hossein_profile = {
     ]
 }
 
-with open('hossein_profile.json', 'w', encoding='utf-8') as f:
-    json.dump(hossein_profile, f, ensure_ascii=False, indent=2)
+with open('template_male.json', 'w', encoding='utf-8') as f:
+    json.dump(template_male_profile, f, ensure_ascii=False, indent=2)
 
 print(f'Done! Total master exercises: {len(master_exercises)}')

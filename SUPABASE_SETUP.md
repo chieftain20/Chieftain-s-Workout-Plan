@@ -39,6 +39,15 @@ CREATE TABLE IF NOT EXISTS public.body_metrics (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 4. Table: profiles (Optional custom user profile metadata)
+CREATE TABLE IF NOT EXISTS public.profiles (
+  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  display_name TEXT,
+  avatar_url TEXT,
+  role TEXT DEFAULT 'user',
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_user_routines_user_id ON public.user_routines(user_id);
 CREATE INDEX IF NOT EXISTS idx_workout_logs_user_id ON public.workout_logs(user_id);
@@ -56,11 +65,20 @@ Execute the following SQL in the **SQL Editor**:
 
 ```sql
 -- Step 1: Enable RLS on all tables
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_routines ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.workout_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.body_metrics ENABLE ROW LEVEL SECURITY;
 
--- Step 2: Policy for user_routines
+-- Step 2: Policy for profiles
+CREATE POLICY "Users can manage own profile"
+ON public.profiles
+FOR ALL
+TO authenticated
+USING (auth.uid() = id)
+WITH CHECK (auth.uid() = id);
+
+-- Step 3: Policy for user_routines
 CREATE POLICY "Users can manage own routines"
 ON public.user_routines
 FOR ALL
@@ -68,7 +86,7 @@ TO authenticated
 USING (auth.uid() = user_id)
 WITH CHECK (auth.uid() = user_id);
 
--- Step 3: Policy for workout_logs
+-- Step 4: Policy for workout_logs
 CREATE POLICY "Users can manage own workout logs"
 ON public.workout_logs
 FOR ALL
@@ -76,7 +94,7 @@ TO authenticated
 USING (auth.uid() = user_id)
 WITH CHECK (auth.uid() = user_id);
 
--- Step 4: Policy for body_metrics
+-- Step 5: Policy for body_metrics
 CREATE POLICY "Users can manage own body metrics"
 ON public.body_metrics
 FOR ALL

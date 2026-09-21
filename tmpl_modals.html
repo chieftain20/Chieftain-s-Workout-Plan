@@ -782,38 +782,21 @@
     <button class="modal-close-btn" onclick="closeSyncBackupModal()">✕</button>
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
       <span style="font-size:24px;">☁️</span>
-      <h3 id="syncModalTitle" style="margin:0;">پایگاه ابری اختصاصی و همگام‌سازی خودکار</h3>
+      <h3 id="syncModalTitle" style="margin:0;">پایگاه ابری و همگام‌سازی</h3>
     </div>
     <p id="syncModalSubtitle" style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
-      برنامه تمرینی شما بدون نیاز به هیچ فایلی، به طور زنده و خودکار بین تمام دستگاه‌ها و مرورگرها همگام می‌شود:
+      همگام‌سازی زنده و ابری برنامه‌ها و لاگ‌ها، یا دانلود و بارگذاری فایل پشتیبان:
     </p>
 
     <!-- Cloud Sync Database System -->
     <div style="background:#152033; border:1px solid rgba(0,242,254,0.35); border-radius:12px; padding:14px; margin-bottom:12px;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <span id="syncCardTitle" style="font-size:13px; font-weight:800; color:#00f2fe;">☁️ حساب ابری همگام‌سازی (<bdi>Live Cloud Sync</bdi>)</span>
-        <span id="cloudStatusBadge" style="font-size:10.5px; padding:2px 8px; border-radius:10px; background:rgba(16,185,129,0.15); color:#34d399; font-weight:800;">🟢 آماده اتصال</span>
+        <span id="syncCardTitle" style="font-size:13px; font-weight:800; color:#00f2fe;">☁️ پایگاه ابری Supabase (<bdi>Live Cloud Sync</bdi>)</span>
+        <span id="cloudStatusBadge" style="font-size:10.5px; padding:2px 8px; border-radius:10px; background:rgba(16,185,129,0.15); color:#34d399; font-weight:800;">🟢 آماده</span>
       </div>
 
-      <div class="form-group" style="margin-bottom:10px;">
-        <label id="syncKeyLabel" class="form-label" style="font-size:11.5px;">شناسه اختصاصی شما در سرور ابری (<bdi>Cloud Sync Key</bdi>):</label>
-        <div style="display:flex; gap:6px;">
-          <input type="text" id="cloudSyncKeyInput" class="form-input" placeholder="شناسه اختصاصی شما مثلا my_gym_key..." style="font-size:13px; font-weight:800; direction:ltr; text-align:center; color:#38bdf8; letter-spacing:1px;">
-          <button class="btn-header-action" style="flex-shrink:0; padding:8px 12px;" onclick="generateRandomSyncKey()" title="تولید شناسه رندوم جدید">🎲</button>
-        </div>
-        <div id="syncKeyTip" style="font-size:10.5px; color:#94a3b8; margin-top:3px;">
-          💡 فقط کافیست همین شناسه را در گوشی یا هر مرورگر دیگری وارد کنید تا برنامه‌تان متصل شود.
-        </div>
-      </div>
-
-      <div style="display:flex; gap:8px; margin-bottom:8px;">
-        <button class="btn-header-action btn-action-primary" style="flex:1; justify-content:center; padding:10px; font-weight:800;" onclick="pushToCloudStorage()">
-          <span id="pushCloudBtnText">☁️ ذخیره در سرور ابری</span>
-        </button>
-        <button class="btn-header-action btn-action-success" style="flex:1; justify-content:center; padding:10px; font-weight:800;" onclick="pullFromCloudStorage()">
-          <span id="pullCloudBtnText">📥 دریافت از سرور ابری</span>
-        </button>
-      </div>
+      <!-- Cloud User Status View -->
+      <div id="syncModalUserBox" style="margin-bottom:12px;"></div>
 
       <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-light); border-radius:10px; padding:10px 12px; display:flex; align-items:center; justify-content:space-between;">
         <div>
@@ -822,7 +805,7 @@
             <span id="autoSyncStateBadge" style="font-size:10.5px; padding:1px 6px; border-radius:8px; background:rgba(16,185,129,0.2); color:#34d399; font-weight:800;">🟢 روشن و فعال</span>
           </div>
           <div id="autoSyncDesc" style="font-size:10.5px; color:#94a3b8; margin-top:2px;">
-            هر تغییری در برنامه بدهید، خودکار و بدون نیاز به کلیک در سرور ابری ذخیره می‌شود.
+            هر تغییری در برنامه، خودکار در حساب ابری شما ثبت و ذخیره می‌گردد.
           </div>
         </div>
         <label class="switch">
