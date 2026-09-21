@@ -169,7 +169,7 @@
 <div id="libraryModal" class="modal-overlay">
   <div class="modal-dialog">
     <button class="modal-close-btn" onclick="closeLibraryModal()">✕</button>
-    <h3>📚 بانک جامع حرکات ورزشی (با تمام ویدیوها)</h3>
+    <h3 id="libraryModalTitle">📚 بانک جامع حرکات ورزشی (با تمام ویدیوها)</h3>
     <p style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 12px;">
       مرجع کامل تمام ۷۵+ حرکت تمرینی به همراه ویدیوهای آموزشی یوتیوب
     </p>
@@ -220,7 +220,7 @@
     <button class="modal-close-btn" onclick="closeMuscleWikiModal()">✕</button>
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
       <span style="font-size:24px;">🌐</span>
-      <h3 style="margin:0;">بانک جهانی حرکات MuscleWiki & ویدیوها</h3>
+      <h3 id="muscleWikiModalTitle" style="margin:0;">بانک جهانی حرکات MuscleWiki & ویدیوها</h3>
     </div>
     <p style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 14px;">
       دسترسی به نقشه آناتومی تعاملی بدن و ویدیوی آموزشی تمام حرکات بدنسازی دنیا:
@@ -261,7 +261,7 @@
 <div id="customExerciseModal" class="modal-overlay">
   <div class="modal-dialog" style="max-width: 460px;">
     <button class="modal-close-btn" onclick="closeCustomExerciseModal()">✕</button>
-    <h3>➕ ثبت حرکت تمرینی جدید (بانک خصوصی)</h3>
+    <h3 id="customExModalTitle">➕ ثبت حرکت تمرینی جدید (بانک خصوصی)</h3>
     <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
       این حرکت در <strong>بانک خصوصی شما</strong> ذخیره می‌شود و می‌توانید فوراً از آن در برنامه‌تان استفاده کنید. در صورت تمایل می‌توانید درخواست تایید برای انتشار در بانک عمومی را فعال کنید.
     </p>
@@ -322,7 +322,7 @@
 <div id="newProfileModal" class="modal-overlay">
   <div class="modal-dialog" style="max-width: 440px;">
     <button class="modal-close-btn" onclick="closeNewProfileModal()">✕</button>
-    <h3>👤 ایجاد کاربر یا برنامه تمرینی جدید</h3>
+    <h3 id="newProfileModalTitle">👤 ایجاد کاربر یا برنامه تمرینی جدید</h3>
     <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
       یک پروفایل مجزا بسازید تا برنامه، ست‌ها، لاگ‌ها و روزهای شخصی خود را داشته باشید.
     </p>
@@ -357,7 +357,7 @@
   <div class="modal-dialog" style="max-width: 720px;">
     <button class="modal-close-btn" onclick="closeEditPlanModal()">✕</button>
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
-      <h3 style="margin: 0;">✏️ ویرایش کامل و همه‌جانبه برنامه</h3>
+      <h3 id="editPlanModalTitle" style="margin: 0;">✏️ ویرایش کامل و همه‌جانبه برنامه</h3>
       <div style="display:flex; gap:6px; align-items:center;">
         <span id="editPlanProfileBadge" style="font-size: 12px; background: rgba(56, 189, 248, 0.15); color: #38bdf8; padding: 3px 10px; border-radius: 20px; border: 1px solid rgba(56,189,248,0.3);"></span>
         <button class="btn-header-action btn-action-success" onclick="applyAndSavePlanEdits()" style="padding:4px 10px; font-size:12px;">💾 اعمال تغییرات</button>
@@ -487,7 +487,7 @@
 <div id="convertSingleModal" class="modal-overlay">
   <div class="modal-dialog" style="max-width: 480px;">
     <button class="modal-close-btn" onclick="closeConvertSingleModal()">✕</button>
-    <h3>⚡ تبدیل حرکت تکی به سوپرست</h3>
+    <h3 id="convertSingleModalTitle">⚡ تبدیل حرکت تکی به سوپرست</h3>
     <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
       حرکت اول در سوپرست قرار می‌گیرد، لطفاً حرکت دوم را انتخاب نمایید:
     </p>
@@ -782,46 +782,46 @@
     <button class="modal-close-btn" onclick="closeSyncBackupModal()">✕</button>
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
       <span style="font-size:24px;">☁️</span>
-      <h3 style="margin:0;">پایگاه ابری اختصاصی و همگام‌سازی خودکار</h3>
+      <h3 id="syncModalTitle" style="margin:0;">پایگاه ابری اختصاصی و همگام‌سازی خودکار</h3>
     </div>
-    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+    <p id="syncModalSubtitle" style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
       برنامه تمرینی شما بدون نیاز به هیچ فایلی، به طور زنده و خودکار بین تمام دستگاه‌ها و مرورگرها همگام می‌شود:
     </p>
 
     <!-- Cloud Sync Database System -->
     <div style="background:#152033; border:1px solid rgba(0,242,254,0.35); border-radius:12px; padding:14px; margin-bottom:12px;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <span style="font-size:13px; font-weight:800; color:#00f2fe;">☁️ حساب ابری همگام‌سازی (<bdi>Live Cloud Sync</bdi>)</span>
+        <span id="syncCardTitle" style="font-size:13px; font-weight:800; color:#00f2fe;">☁️ حساب ابری همگام‌سازی (<bdi>Live Cloud Sync</bdi>)</span>
         <span id="cloudStatusBadge" style="font-size:10.5px; padding:2px 8px; border-radius:10px; background:rgba(16,185,129,0.15); color:#34d399; font-weight:800;">🟢 آماده اتصال</span>
       </div>
 
       <div class="form-group" style="margin-bottom:10px;">
-        <label class="form-label" style="font-size:11.5px;">شناسه اختصاصی شما در سرور ابری (<bdi>Cloud Sync Key</bdi>):</label>
+        <label id="syncKeyLabel" class="form-label" style="font-size:11.5px;">شناسه اختصاصی شما در سرور ابری (<bdi>Cloud Sync Key</bdi>):</label>
         <div style="display:flex; gap:6px;">
-          <input type="text" id="cloudSyncKeyInput" class="form-input" placeholder="نام یا شناسه شما مثلا hossein..." style="font-size:13px; font-weight:800; direction:ltr; text-align:center; color:#38bdf8; letter-spacing:1px;">
+          <input type="text" id="cloudSyncKeyInput" class="form-input" placeholder="شناسه اختصاصی شما مثلا my_gym_key..." style="font-size:13px; font-weight:800; direction:ltr; text-align:center; color:#38bdf8; letter-spacing:1px;">
           <button class="btn-header-action" style="flex-shrink:0; padding:8px 12px;" onclick="generateRandomSyncKey()" title="تولید شناسه رندوم جدید">🎲</button>
         </div>
-        <div style="font-size:10.5px; color:#94a3b8; margin-top:3px;">
+        <div id="syncKeyTip" style="font-size:10.5px; color:#94a3b8; margin-top:3px;">
           💡 فقط کافیست همین شناسه را در گوشی یا هر مرورگر دیگری وارد کنید تا برنامه‌تان متصل شود.
         </div>
       </div>
 
       <div style="display:flex; gap:8px; margin-bottom:8px;">
         <button class="btn-header-action btn-action-primary" style="flex:1; justify-content:center; padding:10px; font-weight:800;" onclick="pushToCloudStorage()">
-          ☁️ ذخیره در سرور ابری
+          <span id="pushCloudBtnText">☁️ ذخیره در سرور ابری</span>
         </button>
         <button class="btn-header-action btn-action-success" style="flex:1; justify-content:center; padding:10px; font-weight:800;" onclick="pullFromCloudStorage()">
-          📥 دریافت از سرور ابری
+          <span id="pullCloudBtnText">📥 دریافت از سرور ابری</span>
         </button>
       </div>
 
       <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-light); border-radius:10px; padding:10px 12px; display:flex; align-items:center; justify-content:space-between;">
         <div>
           <div style="font-size:12px; color:#f8fafc; font-weight:800; display:flex; align-items:center; gap:6px;">
-            <span>⚡ همگام‌سازی خودکار در پس‌زمینه</span>
+            <span id="autoSyncLabel">⚡ همگام‌سازی خودکار در پس‌زمینه</span>
             <span id="autoSyncStateBadge" style="font-size:10.5px; padding:1px 6px; border-radius:8px; background:rgba(16,185,129,0.2); color:#34d399; font-weight:800;">🟢 روشن و فعال</span>
           </div>
-          <div style="font-size:10.5px; color:#94a3b8; margin-top:2px;">
+          <div id="autoSyncDesc" style="font-size:10.5px; color:#94a3b8; margin-top:2px;">
             هر تغییری در برنامه بدهید، خودکار و بدون نیاز به کلیک در سرور ابری ذخیره می‌شود.
           </div>
         </div>
@@ -835,19 +835,23 @@
     <!-- Backup JSON / Direct JSON Paste Section -->
     <div style="background:#152033; border:1px solid var(--border-color); border-radius:12px; padding:12px; margin-bottom:10px;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <span style="font-size:12.5px; font-weight:800; color:#fbbf24;">💾 پشتیبان‌گیری و بارگذاری فایل / متن (<bdi>JSON</bdi>)</span>
+        <span id="jsonBackupTitle" style="font-size:12.5px; font-weight:800; color:#fbbf24;">💾 پشتیبان‌گیری و بارگذاری فایل / متن (<bdi>JSON</bdi>)</span>
         <div style="display:flex; gap:6px;">
-          <button class="btn-header-action" style="padding:4px 8px; font-size:10.5px;" onclick="downloadBackupJson()">📥 دانلود فایل</button>
-          <button class="btn-header-action" style="padding:4px 8px; font-size:10.5px; border-color:#fcd34d88; color:#fcd34d;" onclick="document.getElementById('restoreFileInput').click()">📁 انتخاب فایل</button>
+          <button class="btn-header-action" style="padding:4px 8px; font-size:10.5px;" onclick="downloadBackupJson()">
+            <span id="downloadJsonBtnText">📥 دانلود فایل</span>
+          </button>
+          <button class="btn-header-action" style="padding:4px 8px; font-size:10.5px; border-color:#fcd34d88; color:#fcd34d;" onclick="document.getElementById('restoreFileInput').click()">
+            <span id="uploadJsonBtnText">📁 انتخاب فایل</span>
+          </button>
           <input type="file" id="restoreFileInput" accept=".json" style="display:none;" onchange="handleRestoreFile(this)">
         </div>
       </div>
       <div style="margin-top:6px;">
-        <div style="font-size:11px; color:#cbd5e1; margin-bottom:4px;">یا متن / کد JSON برنامه را در کادر زیر پیست کرده و دکمه اعمال را بزنید:</div>
+        <div id="jsonPasteDesc" style="font-size:11px; color:#cbd5e1; margin-bottom:4px;">یا متن / کد JSON برنامه را در کادر زیر پیست کرده و دکمه اعمال را بزنید:</div>
         <div style="display:flex; gap:6px;">
           <input type="text" id="pasteJsonInput" class="form-input" placeholder='{"app":"Chieftain Workout PWA", ...}' style="font-size:11px; direction:ltr; text-align:left;">
           <button class="btn-header-action btn-action-success" style="flex-shrink:0; padding:6px 12px; font-weight:800; font-size:11.5px;" onclick="applyPastedJson()">
-            ⚡ اعمال کد
+            <span id="applyJsonBtnText">⚡ اعمال کد</span>
           </button>
         </div>
       </div>
@@ -855,7 +859,7 @@
 
     <div style="margin-top:12px; text-align:center;">
       <button class="btn-header-action" style="width:100%; justify-content:center; padding:8px;" onclick="closeSyncBackupModal()">
-        بستن ✕
+        <span id="closeSyncModalBtnText">بستن ✕</span>
       </button>
     </div>
   </div>
@@ -867,7 +871,7 @@
     <button class="modal-close-btn" onclick="closeMoveDayModal()">✕</button>
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
       <span style="font-size:24px;">📅</span>
-      <h3 style="margin:0;">انتقال حرکت / سوپرست به روز دیگر</h3>
+      <h3 id="moveDayModalTitle" style="margin:0;">انتقال حرکت / سوپرست به روز دیگر</h3>
     </div>
     <p id="moveDayTargetLabel" style="font-size:12px; color:var(--text-muted); margin-bottom:14px;">
       انتخاب روز مقصد برای انتقال:
@@ -1091,9 +1095,9 @@
     <button class="modal-close-btn" onclick="closeBodyMetricHistoryModal()">✕</button>
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
       <span style="font-size:24px;">📜</span>
-      <h3 style="margin:0;">تاریخچه کامل ثبت ابعاد و سایزگیری</h3>
+      <h3 id="bodyMetricHistoryModalTitle" style="margin:0;">تاریخچه کامل ثبت ابعاد و سایزگیری</h3>
     </div>
-    <p style="font-size:12px; color:var(--text-muted); margin-bottom:14px;">
+    <p id="bodyMetricHistoryModalDesc" style="font-size:12px; color:var(--text-muted); margin-bottom:14px;">
       مشاهده، ویرایش یا حذف رکوردهای ثبت‌شده در دوره‌های مختلف
     </p>
 
@@ -1118,9 +1122,9 @@
     <div id="authLoggedOutView">
       <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
         <span style="font-size:24px;">🔒</span>
-        <h3 style="margin:0;">حساب کاربری ابری و خصوصی</h3>
+        <h3 id="authLoggedOutTitle" style="margin:0;">حساب کاربری ابری و خصوصی</h3>
       </div>
-      <p style="font-size:12px; color:var(--text-muted); margin-bottom:14px; line-height:1.6;">
+      <p id="authLoggedOutDesc" style="font-size:12px; color:var(--text-muted); margin-bottom:14px; line-height:1.6;">
         با ورود به حساب، برنامه، لاگ‌ها و اندازه‌گیری‌های بدنی شما در دیتابیس امن و اختصاصی ذخیره شده و روی تمام دستگاه‌هایتان همگام می‌شود.
       </p>
 
@@ -1133,36 +1137,36 @@
       <!-- Login Form -->
       <div id="authLoginForm">
         <div style="margin-bottom:10px;">
-          <label class="form-label">📧 ایمیل:</label>
+          <label id="authLoginEmailLabel" class="form-label">📧 ایمیل:</label>
           <input type="email" id="loginEmail" class="form-input" placeholder="you@example.com" style="direction:ltr; text-align:left;">
         </div>
         <div style="margin-bottom:14px;">
-          <label class="form-label">🔑 رمز عبور:</label>
+          <label id="authLoginPasswordLabel" class="form-label">🔑 رمز عبور:</label>
           <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" style="direction:ltr; text-align:left;">
         </div>
         <button id="loginSubmitBtn" class="btn-header-action btn-action-primary" style="width:100%; justify-content:center; padding:10px; font-weight:800; margin-bottom:10px;" onclick="handleSupabaseLogin()">
           <span>🚀</span>
-          <span>ورود امن به حساب</span>
+          <span id="loginSubmitBtnText">ورود امن به حساب</span>
         </button>
       </div>
 
       <!-- Signup Form -->
       <div id="authSignupForm" style="display:none;">
         <div style="margin-bottom:10px;">
-          <label class="form-label">👤 نام یا نام مستعار:</label>
+          <label id="authSignupNameLabel" class="form-label">👤 نام یا نام مستعار:</label>
           <input type="text" id="signupName" class="form-input" placeholder="مثلاً: حسین یا مروارید">
         </div>
         <div style="margin-bottom:10px;">
-          <label class="form-label">📧 ایمیل:</label>
+          <label id="authSignupEmailLabel" class="form-label">📧 ایمیل:</label>
           <input type="email" id="signupEmail" class="form-input" placeholder="you@example.com" style="direction:ltr; text-align:left;">
         </div>
         <div style="margin-bottom:14px;">
-          <label class="form-label">🔑 رمز عبور (حداقل ۶ کاراکتر):</label>
+          <label id="authSignupPasswordLabel" class="form-label">🔑 رمز عبور (حداقل ۶ کاراکتر):</label>
           <input type="password" id="signupPassword" class="form-input" placeholder="••••••••" style="direction:ltr; text-align:left;">
         </div>
         <button id="signupSubmitBtn" class="btn-header-action btn-action-success" style="width:100%; justify-content:center; padding:10px; font-weight:800; margin-bottom:10px;" onclick="handleSupabaseSignup()">
           <span>✨</span>
-          <span>ایجاد حساب و اتصال امن</span>
+          <span id="signupSubmitBtnText">ایجاد حساب و اتصال امن</span>
         </button>
       </div>
     </div>
@@ -1171,45 +1175,46 @@
     <div id="authLoggedInView" style="display:none;">
       <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
         <span style="font-size:24px;">🟢</span>
-        <h3 style="margin:0;">حساب کاربری فعال</h3>
+        <h3 id="authLoggedInTitle" style="margin:0;">حساب کاربری فعال</h3>
       </div>
-      <p style="font-size:12.5px; color:#34d399; margin-bottom:14px; font-weight:700;">
+      <p id="authLoggedInDesc" style="font-size:12.5px; color:#34d399; margin-bottom:14px; font-weight:700;">
         شما با موفقیت وارد حساب ابری خود شده‌اید.
       </p>
 
       <div style="background:rgba(15,23,42,0.6); border:1px solid var(--border-color); border-radius:10px; padding:12px; margin-bottom:14px;">
-        <div style="font-size:12px; color:var(--text-muted); margin-bottom:4px;">ایمیل حساب:</div>
+        <div id="authEmailLabel" style="font-size:12px; color:var(--text-muted); margin-bottom:4px;">ایمیل حساب:</div>
         <div id="authProfileEmailDisplay" style="font-size:14px; font-weight:800; color:#fff; direction:ltr; text-align:right;"></div>
         <div id="authProfileNameDisplay" style="font-size:12px; color:#38bdf8; margin-top:4px;"></div>
       </div>
 
       <div style="display:flex; flex-direction:column; gap:8px;">
         <button class="btn-header-action btn-action-primary" style="justify-content:center; padding:10px; font-weight:800;" onclick="syncCurrentDataWithSupabase()">
-          <span>🔄</span> <span>همگام‌سازی فوری با دیتابیس</span>
+          <span>🔄</span> <span id="authSyncNowBtnText">همگام‌سازی فوری با دیتابیس</span>
         </button>
         <button class="btn-header-action" style="justify-content:center; padding:9px; color:#f87171; border-color:#f8717155;" onclick="handleSupabaseLogout()">
-          <span>🚪</span> <span>خروج از حساب</span>
-        </button>
-      </div>
-    <!-- Backup Restore Section (Hossein & Morvarid) -->
-    <div style="background:rgba(15,23,42,0.85); border:1px solid #38bdf844; border-radius:10px; padding:12px; margin-top:14px;">
-      <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
-        <span style="font-size:16px;">📦</span>
-        <span style="font-size:12px; font-weight:800; color:#38bdf8;">بازیابی اطلاعات و بادی‌آنالیز اختصاصی:</span>
-      </div>
-      <p style="font-size:11px; color:#94a3b8; line-height:1.5; margin-bottom:10px;">
-        برای بارگذاری فوری برنامه شخصی، ۲۶ لاگ تمرینی و اندازه‌گیری‌های بادی‌آنالیز (قد، وزن، دور شکم/کمر/بازو و درصد چربی)، دکمه مربوطه را انتخاب کنید:
-      </p>
-      <div style="display:flex; gap:6px; flex-direction:column;">
-        <button type="button" class="btn-header-action" style="justify-content:center; padding:8px; font-size:11.5px; font-weight:700; border-color:#00f2fe66; color:#00f2fe; background:rgba(0,242,254,0.08);" onclick="restoreBackedUpProfile('hossein')">
-          🏋️‍♂️ بازیابی برنامه و آنالیز بدن حسین (کد: gym)
-        </button>
-        <button type="button" class="btn-header-action" style="justify-content:center; padding:8px; font-size:11.5px; font-weight:700; border-color:#ec489966; color:#f472b6; background:rgba(236,72,153,0.08);" onclick="restoreBackedUpProfile('morvarid')">
-          🧘‍♀️ بازیابی برنامه و آنالیز بدن مروارید (کد: inci)
+          <span>🚪</span> <span id="authLogoutBtnText">خروج از حساب</span>
         </button>
       </div>
     </div>
 
+    <!-- Backup Restore Section (Always Visible for Hossein & Morvarid) -->
+    <div style="background:rgba(15,23,42,0.85); border:1px solid #38bdf844; border-radius:10px; padding:12px; margin-top:14px;">
+      <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
+        <span style="font-size:16px;">📦</span>
+        <span id="authRestoreTitle" style="font-size:12px; font-weight:800; color:#38bdf8;">بازیابی اطلاعات و بادی‌آنالیز اختصاصی:</span>
+      </div>
+      <p id="authRestoreDesc" style="font-size:11px; color:#94a3b8; line-height:1.5; margin-bottom:10px;">
+        برای بارگذاری فوری برنامه شخصی، ۲۶ لاگ تمرینی و اندازه‌گیری‌های بادی‌آنالیز (قد، وزن، دور شکم/کمر/بازو و درصد چربی)، دکمه مربوطه را انتخاب کنید:
+      </p>
+      <div style="display:flex; gap:6px; flex-direction:column;">
+        <button type="button" class="btn-header-action" style="justify-content:center; padding:9px; font-size:12px; font-weight:700; border-color:#00f2fe88; color:#00f2fe; background:rgba(0,242,254,0.08);" onclick="restoreBackedUpProfile('hossein')">
+          <span id="restoreHosseinBtnText">🏋️‍♂️ بازیابی برنامه و آنالیز بدن حسین (کد: gym)</span>
+        </button>
+        <button type="button" class="btn-header-action" style="justify-content:center; padding:9px; font-size:12px; font-weight:700; border-color:#ec489988; color:#f472b6; background:rgba(236,72,153,0.08);" onclick="restoreBackedUpProfile('morvarid')">
+          <span id="restoreMorvaridBtnText">🧘‍♀️ بازیابی برنامه و آنالیز بدن مروارید (کد: inci)</span>
+        </button>
+      </div>
+    </div>
   </div>
 </div>
 

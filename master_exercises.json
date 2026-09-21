@@ -1355,5 +1355,133 @@
       }
     ],
     "isIsometric": false
+  },
+  {
+    "id": "cust_1788626478522",
+    "fa": "ساق پا نشسته رو نیمکت فلت با اسمیت",
+    "en": "ُSeated calf raise with Smith Machine",
+    "category": "gym",
+    "muscles": "ساق",
+    "defaultReps": "3 × 10–12",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/HivlGgbDBgU"
+      }
+    ]
+  },
+  {
+    "id": "cust_1788626968174",
+    "fa": "ساق پا با دستگاه پرس پا",
+    "en": "Calf raise with leg press machine",
+    "category": "gym",
+    "muscles": "ساق",
+    "defaultReps": "3 × 10–12",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "http://www.youtube.com/watch?v=PYZY00hI43w"
+      }
+    ]
+  },
+  {
+    "id": "cust_1788627494546",
+    "fa": "رهاسازی پک مینور (حرکت اول)",
+    "en": "Pec Minor Release (Exercise 1)",
+    "category": "gym",
+    "muscles": "Pec Minor",
+    "defaultReps": "3 × 10–12",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/HmB8M3CEBCM"
+      }
+    ]
+  },
+  {
+    "id": "cust_1788627548162",
+    "fa": "رهاسازی پک مینور (حرکت دوم)",
+    "en": "Pec Minor Release (Exercise 2)",
+    "category": "gym",
+    "muscles": "Minor Pec",
+    "defaultReps": "3 × 10–12",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/watch?v=VOTCkQMJbsA"
+      }
+    ]
+  },
+  {
+    "id": "cust_1789820131011",
+    "fa": "کرانچ با کابل نشسته",
+    "en": "Seated Cable crunch",
+    "category": "gym",
+    "muscles": "شکم",
+    "defaultReps": "3 × 10–12",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش 1",
+        "url": "https://www.youtube.com/watch?v=QR3vANGukK8"
+      },
+      {
+        "title": "آموزش 2",
+        "url": "https://www.youtube.com/shorts/K2m0jj6RfYg"
+      }
+    ]
+  },
+  {
+    "id": "cust_1789844260437",
+    "fa": "دراگون فلگ",
+    "en": "ِDragon Flag",
+    "category": "gym",
+    "muscles": "شکم",
+    "defaultReps": "3 × 10–12",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/shorts/eLCBC6fjtQU"
+      }
+    ]
+  },
+  {
+    "id": "cust_1789848449999",
+    "fa": "ریورس معکوس روی نیمکت فلت",
+    "en": "Reverse Crunch on flat bench",
+    "category": "gym",
+    "muscles": "شکم",
+    "defaultReps": "3 × 10–12",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش ۱",
+        "url": "https://www.youtube.com/watch?v=qSbepENvQic"
+      }
+    ]
+  },
+  {
+    "id": "cust_1789848630225",
+    "fa": "کرانچ معکوس روی نیمکت شیب دار",
+    "en": "Incline bench reverse crunch",
+    "category": "gym",
+    "muscles": "شکم",
+    "defaultReps": "3 × 10–12",
+    "defaultSets": 3,
+    "videos": [
+      {
+        "title": "آموزش 1",
+        "url": "https://www.youtube.com/shorts/Yx2hmfI5Rec"
+      },
+      {
+        "title": "آموزش 2",
+        "url": "https://www.youtube.com/shorts/KJ-2XT9Uu-E"
+      }
+    ]
   }
 ]
