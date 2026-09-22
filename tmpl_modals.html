@@ -1327,6 +1327,30 @@
   </div>
 </div>
 
+<!-- Palette Selection Modal -->
+<div id="paletteModal" class="modal-overlay" onclick="if(event.target===this) closePaletteModal()">
+  <div class="modal-dialog" style="max-width: 650px;">
+    <button class="modal-close-btn" onclick="closePaletteModal()">✕</button>
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+      <span style="font-size:24px;">🎨</span>
+      <h3 style="margin:0; font-size:18px;" id="paletteModalTitle">پوسته‌ها و رنگ‌بندی‌های اختصاصی</h3>
+    </div>
+    <p style="font-size:12.5px; color:var(--text-muted); margin-bottom:16px;" id="paletteModalDesc">
+      پوسته مورد علاقه خود را انتخاب کنید. تم، المان‌ها و انیمیشن‌ها بلافاصله تطبیق پیدا می‌کنند:
+    </p>
+
+    <div class="palette-grid" id="paletteGrid">
+      <!-- Generated dynamically in JS with live color preview chips -->
+    </div>
+
+    <div style="margin-top:16px; text-align:center;">
+      <button class="btn-header-action" style="width:100%; justify-content:center; padding:9px;" onclick="closePaletteModal()">
+        بستن ✕
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- Floating Toast Message Container -->
 <div id="toastMsg" class="toast-msg">
   <span>✅</span>

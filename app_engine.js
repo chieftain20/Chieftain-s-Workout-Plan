@@ -1559,6 +1559,14 @@ function jumpToTodayWorkoutFromHero() {
   }
 }
 
+function toggleHeroSound(btn) {
+  const video = document.querySelector('.hero-video-bg');
+  if (!video) return;
+  video.muted = !video.muted;
+  const icon = document.getElementById('heroSoundIcon');
+  if (icon) icon.innerText = video.muted ? '🔇' : '🔊';
+}
+
 function renderHeroCinemaBanner() {
   const container = document.getElementById('heroCinemaContainer');
   if (!container) return;
@@ -1573,14 +1581,27 @@ function renderHeroCinemaBanner() {
   const prof = getActiveProfile();
   const isEn = currentLang === 'en';
   const isFemale = prof && (prof.id === 'morvarid' || prof.id === 'template_female' || prof.gender === 'female');
-  const videoSrc = isFemale ? 'images/hero_workout_female.mp4' : 'images/hero_workout_male.mp4';
-  const posterSrc = isFemale ? 'images/hero_poster_female.jpg' : 'images/hero_poster_male.jpg';
+  const gender = isFemale ? 'female' : 'male';
 
   // Determine today's day info
   const currentDayOfWeek = (typeof todayIndex !== 'undefined') ? todayIndex : new Date().getDay();
+  // Iranian week starts on Saturday (0 = sat, 1 = sun, 2 = mon, 3 = tue, 4 = wed/rest, 5 = thu, 6 = fri)
   const dayIdx = (currentDayOfWeek === 6) ? 0 : (currentDayOfWeek + 1);
   const targetDay = (prof && Array.isArray(prof.days)) ? (prof.days[dayIdx] || prof.days[0]) : null;
   const dayTitle = targetDay ? (isEn ? translateDayTitle(targetDay.title) : targetDay.title) : (isEn ? 'Today' : 'امروز');
+
+  // Daily Rotating High-Energy Video Selection
+  let dayKey = 'sat';
+  if (dayIdx === 0) dayKey = 'sat';
+  else if (dayIdx === 1) dayKey = 'sun';
+  else if (dayIdx === 2) dayKey = 'mon';
+  else if (dayIdx === 3) dayKey = 'tue';
+  else if (dayIdx === 4) dayKey = 'thu'; // Wednesday is rest day, use high-energy Thursday video
+  else if (dayIdx === 5) dayKey = 'thu';
+  else if (dayIdx === 6) dayKey = 'fri';
+
+  const videoSrc = `images/video_${dayKey}_${gender}.mp4`;
+  const posterSrc = `images/poster_${dayKey}_${gender}.jpg`;
 
   let totalEx = 0;
   let totalSets = 0;
@@ -1665,9 +1686,14 @@ function renderHeroCinemaBanner() {
           <span class="hero-badge-dot"></span>
           <span>${badgeText}</span>
         </div>
-        <button id="heroCollapseBtn" class="hero-collapse-btn" onclick="toggleHeroCinema()" title="${isEn ? 'Toggle hero size' : 'تغییر اندازه هیرو'}">
-          ${toggleBtnText}
-        </button>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <button class="hero-collapse-btn" onclick="toggleHeroSound(this)" title="${isEn ? 'Toggle sound' : 'قطع / وصل صدای ویدیو'}">
+            <span id="heroSoundIcon">🔇</span>
+          </button>
+          <button id="heroCollapseBtn" class="hero-collapse-btn" onclick="toggleHeroCinema()" title="${isEn ? 'Toggle hero size' : 'تغییر اندازه هیرو'}">
+            ${toggleBtnText}
+          </button>
+        </div>
       </div>
       <div class="hero-body-content">
         <h2 class="hero-main-title">${mainTitleHtml}</h2>
@@ -5808,6 +5834,158 @@ async function syncCurrentDataWithSupabase() {
 
 // --- Sync Modal UI Handlers ---
 
+// --- Multi-Palette Theme Engine (7 Curated Designer Palettes) ---
+const PALETTES = {
+  cyber_lime: {
+    id: 'cyber_lime',
+    titleFa: 'سایبر نئون لایم (FitZone)',
+    titleEn: 'Cyber Neon Lime',
+    desc: 'کنتراست چشم‌نواز مشکی سایبرنتیک با نئون لایم فسفری پرانرژی',
+    mode: 'dark',
+    swatches: ['#070b12', '#0f172a', '#ccff00', '#10b981']
+  },
+  iron_crimson: {
+    id: 'iron_crimson',
+    titleFa: 'قرمز متالیک و زغال (Iron District)',
+    titleEn: 'Iron Crimson Red',
+    desc: 'انرژی و هیجان خالص بدنسازی سنگین با ترکیب مشکی مات و قرمز آتشین',
+    mode: 'dark',
+    swatches: ['#0c0c0e', '#141419', '#ff2a2a', '#f97316']
+  },
+  luxury_gold: {
+    id: 'luxury_gold',
+    titleFa: 'طلایی لوکس و اونیکس (Beaudrm)',
+    titleEn: 'Luxury Gold & Onyx',
+    desc: 'جلوه‌ای سلطنتی و باوقار با طلایی شامپاینی و اونیکس عمیق',
+    mode: 'dark',
+    swatches: ['#09090b', '#131317', '#e5b842', '#f59e0b']
+  },
+  cyber_rose: {
+    id: 'cyber_rose',
+    titleFa: 'نئون رز و بنفش تیره (Doso Beauti)',
+    titleEn: 'Cyber Rose Pink',
+    desc: 'ترکیب جذاب و شیک سرخابی نئونی، رز متالیک و بنفش سایبرپانک',
+    mode: 'dark',
+    swatches: ['#0d0814', '#160f22', '#ff3377', '#c084fc']
+  },
+  gta_synthwave: {
+    id: 'gta_synthwave',
+    titleFa: 'سینت‌ویو و نئون فوشیا (GTA VI)',
+    titleEn: 'GTA Synthwave Neon',
+    desc: 'نوستالژی سایبرپانک میامی با فوشیا، فیروزه‌ای و بنفش نئونی',
+    mode: 'dark',
+    swatches: ['#110820', '#1a0f30', '#ff007f', '#00f0ff']
+  },
+  nordic_orange: {
+    id: 'nordic_orange',
+    titleFa: 'نوردیک لایت و نارنجی ورزشی',
+    titleEn: 'Nordic Clean Orange',
+    desc: 'پوسته روشن، تمیز و شفاف با نارنجی اتلتیک پرکنتراست برای وضوح حداکثری',
+    mode: 'light',
+    swatches: ['#f8fafc', '#ffffff', '#ff5500', '#16a34a']
+  },
+  chic_lavender: {
+    id: 'chic_lavender',
+    titleFa: 'بنفش سلطنتی و لوندر لایت',
+    titleEn: 'Violet Elegance Light',
+    desc: 'پوسته روشن مینیمال و آرامش‌بخش با اسطوخودوس روشن و بنفش درباری',
+    mode: 'light',
+    swatches: ['#f5f3f9', '#ffffff', '#7c3aed', '#059669']
+  }
+};
+
+function getCurrentPalette() {
+  return localStorage.getItem('chieftain_palette') || 'cyber_lime';
+}
+
+function applyPalette(paletteKey, save = true) {
+  if (!PALETTES[paletteKey]) paletteKey = 'cyber_lime';
+  if (save) localStorage.setItem('chieftain_palette', paletteKey);
+
+  document.documentElement.setAttribute('data-palette', paletteKey);
+
+  const pal = PALETTES[paletteKey];
+  if (pal && pal.mode) {
+    document.documentElement.setAttribute('data-theme', pal.mode);
+    localStorage.setItem('chieftain_theme', pal.mode);
+    const icon = document.getElementById('themeToggleIcon');
+    const text = document.getElementById('themeToggleText');
+    if (pal.mode === 'light') {
+      if (icon) icon.innerText = '🌙';
+      if (text) text.innerText = t('darkMode');
+    } else {
+      if (icon) icon.innerText = '☀️';
+      if (text) text.innerText = t('lightMode');
+    }
+  }
+
+  // Update active state in palette modal cards if open
+  document.querySelectorAll('.palette-card').forEach(card => {
+    if (card.getAttribute('data-palette-key') === paletteKey) {
+      card.classList.add('active');
+    } else {
+      card.classList.remove('active');
+    }
+  });
+}
+
+function initPalette() {
+  const saved = getCurrentPalette();
+  applyPalette(saved, false);
+}
+
+function openPaletteModal() {
+  const modal = document.getElementById('paletteModal');
+  if (!modal) return;
+  renderPaletteGrid();
+  modal.classList.add('active');
+}
+
+function closePaletteModal() {
+  const modal = document.getElementById('paletteModal');
+  if (modal) modal.classList.remove('active');
+}
+
+function renderPaletteGrid() {
+  const grid = document.getElementById('paletteGrid');
+  if (!grid) return;
+  const current = getCurrentPalette();
+  const isEn = currentLang === 'en';
+
+  grid.innerHTML = Object.keys(PALETTES).map(key => {
+    const pal = PALETTES[key];
+    const isActive = (key === current);
+    const title = isEn ? pal.titleEn : pal.titleFa;
+    const subtitle = isEn ? pal.titleFa : pal.titleEn;
+    const modeLabel = pal.mode === 'light' 
+      ? (isEn ? '☀️ Light Theme' : '☀️ پوسته روشن') 
+      : (isEn ? '🌙 Dark Theme' : '🌙 پوسته تاریک');
+
+    return `
+      <div class="palette-card ${isActive ? 'active' : ''}" data-palette-key="${key}" onclick="applyPalette('${key}'); showToast('🎨 ' + ('${isEn ? 'Theme updated to: ' + pal.titleEn : 'پوسته تغییر کرد به: ' + pal.titleFa}'))">
+        <div class="palette-card-header">
+          <div>
+            <div class="palette-card-title">${title}</div>
+            <div class="palette-card-subtitle">${subtitle}</div>
+          </div>
+          ${isActive ? `<span class="palette-card-badge">${isEn ? 'Active' : 'فعال'}</span>` : ''}
+        </div>
+        <div style="font-size:11px; color:var(--text-muted); line-height:1.4;">${pal.desc}</div>
+        <div class="palette-swatches">
+          ${pal.swatches.map(color => `<span class="palette-swatch" style="background:${color};" title="${color}"></span>`).join('')}
+        </div>
+        <span class="palette-card-mode-pill">${modeLabel}</span>
+      </div>
+    `;
+  }).join('');
+}
+
+window.PALETTES = PALETTES;
+window.applyPalette = applyPalette;
+window.openPaletteModal = openPaletteModal;
+window.closePaletteModal = closePaletteModal;
+window.initPalette = initPalette;
+
 // --- Theme Switcher (Dark / Light) ---
 function initTheme() {
   const saved = localStorage.getItem('chieftain_theme') || 'dark';
@@ -5834,19 +6012,21 @@ function toggleTheme(event) {
 
   const applyChange = () => {
     localStorage.setItem('chieftain_theme', next);
-    applyTheme(next);
+    if (next === 'light') {
+      applyPalette('nordic_orange', true);
+    } else {
+      applyPalette('cyber_lime', true);
+    }
     showToast(next === 'light' 
-      ? (isEn ? '☀️ Light mode enabled' : '☀️ تم روشن (حالت روز) فعال شد') 
-      : (isEn ? '🌙 Dark mode enabled' : '🌙 تم تاریک (حالت شب) فعال شد'));
+      ? (isEn ? '☀️ Light mode enabled (Nordic Orange)' : '☀️ تم روشن فعال شد (نوردیک نارنجی)') 
+      : (isEn ? '🌙 Dark mode enabled (Cyber Lime)' : '🌙 تم تاریک فعال شد (سایبر لایم)'));
   };
 
-  // If View Transitions API is not supported or user prefers reduced motion, fallback to instant switch
   if (!document.startViewTransition || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     applyChange();
     return;
   }
 
-  // Determine click coordinates (or center of theme button)
   let x = window.innerWidth / 2;
   let y = 0;
   if (event && (event.clientX || event.clientY)) {
@@ -5888,7 +6068,7 @@ function toggleTheme(event) {
   });
 }
 
-try { initTheme(); } catch(e) {}
+try { initTheme(); initPalette(); } catch(e) {}
 
 // --- Preloaded Data & Profile Restoration (Clean template defaults for Open Source) ---
 const BACKUP_PRELOADED_DATA = {
