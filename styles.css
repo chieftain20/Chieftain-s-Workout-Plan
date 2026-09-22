@@ -963,7 +963,8 @@ nav::-webkit-scrollbar { display: none; }
   -webkit-overflow-scrolling: touch;
 }
 
-.modal-overlay.open {
+.modal-overlay.open,
+.modal-overlay.active {
   display: flex !important;
 }
 

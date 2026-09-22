@@ -827,6 +827,20 @@ function updateStaticUIText() {
     themeText.innerText = currentTheme === 'light' ? t('darkMode') : t('lightMode');
   }
 
+  const paletteBtnText = document.getElementById('paletteBtnText');
+  if (paletteBtnText) paletteBtnText.innerText = isEn ? 'Theme' : 'پوسته';
+
+  const paletteSelectBtn = document.getElementById('paletteSelectBtn');
+  if (paletteSelectBtn) paletteSelectBtn.title = isEn ? 'Select Theme & Palette' : 'انتخاب پوسته و رنگ‌بندی اختصاصی';
+
+  const paletteModalTitle = document.getElementById('paletteModalTitle');
+  if (paletteModalTitle) paletteModalTitle.innerText = isEn ? 'Themes & Color Palettes' : 'پوسته‌ها و رنگ‌بندی‌های اختصاصی';
+
+  const paletteModalDesc = document.getElementById('paletteModalDesc');
+  if (paletteModalDesc) paletteModalDesc.innerText = isEn 
+    ? 'Choose your favorite theme. The UI, colors, and animations adapt instantly:' 
+    : 'پوسته مورد علاقه خود را انتخاب کنید. تم، المان‌ها و انیمیشن‌ها بلافاصله تطبیق پیدا می‌کنند:';
+
   // --- Modal Static Text Updates ---
   // Auth Modal
   const authLoggedOutTitle = document.getElementById('authLoggedOutTitle');
@@ -5938,12 +5952,16 @@ function openPaletteModal() {
   const modal = document.getElementById('paletteModal');
   if (!modal) return;
   renderPaletteGrid();
+  modal.classList.add('open');
   modal.classList.add('active');
 }
 
 function closePaletteModal() {
   const modal = document.getElementById('paletteModal');
-  if (modal) modal.classList.remove('active');
+  if (modal) {
+    modal.classList.remove('open');
+    modal.classList.remove('active');
+  }
 }
 
 function renderPaletteGrid() {
