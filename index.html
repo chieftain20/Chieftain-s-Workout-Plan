@@ -242,6 +242,22 @@ nav::-webkit-scrollbar { display: none; }
   border-color: rgba(0, 242, 254, 0.4);
 }
 
+@keyframes today-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(204, 255, 0, 0.7); }
+  70% { box-shadow: 0 0 0 16px rgba(204, 255, 0, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(204, 255, 0, 0); }
+}
+
+.today-highlight-pulse {
+  animation: today-pulse 1.2s 2 ease-out !important;
+  border-color: #ccff00 !important;
+}
+
+[data-theme="light"] .today-highlight-pulse {
+  border-color: #7c3aed !important;
+  box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.3) !important;
+}
+
 .day-header {
   display: flex; justify-content: space-between; align-items: center;
   margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color);
@@ -430,6 +446,330 @@ nav::-webkit-scrollbar { display: none; }
 
 .timer-fab:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(56, 189, 248, 0.4); }
 .timer-fab.running { background: linear-gradient(135deg, #10b981, #059669); border-color: #34d399; }
+
+/* ==========================================================================
+   Ambient Video Hero Cinema Banner (Cyber Athletic Aesthetics)
+   ========================================================================== */
+.hero-cinema-wrapper {
+  position: relative;
+  border-radius: var(--radius-lg, 20px);
+  overflow: hidden;
+  margin-bottom: 16px;
+  background: #090d16;
+  border: 1px solid rgba(204, 255, 0, 0.28);
+  box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.7), 0 0 24px rgba(204, 255, 0, 0.12);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hero-video-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+  filter: brightness(0.62) contrast(1.2);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.hero-gradient-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(
+    135deg,
+    rgba(9, 13, 22, 0.92) 0%,
+    rgba(9, 13, 22, 0.65) 45%,
+    rgba(9, 13, 22, 0.90) 100%
+  );
+  backdrop-filter: blur(1px);
+  pointer-events: none;
+}
+
+.hero-inner-content {
+  position: relative;
+  z-index: 3;
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 215px;
+  gap: 14px;
+}
+
+.hero-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.hero-badge-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(204, 255, 0, 0.14);
+  color: #ccff00;
+  border: 1px solid rgba(204, 255, 0, 0.35);
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.hero-badge-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ccff00;
+  box-shadow: 0 0 8px #ccff00;
+  display: inline-block;
+  animation: hero-pulse-dot 1.8s infinite;
+}
+
+@keyframes hero-pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.75); }
+}
+
+.hero-collapse-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #cbd5e1;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s ease;
+}
+
+.hero-collapse-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.hero-body-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hero-main-title {
+  font-size: 22px;
+  font-weight: 900;
+  color: #ffffff;
+  line-height: 1.35;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.hero-main-title .highlight-text {
+  background: linear-gradient(135deg, #ccff00 0%, #a6ff00 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+}
+
+.hero-sub-text {
+  font-size: 13px;
+  color: #cbd5e1;
+  font-weight: 500;
+  line-height: 1.5;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+}
+
+.hero-action-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.btn-hero-letsgo {
+  background: linear-gradient(135deg, #ccff00 0%, #a6ff00 100%);
+  color: #090d16;
+  font-size: 14.5px;
+  font-weight: 900;
+  padding: 11px 22px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 0 22px rgba(204, 255, 0, 0.45), 0 4px 12px rgba(0, 0, 0, 0.4);
+  transition: all 0.25s ease;
+  animation: hero-neon-pulse 2.8s infinite ease-in-out;
+}
+
+.btn-hero-letsgo:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 0 32px rgba(204, 255, 0, 0.7), 0 6px 16px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes hero-neon-pulse {
+  0%, 100% {
+    box-shadow: 0 0 18px rgba(204, 255, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 32px rgba(204, 255, 0, 0.7), 0 6px 18px rgba(0, 0, 0, 0.5);
+  }
+}
+
+.hero-stats-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(17, 26, 46, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 7px 12px;
+  font-size: 11.5px;
+  color: #e2e8f0;
+  backdrop-filter: blur(8px);
+}
+
+/* Collapsed Mini Mode */
+.hero-cinema-wrapper.collapsed .hero-inner-content {
+  min-height: 54px;
+  padding: 8px 18px;
+  flex-direction: row;
+  align-items: center;
+}
+
+.hero-cinema-wrapper.collapsed .hero-body-content,
+.hero-cinema-wrapper.collapsed .hero-sub-text,
+.hero-cinema-wrapper.collapsed .hero-stats-pill {
+  display: none;
+}
+
+.hero-cinema-wrapper.collapsed .hero-main-title {
+  font-size: 14px;
+  margin: 0;
+}
+
+.hero-cinema-wrapper.collapsed .btn-hero-letsgo {
+  padding: 6px 14px;
+  font-size: 12px;
+}
+
+/* Light Mode Overrides */
+[data-theme="light"] .hero-cinema-wrapper {
+  background: #ffffff;
+  border-color: rgba(124, 58, 237, 0.28);
+  box-shadow: 0 16px 36px -6px rgba(124, 58, 237, 0.12), 0 0 20px rgba(124, 58, 237, 0.08);
+}
+
+[data-theme="light"] .hero-gradient-overlay {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.94) 0%,
+    rgba(255, 255, 255, 0.72) 45%,
+    rgba(255, 255, 255, 0.92) 100%
+  );
+}
+
+[data-theme="light"] .hero-badge-tag {
+  background: #f5f3ff;
+  color: #6d28d9;
+  border-color: #ddd6fe;
+}
+
+[data-theme="light"] .hero-badge-dot {
+  background: #7c3aed;
+  box-shadow: 0 0 8px #7c3aed;
+}
+
+[data-theme="light"] .hero-collapse-btn {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+  color: #475569;
+}
+
+[data-theme="light"] .hero-collapse-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+[data-theme="light"] .hero-main-title {
+  color: #1e1b4b;
+  text-shadow: none;
+}
+
+[data-theme="light"] .hero-main-title .highlight-text {
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+[data-theme="light"] .hero-sub-text {
+  color: #475569;
+  text-shadow: none;
+}
+
+[data-theme="light"] .btn-hero-letsgo {
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.4);
+  animation: hero-purple-pulse 2.8s infinite ease-in-out;
+}
+
+[data-theme="light"] .btn-hero-letsgo:hover {
+  box-shadow: 0 6px 26px rgba(124, 58, 237, 0.6);
+}
+
+@keyframes hero-purple-pulse {
+  0%, 100% {
+    box-shadow: 0 4px 18px rgba(124, 58, 237, 0.35);
+  }
+  50% {
+    box-shadow: 0 6px 28px rgba(124, 58, 237, 0.65);
+  }
+}
+
+[data-theme="light"] .hero-stats-pill {
+  background: #ffffff;
+  border-color: #ede9fe;
+  color: #4b5563;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.05);
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 640px) {
+  .hero-inner-content {
+    padding: 16px 14px;
+    min-height: 195px;
+  }
+  .hero-main-title {
+    font-size: 18px;
+  }
+  .hero-sub-text {
+    font-size: 12px;
+  }
+  .btn-hero-letsgo {
+    width: 100%;
+    justify-content: center;
+    padding: 11px 16px;
+    font-size: 14px;
+  }
+  .hero-stats-pill {
+    width: 100%;
+    justify-content: center;
+  }
+}
 
 /* Main Containers */
 #workoutContent {
@@ -1219,12 +1559,8 @@ body.simple-mode .day-header {
   z-index: 9999;
 }
 
-[data-theme="dark"]::view-transition-old(root) {
-  z-index: 9999;
-}
-
-[data-theme="dark"]::view-transition-new(root) {
-  z-index: 1;
+body, header, .exercise-card, .day-section, .modal-dialog, .nav-tab, table th, table td, .summary-mobile-card {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 /* ==========================================================================
@@ -1413,6 +1749,64 @@ body.simple-mode .day-header {
   background: #f5f3ff !important;
   border-color: #ddd6fe !important;
   color: #6d28d9 !important;
+}
+
+/* Weekly summary table & badges in light mode (Chic Lavender & Deep Violet) */
+[data-theme="light"] .set-highlight {
+  background: #ede9fe !important;
+  color: #6d28d9 !important;
+  border: 1px solid #c4b5fd !important;
+}
+
+[data-theme="light"] .summary-subtext-accent,
+[data-theme="light"] .summary-gym-badge,
+[data-theme="light"] .summary-more-btn {
+  color: #7c3aed !important;
+}
+
+[data-theme="light"] .summary-mobile-card {
+  background: #ffffff !important;
+  border-color: #ede9fe !important;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.06) !important;
+}
+
+[data-theme="light"] .summary-mobile-chip {
+  background: #f5f3ff !important;
+  color: #4b5563 !important;
+  border: 1px solid #ede9fe !important;
+}
+
+[data-theme="light"] .summary-mobile-chip-more {
+  background: rgba(124, 58, 237, 0.12) !important;
+  color: #7c3aed !important;
+}
+
+[data-theme="light"] .badge-gym {
+  background: #ede9fe !important;
+  color: #6d28d9 !important;
+  border-color: #c4b5fd !important;
+}
+
+[data-theme="light"] .badge-home {
+  background: #ecfdf5 !important;
+  color: #059669 !important;
+  border-color: #a7f3d0 !important;
+}
+
+[data-theme="light"] .badge-rest {
+  background: #f1f5f9 !important;
+  color: #64748b !important;
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="light"] .session-note {
+  background: #f8fafc !important;
+  color: #334155 !important;
+  border-right-color: #7c3aed !important;
+}
+[dir="ltr"][data-theme="light"] .session-note,
+[dir="ltr"] [data-theme="light"] .session-note {
+  border-left-color: #7c3aed !important;
 }
 
 /* ==========================================================================
@@ -1650,6 +2044,9 @@ body[dir="ltr"],
       <span id="uiModeToggleText">حالت ساده</span>
     </button>
   </div>
+
+  <!-- Ambient Video Hero Cinema Banner -->
+  <section id="heroCinemaContainer" class="hero-cinema-wrapper"></section>
 
   <!-- Day Navigation Bar with Sticky Progress Fill -->
   <div class="nav-container">
@@ -6650,6 +7047,8 @@ function renderApp(preserveScroll = true, targetCardExId = null) {
 
   if (activeMainTab === 'metrics') {
     if (workoutContent) workoutContent.style.display = 'none';
+    const heroCinema = document.getElementById('heroCinemaContainer');
+    if (heroCinema) heroCinema.style.display = 'none';
     if (metricsView) {
       metricsView.style.display = 'block';
       try {
@@ -6662,10 +7061,13 @@ function renderApp(preserveScroll = true, targetCardExId = null) {
     activeMainTab = 'workout';
     if (metricsView) metricsView.style.display = 'none';
     if (workoutContent) workoutContent.style.display = 'block';
+    const heroCinema = document.getElementById('heroCinemaContainer');
+    if (heroCinema) heroCinema.style.display = 'block';
   }
 
   try { renderProfileSelect(); } catch(e) { console.error('Error in renderProfileSelect:', e); }
   try { renderHeader(); } catch(e) { console.error('Error in renderHeader:', e); }
+  try { renderHeroCinemaBanner(); } catch(e) { console.error('Error in renderHeroCinemaBanner:', e); }
   try { renderDayNav(); } catch(e) { console.error('Error in renderDayNav:', e); }
   try { renderWorkoutDays(); } catch(e) { console.error('Error in renderWorkoutDays:', e); }
   try { applyUiMode(); } catch(e) {}
@@ -6830,6 +7232,166 @@ function updateGreetingText() {
       ? `Good evening ${profNameEn}! Recovery and consistency are key 🔥`
       : `شب بخیر ${profNameFa}! ریکاوری و ثبات کلید موفقیته 🔥`;
   }
+}
+
+// ==========================================================================
+// Ambient Video Hero Cinema Banner Logic
+// ==========================================================================
+function isHeroCollapsed() {
+  return localStorage.getItem('chieftain_hero_collapsed') === 'true';
+}
+
+function toggleHeroCinema() {
+  const next = !isHeroCollapsed();
+  localStorage.setItem('chieftain_hero_collapsed', next ? 'true' : 'false');
+  const wrapper = document.getElementById('heroCinemaContainer');
+  if (wrapper) {
+    wrapper.classList.toggle('collapsed', next);
+    const toggleBtn = document.getElementById('heroCollapseBtn');
+    if (toggleBtn) {
+      toggleBtn.innerHTML = next 
+        ? `<span>➕</span> <span>${currentLang === 'en' ? 'Expand' : 'نمایش کامل'}</span>`
+        : `<span>➖</span> <span>${currentLang === 'en' ? 'Collapse' : 'جمع کردن'}</span>`;
+    }
+  }
+}
+
+function jumpToTodayWorkoutFromHero() {
+  const todaySecId = (typeof getTodaySectionId === 'function') ? getTodaySectionId() : 'd1';
+  const el = document.getElementById(todaySecId);
+  if (el) {
+    const navBarHeight = 120;
+    const pos = el.getBoundingClientRect().top + (window.scrollY || document.documentElement.scrollTop) - navBarHeight;
+    window.scrollTo({ top: pos, behavior: 'smooth' });
+    
+    // Highlight today's section with pulse
+    el.classList.remove('today-highlight-pulse');
+    void el.offsetWidth;
+    el.classList.add('today-highlight-pulse');
+    setTimeout(() => el.classList.remove('today-highlight-pulse'), 2500);
+  }
+}
+
+function renderHeroCinemaBanner() {
+  const container = document.getElementById('heroCinemaContainer');
+  if (!container) return;
+
+  // If viewing body metrics tab, hide hero banner
+  if (typeof activeMainTab !== 'undefined' && activeMainTab === 'metrics') {
+    container.style.display = 'none';
+    return;
+  }
+  container.style.display = 'block';
+
+  const prof = getActiveProfile();
+  const isEn = currentLang === 'en';
+  const isFemale = prof && (prof.id === 'morvarid' || prof.id === 'template_female' || prof.gender === 'female');
+  const videoSrc = isFemale ? 'images/hero_workout_female.mp4' : 'images/hero_workout_male.mp4';
+  const posterSrc = isFemale ? 'images/hero_poster_female.jpg' : 'images/hero_poster_male.jpg';
+
+  // Determine today's day info
+  const currentDayOfWeek = (typeof todayIndex !== 'undefined') ? todayIndex : new Date().getDay();
+  const dayIdx = (currentDayOfWeek === 6) ? 0 : (currentDayOfWeek + 1);
+  const targetDay = (prof && Array.isArray(prof.days)) ? (prof.days[dayIdx] || prof.days[0]) : null;
+  const dayTitle = targetDay ? (isEn ? translateDayTitle(targetDay.title) : targetDay.title) : (isEn ? 'Today' : 'امروز');
+
+  let totalEx = 0;
+  let totalSets = 0;
+  let isRestDay = false;
+
+  if (targetDay) {
+    if (targetDay.type === 'rest') {
+      isRestDay = true;
+    } else {
+      if (targetDay.singles) {
+        totalEx += targetDay.singles.length;
+        targetDay.singles.forEach(s => totalSets += (Number(s.sets) || 3));
+      }
+      if (targetDay.supersets) {
+        targetDay.supersets.forEach(ss => {
+          if (ss && ss.exercises) {
+            totalEx += ss.exercises.length;
+            ss.exercises.forEach(e => totalSets += (Number(e.sets) || 3));
+          }
+        });
+      }
+    }
+  }
+
+  const collapsed = isHeroCollapsed();
+  container.className = `hero-cinema-wrapper ${collapsed ? 'collapsed' : ''}`;
+
+  const badgeText = isRestDay 
+    ? (isEn ? 'RECOVERY & GROWTH' : 'ریکاوری و رشد عضلات')
+    : (isEn ? `TODAY'S FOCUS • ${dayTitle}` : `تمرین هدف امروز • ${dayTitle}`);
+
+  const mainTitleHtml = isRestDay
+    ? (isEn 
+        ? `<span>Rest &amp; Recover, <span class="highlight-text">Champion</span>!</span>` 
+        : `<span>استراحت و ریکاوری، <span class="highlight-text">قهرمان</span>!</span>`)
+    : (isEn 
+        ? `<span>Build Your <span class="highlight-text">Strongest</span> Version!</span>` 
+        : `<span>امروز روز توئه؛ <span class="highlight-text">قوی‌تر</span> از دیروز بسازش!</span>`);
+
+  const subText = isRestDay
+    ? (isEn 
+        ? `Today is dedicated to deep recovery, muscle repair, and mobility. Hydrate and get quality sleep.` 
+        : `امروز مخصوص ریکاوری عمیق، خواب باکیفیت و ترمیم بافت‌های عضلانی است. آب کافی بنوش و آماده جلسه بعد باش.`)
+    : (isEn 
+        ? `${dayTitle}: <b>${totalEx} exercises</b> (${totalSets} direct sets) scheduled. Keep discipline high!` 
+        : `${dayTitle}: <b>${totalEx} حرکت هدف</b> (${totalSets} ست برنامه‌ریزی‌شده) در انتظارته. با تمرکز و انرژی بالا شروع کن!`);
+
+  const ctaBtnHtml = isRestDay
+    ? `<button class="btn-hero-letsgo" onclick="jumpToTodayWorkoutFromHero()">
+        <span>🛌</span>
+        <span>${isEn ? 'View Weekly Program' : 'مشاهده برنامه هفتگی'}</span>
+       </button>`
+    : `<button class="btn-hero-letsgo" onclick="jumpToTodayWorkoutFromHero()">
+        <span>⚡</span>
+        <span>${isEn ? "LET'S GO! (Start Today's Workout)" : 'بزن بریم برای تمرین امروز! (LET\'S GO)'}</span>
+       </button>`;
+
+  const statsPillHtml = isRestDay
+    ? `<div class="hero-stats-pill">
+        <span>💤</span>
+        <span>${isEn ? 'Optimal Recovery Day' : 'روز استراحت و بازسازی'}</span>
+       </div>`
+    : `<div class="hero-stats-pill">
+        <span>🏋️</span>
+        <span>${totalEx} ${isEn ? 'Exercises' : 'حرکت'} • ${totalSets} ${isEn ? 'Sets' : 'ست'}</span>
+       </div>`;
+
+  const toggleBtnText = collapsed
+    ? `<span>➕</span> <span>${isEn ? 'Expand' : 'نمایش کامل'}</span>`
+    : `<span>➖</span> <span>${isEn ? 'Collapse' : 'جمع کردن'}</span>`;
+
+  container.innerHTML = `
+    <div class="hero-video-container">
+      <video class="hero-video-bg" autoplay muted loop playsinline poster="${posterSrc}">
+        <source src="${videoSrc}" type="video/mp4">
+      </video>
+      <div class="hero-gradient-overlay"></div>
+    </div>
+    <div class="hero-inner-content">
+      <div class="hero-top-row">
+        <div class="hero-badge-tag">
+          <span class="hero-badge-dot"></span>
+          <span>${badgeText}</span>
+        </div>
+        <button id="heroCollapseBtn" class="hero-collapse-btn" onclick="toggleHeroCinema()" title="${isEn ? 'Toggle hero size' : 'تغییر اندازه هیرو'}">
+          ${toggleBtnText}
+        </button>
+      </div>
+      <div class="hero-body-content">
+        <h2 class="hero-main-title">${mainTitleHtml}</h2>
+        <div class="hero-sub-text">${subText}</div>
+      </div>
+      <div class="hero-action-row">
+        ${ctaBtnHtml}
+        ${statsPillHtml}
+      </div>
+    </div>
+  `;
 }
 
 function renderDayNav() {
@@ -7758,23 +8320,23 @@ function renderDynamicWeeklySummary(prof) {
     const uniqueExMap = new Map();
     s.exerciseDetails.forEach(e => uniqueExMap.set(e.name, e));
     const uniqueExList = Array.from(uniqueExMap.keys());
-    const displayList = uniqueExList.slice(0, 3).join(isEn ? ', ' : '، ') + (uniqueExList.length > 3 ? ` <span style="color:#38bdf8; font-weight:700;">(${isEn ? `View all ${uniqueExList.length} exercises 🔍` : `مشاهده همه ${uniqueExList.length} حرکت 🔍`})</span>` : '');
+    const displayList = uniqueExList.slice(0, 3).join(isEn ? ', ' : '، ') + (uniqueExList.length > 3 ? ` <span class="summary-more-btn" style="color:var(--accent-blue, #38bdf8); font-weight:700;">(${isEn ? `View all ${uniqueExList.length} exercises 🔍` : `مشاهده همه ${uniqueExList.length} حرکت 🔍`})</span>` : '');
 
     return `
       <tr onclick="openMuscleDetailModal('${m.key}')" style="cursor:pointer;" title="${isEn ? 'Click to view scientific details and exercises' : 'کلیک برای مشاهده جزئیات علمی و کامل حرکات این عضله'}">
         <td>
           <b>${s.label}</b>
-          <div style="font-size:10px; color:#38bdf8; margin-top:2px;">${isEn ? '🔍 Click for detailed analysis' : '🔍 کلیک برای تحلیل دقیق'}</div>
+          <div class="summary-subtext-accent" style="font-size:10px; color:var(--accent-blue, #38bdf8); margin-top:2px;">${isEn ? '🔍 Click for detailed analysis' : '🔍 کلیک برای تحلیل دقیق'}</div>
         </td>
         <td>
           <span class="set-highlight">${s.totalSets} ${isEn ? 'sets' : 'ست'}</span>
           <div style="font-size:10.5px; margin-top:3px; display:flex; gap:6px;">
-            <span style="color:#38bdf8; font-weight:700;">🏋️ ${s.gymSets} ${isEn ? 'Gym' : 'باشگاه'}</span>
+            <span class="summary-gym-badge" style="color:var(--accent-blue, #38bdf8); font-weight:700;">🏋️ ${s.gymSets} ${isEn ? 'Gym' : 'باشگاه'}</span>
             ${s.homeSets > 0 ? `<span style="color:#34d399; font-weight:700;">🏠 ${s.homeSets} ${isEn ? 'Home' : 'خانه'}</span>` : ''}
           </div>
         </td>
         <td>${s.days.size} ${isEn ? 'sessions' : 'جلسه'} (${daysList})</td>
-        <td style="font-size:11.5px; color:#cbd5e1;">${displayList}</td>
+        <td style="font-size:11.5px; color:var(--text-muted, #cbd5e1);">${displayList}</td>
       </tr>
     `;
   }).join('');
@@ -7793,7 +8355,7 @@ function renderDynamicWeeklySummary(prof) {
           <span class="set-highlight">${s.totalSets} ${isEn ? 'sets' : 'ست'}</span>
         </div>
         <div style="font-size:10px; display:flex; gap:5px; margin-bottom:4px;">
-          <span style="color:#38bdf8; font-weight:700;">🏋️ ${s.gymSets} ${isEn ? 'Gym sets' : 'ست باشگاه'}</span>
+          <span class="summary-gym-badge" style="color:var(--accent-blue, #38bdf8); font-weight:700;">🏋️ ${s.gymSets} ${isEn ? 'Gym sets' : 'ست باشگاه'}</span>
           ${s.homeSets > 0 ? `<span style="color:#34d399; font-weight:700;">🏠 ${s.homeSets} ${isEn ? 'Home' : 'خانه'}</span>` : ''}
         </div>
         <div class="summary-mobile-freq">
@@ -7801,7 +8363,7 @@ function renderDynamicWeeklySummary(prof) {
         </div>
         <div class="summary-mobile-chips">
           ${uniqueExList.slice(0, 2).map(e => `<span class="summary-mobile-chip">${e}</span>`).join('')}
-          ${uniqueExList.length > 2 ? `<span class="summary-mobile-chip" style="background:rgba(56,189,248,0.2); color:#38bdf8; font-weight:800;">+${uniqueExList.length - 2} ${isEn ? 'more... 🔍' : 'دیگر... 🔍'}</span>` : ''}
+          ${uniqueExList.length > 2 ? `<span class="summary-mobile-chip summary-mobile-chip-more" style="background:rgba(56,189,248,0.2); color:var(--accent-blue, #38bdf8); font-weight:800;">+${uniqueExList.length - 2} ${isEn ? 'more... 🔍' : 'دیگر... 🔍'}</span>` : ''}
         </div>
       </div>
     `;

@@ -1334,6 +1334,8 @@ function renderApp(preserveScroll = true, targetCardExId = null) {
 
   if (activeMainTab === 'metrics') {
     if (workoutContent) workoutContent.style.display = 'none';
+    const heroCinema = document.getElementById('heroCinemaContainer');
+    if (heroCinema) heroCinema.style.display = 'none';
     if (metricsView) {
       metricsView.style.display = 'block';
       try {
@@ -1346,10 +1348,13 @@ function renderApp(preserveScroll = true, targetCardExId = null) {
     activeMainTab = 'workout';
     if (metricsView) metricsView.style.display = 'none';
     if (workoutContent) workoutContent.style.display = 'block';
+    const heroCinema = document.getElementById('heroCinemaContainer');
+    if (heroCinema) heroCinema.style.display = 'block';
   }
 
   try { renderProfileSelect(); } catch(e) { console.error('Error in renderProfileSelect:', e); }
   try { renderHeader(); } catch(e) { console.error('Error in renderHeader:', e); }
+  try { renderHeroCinemaBanner(); } catch(e) { console.error('Error in renderHeroCinemaBanner:', e); }
   try { renderDayNav(); } catch(e) { console.error('Error in renderDayNav:', e); }
   try { renderWorkoutDays(); } catch(e) { console.error('Error in renderWorkoutDays:', e); }
   try { applyUiMode(); } catch(e) {}
@@ -1514,6 +1519,166 @@ function updateGreetingText() {
       ? `Good evening ${profNameEn}! Recovery and consistency are key 🔥`
       : `شب بخیر ${profNameFa}! ریکاوری و ثبات کلید موفقیته 🔥`;
   }
+}
+
+// ==========================================================================
+// Ambient Video Hero Cinema Banner Logic
+// ==========================================================================
+function isHeroCollapsed() {
+  return localStorage.getItem('chieftain_hero_collapsed') === 'true';
+}
+
+function toggleHeroCinema() {
+  const next = !isHeroCollapsed();
+  localStorage.setItem('chieftain_hero_collapsed', next ? 'true' : 'false');
+  const wrapper = document.getElementById('heroCinemaContainer');
+  if (wrapper) {
+    wrapper.classList.toggle('collapsed', next);
+    const toggleBtn = document.getElementById('heroCollapseBtn');
+    if (toggleBtn) {
+      toggleBtn.innerHTML = next 
+        ? `<span>➕</span> <span>${currentLang === 'en' ? 'Expand' : 'نمایش کامل'}</span>`
+        : `<span>➖</span> <span>${currentLang === 'en' ? 'Collapse' : 'جمع کردن'}</span>`;
+    }
+  }
+}
+
+function jumpToTodayWorkoutFromHero() {
+  const todaySecId = (typeof getTodaySectionId === 'function') ? getTodaySectionId() : 'd1';
+  const el = document.getElementById(todaySecId);
+  if (el) {
+    const navBarHeight = 120;
+    const pos = el.getBoundingClientRect().top + (window.scrollY || document.documentElement.scrollTop) - navBarHeight;
+    window.scrollTo({ top: pos, behavior: 'smooth' });
+    
+    // Highlight today's section with pulse
+    el.classList.remove('today-highlight-pulse');
+    void el.offsetWidth;
+    el.classList.add('today-highlight-pulse');
+    setTimeout(() => el.classList.remove('today-highlight-pulse'), 2500);
+  }
+}
+
+function renderHeroCinemaBanner() {
+  const container = document.getElementById('heroCinemaContainer');
+  if (!container) return;
+
+  // If viewing body metrics tab, hide hero banner
+  if (typeof activeMainTab !== 'undefined' && activeMainTab === 'metrics') {
+    container.style.display = 'none';
+    return;
+  }
+  container.style.display = 'block';
+
+  const prof = getActiveProfile();
+  const isEn = currentLang === 'en';
+  const isFemale = prof && (prof.id === 'morvarid' || prof.id === 'template_female' || prof.gender === 'female');
+  const videoSrc = isFemale ? 'images/hero_workout_female.mp4' : 'images/hero_workout_male.mp4';
+  const posterSrc = isFemale ? 'images/hero_poster_female.jpg' : 'images/hero_poster_male.jpg';
+
+  // Determine today's day info
+  const currentDayOfWeek = (typeof todayIndex !== 'undefined') ? todayIndex : new Date().getDay();
+  const dayIdx = (currentDayOfWeek === 6) ? 0 : (currentDayOfWeek + 1);
+  const targetDay = (prof && Array.isArray(prof.days)) ? (prof.days[dayIdx] || prof.days[0]) : null;
+  const dayTitle = targetDay ? (isEn ? translateDayTitle(targetDay.title) : targetDay.title) : (isEn ? 'Today' : 'امروز');
+
+  let totalEx = 0;
+  let totalSets = 0;
+  let isRestDay = false;
+
+  if (targetDay) {
+    if (targetDay.type === 'rest') {
+      isRestDay = true;
+    } else {
+      if (targetDay.singles) {
+        totalEx += targetDay.singles.length;
+        targetDay.singles.forEach(s => totalSets += (Number(s.sets) || 3));
+      }
+      if (targetDay.supersets) {
+        targetDay.supersets.forEach(ss => {
+          if (ss && ss.exercises) {
+            totalEx += ss.exercises.length;
+            ss.exercises.forEach(e => totalSets += (Number(e.sets) || 3));
+          }
+        });
+      }
+    }
+  }
+
+  const collapsed = isHeroCollapsed();
+  container.className = `hero-cinema-wrapper ${collapsed ? 'collapsed' : ''}`;
+
+  const badgeText = isRestDay 
+    ? (isEn ? 'RECOVERY & GROWTH' : 'ریکاوری و رشد عضلات')
+    : (isEn ? `TODAY'S FOCUS • ${dayTitle}` : `تمرین هدف امروز • ${dayTitle}`);
+
+  const mainTitleHtml = isRestDay
+    ? (isEn 
+        ? `<span>Rest &amp; Recover, <span class="highlight-text">Champion</span>!</span>` 
+        : `<span>استراحت و ریکاوری، <span class="highlight-text">قهرمان</span>!</span>`)
+    : (isEn 
+        ? `<span>Build Your <span class="highlight-text">Strongest</span> Version!</span>` 
+        : `<span>امروز روز توئه؛ <span class="highlight-text">قوی‌تر</span> از دیروز بسازش!</span>`);
+
+  const subText = isRestDay
+    ? (isEn 
+        ? `Today is dedicated to deep recovery, muscle repair, and mobility. Hydrate and get quality sleep.` 
+        : `امروز مخصوص ریکاوری عمیق، خواب باکیفیت و ترمیم بافت‌های عضلانی است. آب کافی بنوش و آماده جلسه بعد باش.`)
+    : (isEn 
+        ? `${dayTitle}: <b>${totalEx} exercises</b> (${totalSets} direct sets) scheduled. Keep discipline high!` 
+        : `${dayTitle}: <b>${totalEx} حرکت هدف</b> (${totalSets} ست برنامه‌ریزی‌شده) در انتظارته. با تمرکز و انرژی بالا شروع کن!`);
+
+  const ctaBtnHtml = isRestDay
+    ? `<button class="btn-hero-letsgo" onclick="jumpToTodayWorkoutFromHero()">
+        <span>🛌</span>
+        <span>${isEn ? 'View Weekly Program' : 'مشاهده برنامه هفتگی'}</span>
+       </button>`
+    : `<button class="btn-hero-letsgo" onclick="jumpToTodayWorkoutFromHero()">
+        <span>⚡</span>
+        <span>${isEn ? "LET'S GO! (Start Today's Workout)" : 'بزن بریم برای تمرین امروز! (LET\'S GO)'}</span>
+       </button>`;
+
+  const statsPillHtml = isRestDay
+    ? `<div class="hero-stats-pill">
+        <span>💤</span>
+        <span>${isEn ? 'Optimal Recovery Day' : 'روز استراحت و بازسازی'}</span>
+       </div>`
+    : `<div class="hero-stats-pill">
+        <span>🏋️</span>
+        <span>${totalEx} ${isEn ? 'Exercises' : 'حرکت'} • ${totalSets} ${isEn ? 'Sets' : 'ست'}</span>
+       </div>`;
+
+  const toggleBtnText = collapsed
+    ? `<span>➕</span> <span>${isEn ? 'Expand' : 'نمایش کامل'}</span>`
+    : `<span>➖</span> <span>${isEn ? 'Collapse' : 'جمع کردن'}</span>`;
+
+  container.innerHTML = `
+    <div class="hero-video-container">
+      <video class="hero-video-bg" autoplay muted loop playsinline poster="${posterSrc}">
+        <source src="${videoSrc}" type="video/mp4">
+      </video>
+      <div class="hero-gradient-overlay"></div>
+    </div>
+    <div class="hero-inner-content">
+      <div class="hero-top-row">
+        <div class="hero-badge-tag">
+          <span class="hero-badge-dot"></span>
+          <span>${badgeText}</span>
+        </div>
+        <button id="heroCollapseBtn" class="hero-collapse-btn" onclick="toggleHeroCinema()" title="${isEn ? 'Toggle hero size' : 'تغییر اندازه هیرو'}">
+          ${toggleBtnText}
+        </button>
+      </div>
+      <div class="hero-body-content">
+        <h2 class="hero-main-title">${mainTitleHtml}</h2>
+        <div class="hero-sub-text">${subText}</div>
+      </div>
+      <div class="hero-action-row">
+        ${ctaBtnHtml}
+        ${statsPillHtml}
+      </div>
+    </div>
+  `;
 }
 
 function renderDayNav() {
@@ -2442,23 +2607,23 @@ function renderDynamicWeeklySummary(prof) {
     const uniqueExMap = new Map();
     s.exerciseDetails.forEach(e => uniqueExMap.set(e.name, e));
     const uniqueExList = Array.from(uniqueExMap.keys());
-    const displayList = uniqueExList.slice(0, 3).join(isEn ? ', ' : '، ') + (uniqueExList.length > 3 ? ` <span style="color:#38bdf8; font-weight:700;">(${isEn ? `View all ${uniqueExList.length} exercises 🔍` : `مشاهده همه ${uniqueExList.length} حرکت 🔍`})</span>` : '');
+    const displayList = uniqueExList.slice(0, 3).join(isEn ? ', ' : '، ') + (uniqueExList.length > 3 ? ` <span class="summary-more-btn" style="color:var(--accent-blue, #38bdf8); font-weight:700;">(${isEn ? `View all ${uniqueExList.length} exercises 🔍` : `مشاهده همه ${uniqueExList.length} حرکت 🔍`})</span>` : '');
 
     return `
       <tr onclick="openMuscleDetailModal('${m.key}')" style="cursor:pointer;" title="${isEn ? 'Click to view scientific details and exercises' : 'کلیک برای مشاهده جزئیات علمی و کامل حرکات این عضله'}">
         <td>
           <b>${s.label}</b>
-          <div style="font-size:10px; color:#38bdf8; margin-top:2px;">${isEn ? '🔍 Click for detailed analysis' : '🔍 کلیک برای تحلیل دقیق'}</div>
+          <div class="summary-subtext-accent" style="font-size:10px; color:var(--accent-blue, #38bdf8); margin-top:2px;">${isEn ? '🔍 Click for detailed analysis' : '🔍 کلیک برای تحلیل دقیق'}</div>
         </td>
         <td>
           <span class="set-highlight">${s.totalSets} ${isEn ? 'sets' : 'ست'}</span>
           <div style="font-size:10.5px; margin-top:3px; display:flex; gap:6px;">
-            <span style="color:#38bdf8; font-weight:700;">🏋️ ${s.gymSets} ${isEn ? 'Gym' : 'باشگاه'}</span>
+            <span class="summary-gym-badge" style="color:var(--accent-blue, #38bdf8); font-weight:700;">🏋️ ${s.gymSets} ${isEn ? 'Gym' : 'باشگاه'}</span>
             ${s.homeSets > 0 ? `<span style="color:#34d399; font-weight:700;">🏠 ${s.homeSets} ${isEn ? 'Home' : 'خانه'}</span>` : ''}
           </div>
         </td>
         <td>${s.days.size} ${isEn ? 'sessions' : 'جلسه'} (${daysList})</td>
-        <td style="font-size:11.5px; color:#cbd5e1;">${displayList}</td>
+        <td style="font-size:11.5px; color:var(--text-muted, #cbd5e1);">${displayList}</td>
       </tr>
     `;
   }).join('');
@@ -2477,7 +2642,7 @@ function renderDynamicWeeklySummary(prof) {
           <span class="set-highlight">${s.totalSets} ${isEn ? 'sets' : 'ست'}</span>
         </div>
         <div style="font-size:10px; display:flex; gap:5px; margin-bottom:4px;">
-          <span style="color:#38bdf8; font-weight:700;">🏋️ ${s.gymSets} ${isEn ? 'Gym sets' : 'ست باشگاه'}</span>
+          <span class="summary-gym-badge" style="color:var(--accent-blue, #38bdf8); font-weight:700;">🏋️ ${s.gymSets} ${isEn ? 'Gym sets' : 'ست باشگاه'}</span>
           ${s.homeSets > 0 ? `<span style="color:#34d399; font-weight:700;">🏠 ${s.homeSets} ${isEn ? 'Home' : 'خانه'}</span>` : ''}
         </div>
         <div class="summary-mobile-freq">
@@ -2485,7 +2650,7 @@ function renderDynamicWeeklySummary(prof) {
         </div>
         <div class="summary-mobile-chips">
           ${uniqueExList.slice(0, 2).map(e => `<span class="summary-mobile-chip">${e}</span>`).join('')}
-          ${uniqueExList.length > 2 ? `<span class="summary-mobile-chip" style="background:rgba(56,189,248,0.2); color:#38bdf8; font-weight:800;">+${uniqueExList.length - 2} ${isEn ? 'more... 🔍' : 'دیگر... 🔍'}</span>` : ''}
+          ${uniqueExList.length > 2 ? `<span class="summary-mobile-chip summary-mobile-chip-more" style="background:rgba(56,189,248,0.2); color:var(--accent-blue, #38bdf8); font-weight:800;">+${uniqueExList.length - 2} ${isEn ? 'more... 🔍' : 'دیگر... 🔍'}</span>` : ''}
         </div>
       </div>
     `;
