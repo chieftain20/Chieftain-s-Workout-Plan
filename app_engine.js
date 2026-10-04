@@ -1072,7 +1072,117 @@ function loadStoredLocalAuthSession() {
   } catch(e) {}
 }
 
-function handleAdminPinLogin() {
+async function decryptVaultPayload(vaultEntry, password) {
+  try {
+    if (!vaultEntry || !vaultEntry.salt || !vaultEntry.iv || !vaultEntry.data) return null;
+    const enc = new TextEncoder();
+    const dec = new TextDecoder();
+    
+    const b64ToUint8 = (b64) => {
+      const bin = atob(b64);
+      const arr = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+      return arr;
+    };
+
+    const salt = b64ToUint8(vaultEntry.salt);
+    const iv = b64ToUint8(vaultEntry.iv);
+    const cipher = b64ToUint8(vaultEntry.data);
+
+    const subtle = (typeof window !== 'undefined' && window.crypto?.subtle) 
+      ? window.crypto.subtle 
+      : ((typeof crypto !== 'undefined' && crypto.webcrypto?.subtle) ? crypto.webcrypto.subtle : null);
+
+    if (!subtle) {
+      console.warn('Web Crypto API subtle not available in this environment');
+      return null;
+    }
+
+    const keyMaterial = await subtle.importKey(
+      'raw', enc.encode(password.toLowerCase()), { name: 'PBKDF2' }, false, ['deriveKey']
+    );
+    const key = await subtle.deriveKey(
+      { name: 'PBKDF2', salt, iterations: 10000, hash: 'SHA-256' },
+      keyMaterial,
+      { name: 'AES-GCM', length: 256 },
+      false,
+      ['decrypt']
+    );
+
+    const decryptedBuf = await subtle.decrypt(
+      { name: 'AES-GCM', iv }, key, cipher
+    );
+    return JSON.parse(dec.decode(decryptedBuf));
+  } catch(err) {
+    console.warn('Decryption failed (invalid key or corrupted cipher):', err);
+    return null;
+  }
+}
+
+async function restoreEncryptedVaultForUser(userKey, password) {
+  try {
+    if (typeof ENCRYPTED_VAULT === 'undefined' || !ENCRYPTED_VAULT[userKey]) return false;
+    const decrypted = await decryptVaultPayload(ENCRYPTED_VAULT[userKey], password);
+    if (!decrypted) return false;
+
+    if (userKey === 'morvarid') {
+      if (decrypted.metrics && Array.isArray(decrypted.metrics)) {
+        const currentLocal = getProfileBodyMetrics('template_female');
+        const seenIds = new Set(currentLocal.map(m => m.id || m.timestamp));
+        decrypted.metrics.forEach(m => {
+          if (!seenIds.has(m.id || m.timestamp)) {
+            currentLocal.push(m);
+            seenIds.add(m.id || m.timestamp);
+          }
+        });
+        currentLocal.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+        saveProfileBodyMetrics('template_female', currentLocal);
+        saveProfileBodyMetrics('morvarid', currentLocal);
+      }
+      return true;
+    }
+
+    if (userKey === 'hossein') {
+      if (decrypted.metrics && Array.isArray(decrypted.metrics)) {
+        const currentLocal = getProfileBodyMetrics('template_male');
+        const seenIds = new Set(currentLocal.map(m => m.id || m.timestamp));
+        decrypted.metrics.forEach(m => {
+          if (!seenIds.has(m.id || m.timestamp)) {
+            currentLocal.push(m);
+            seenIds.add(m.id || m.timestamp);
+          }
+        });
+        currentLocal.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+        saveProfileBodyMetrics('template_male', currentLocal);
+        saveProfileBodyMetrics('hossein_chieftain', currentLocal);
+      }
+
+      if (decrypted.logs && typeof decrypted.logs === 'object') {
+        for (const [key, logList] of Object.entries(decrypted.logs)) {
+          if (Array.isArray(logList)) {
+            const raw = localStorage.getItem(key);
+            const localList = raw ? JSON.parse(raw) : [];
+            const seen = new Set(localList.map(l => l.timestamp));
+            logList.forEach(item => {
+              if (!seen.has(item.timestamp)) {
+                localList.push(item);
+                seen.add(item.timestamp);
+              }
+            });
+            localList.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+            localStorage.setItem(key, JSON.stringify(localList));
+          }
+        }
+      }
+      return true;
+    }
+  } catch(e) {
+    console.error('Error in restoreEncryptedVaultForUser:', e);
+  }
+  return false;
+}
+
+async function handleAdminPinLogin() {
   const pinInput = document.getElementById('adminAccessPinInput');
   if (!pinInput) return;
   const pin = pinInput.value.trim();
@@ -1098,9 +1208,19 @@ function handleAdminPinLogin() {
       role: 'user'
     });
 
+    // Decrypt and load private body analysis data securely into local storage
+    try {
+      await restoreEncryptedVaultForUser('morvarid', pinLower);
+    } catch(e) {}
+
     closeAuthModal();
     renderApp(true);
-    showToast(isEn ? '🎉 Welcome Morvarid! Plan unlocked & account connected.' : '🎉 خوش آمدید مروارید عزیز! برنامه بارگذاری و حساب شما متصل شد.');
+    if (activeMainTab === 'metrics') {
+      try { renderBodyMetricsView(); } catch(e) {}
+    }
+    showToast(isEn 
+      ? '🎉 Welcome Morvarid! Body analysis & routine securely unlocked.' 
+      : '🎉 خوش آمدید مروارید عزیز! برنامه و اطلاعات آنالیز بدنی شما با موفقیت و امنیت کامل بارگذاری شد.');
     return;
   }
 
@@ -1121,9 +1241,19 @@ function handleAdminPinLogin() {
       role: 'admin'
     });
 
+    // Decrypt and load private body analysis & 26 workout logs securely into local storage
+    try {
+      await restoreEncryptedVaultForUser('hossein', 'gym');
+    } catch(e) {}
+
     closeAuthModal();
     renderApp(true);
-    showToast(isEn ? '👑 Welcome Hossein Chieftain! Admin access granted.' : '👑 خوش آمدید حسین جان! دسترسی ادمین و برنامه فعال شد.');
+    if (activeMainTab === 'metrics') {
+      try { renderBodyMetricsView(); } catch(e) {}
+    }
+    showToast(isEn 
+      ? '👑 Welcome Hossein! Admin access & body analysis records unlocked.' 
+      : '👑 خوش آمدید حسین جان! دسترسی ادمین، سوابق و اطلاعات آنالیز بدنی شما فعال شد.');
     return;
   }
 
@@ -1142,6 +1272,9 @@ function handleAdminPinLogin() {
     }
     closeAuthModal();
     renderApp(true);
+    if (activeMainTab === 'metrics') {
+      try { renderBodyMetricsView(); } catch(e) {}
+    }
     return;
   }
 
@@ -3117,7 +3250,7 @@ function closePinModal() {
   pendingActionAfterPin = null;
 }
 
-function confirmProfilePin() {
+async function confirmProfilePin() {
   const prof = getActiveProfile();
   const enteredPin = document.getElementById('profilePinInput').value.trim();
   const enteredPinLower = enteredPin.toLowerCase();
@@ -3145,6 +3278,12 @@ function confirmProfilePin() {
     if (!prof.pin) {
       prof.pin = defaultPin;
       saveProfiles();
+    }
+
+    if (isFemale || enteredPinLower === 'inci') {
+      try { await restoreEncryptedVaultForUser('morvarid', 'inci'); } catch(e) {}
+    } else if (enteredPinLower === 'gym' || enteredPinLower === 'haji') {
+      try { await restoreEncryptedVaultForUser('hossein', 'gym'); } catch(e) {}
     }
 
     const actionToRun = pendingActionAfterPin;
@@ -5716,33 +5855,13 @@ async function fetchUserProfileAndRole(user) {
 
 function clearLocalUserData() {
   try {
-    // 1. Remove all user-specific logs, metrics, and temporary sets from localStorage
-    const keysToRemove = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const k = localStorage.key(i);
-      if (k && (k.startsWith('chieftain_logs_') || k.startsWith('chieftain_metrics_') || k.startsWith('chieftain_sets_'))) {
-        keysToRemove.push(k);
-      }
-    }
-    keysToRemove.forEach(k => localStorage.removeItem(k));
-
-    // 2. Remove user-specific custom exercises and drop admin unlocked state
-    localStorage.removeItem('chieftain_custom_exercises');
-    customExercises = [];
+    // Only drop temporary session states and unlock tokens, NEVER delete user recorded metrics or logs!
     localStorage.removeItem('chieftain_admin_unlocked');
-
-    // 3. Reset in-memory logs cache if present
+    sessionStorage.removeItem('chieftain_unlocked_template_female');
+    sessionStorage.removeItem('chieftain_unlocked_morvarid');
+    sessionStorage.removeItem('chieftain_unlocked_template_male');
+    sessionStorage.removeItem('chieftain_unlocked_hossein_chieftain');
     if (typeof cachedExerciseLogs !== 'undefined') cachedExerciseLogs = {};
-
-    // 4. Reset profiles to clean default templates
-    const maleTemplate = JSON.parse(JSON.stringify(TEMPLATE_MALE_PROFILE));
-    maleTemplate.id = 'template_male';
-    const femaleTemplate = JSON.parse(JSON.stringify(TEMPLATE_FEMALE_PROFILE));
-    femaleTemplate.id = 'template_female';
-    allProfiles = [maleTemplate, femaleTemplate];
-    activeProfileId = 'template_male';
-    localStorage.setItem('chieftain_profiles_v9', JSON.stringify(allProfiles));
-    localStorage.setItem('chieftain_active_profile_id', activeProfileId);
   } catch(e) {
     console.error('Error in clearLocalUserData:', e);
   }
@@ -6851,7 +6970,17 @@ if ('serviceWorker' in navigator) {
 
 function getProfileBodyMetrics(profId = activeProfileId) {
   try {
-    const raw = localStorage.getItem(`chieftain_metrics_${profId}`);
+    let raw = localStorage.getItem(`chieftain_metrics_${profId}`);
+    if (!raw && (profId === 'template_female' || profId === 'morvarid' || profId === 'user_morvarid')) {
+      raw = localStorage.getItem('chieftain_metrics_template_female') || 
+            localStorage.getItem('chieftain_metrics_morvarid') ||
+            localStorage.getItem('chieftain_metrics_user_morvarid');
+    }
+    if (!raw && (profId === 'template_male' || profId === 'hossein_chieftain' || profId === 'admin_hossein')) {
+      raw = localStorage.getItem('chieftain_metrics_template_male') || 
+            localStorage.getItem('chieftain_metrics_hossein_chieftain') ||
+            localStorage.getItem('chieftain_metrics_admin_hossein');
+    }
     if (raw) return JSON.parse(raw);
   } catch(e) {}
   return [];
@@ -6860,6 +6989,15 @@ function getProfileBodyMetrics(profId = activeProfileId) {
 function saveProfileBodyMetrics(profId, metricsList) {
   try {
     localStorage.setItem(`chieftain_metrics_${profId}`, JSON.stringify(metricsList));
+    if (profId === 'template_female' || profId === 'morvarid') {
+      localStorage.setItem('chieftain_metrics_template_female', JSON.stringify(metricsList));
+      localStorage.setItem('chieftain_metrics_morvarid', JSON.stringify(metricsList));
+      localStorage.setItem('chieftain_metrics_user_morvarid', JSON.stringify(metricsList));
+    } else if (profId === 'template_male' || profId === 'hossein_chieftain') {
+      localStorage.setItem('chieftain_metrics_template_male', JSON.stringify(metricsList));
+      localStorage.setItem('chieftain_metrics_hossein_chieftain', JSON.stringify(metricsList));
+      localStorage.setItem('chieftain_metrics_admin_hossein', JSON.stringify(metricsList));
+    }
     if (typeof pushToCloudStorage === 'function') {
       pushToCloudStorage(true);
     }

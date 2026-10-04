@@ -41,6 +41,9 @@ with open('template_male.json', 'r', encoding='utf-8') as f:
 with open('template_female.json', 'r', encoding='utf-8') as f:
     template_female_json = f.read()
 
+with open('encrypted_vault.json', 'r', encoding='utf-8') as f:
+    encrypted_vault_json = f.read()
+
 with open('app_engine.js', 'r', encoding='utf-8') as f:
     app_engine_code = f.read()
 
@@ -49,6 +52,7 @@ final_html = f"""{head_html}
 {modals_html}
 
 <script>
+const ENCRYPTED_VAULT = {encrypted_vault_json};
 const MASTER_EXERCISES = {master_ex_json};
 const TEMPLATE_MALE_PROFILE = {template_male_json};
 const TEMPLATE_FEMALE_PROFILE = {template_female_json};
