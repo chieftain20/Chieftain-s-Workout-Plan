@@ -2,6 +2,7 @@
   "id": "template_female",
   "name": "برنامه نمونه بانوان (تناسب اندام و فرم‌دهی)",
   "isDefault": true,
+  "pin": "inci",
   "days": [
     {
       "id": "m_d1",

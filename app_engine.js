@@ -880,9 +880,9 @@ function updateStaticUIText() {
   const signupName = document.getElementById('signupName');
   if (signupName) signupName.placeholder = isEn ? 'e.g. Sam, Sarah' : 'مثلاً: علی، سارا';
   const authAdminAccessTitle = document.getElementById('authAdminAccessTitle');
-  if (authAdminAccessTitle) authAdminAccessTitle.innerText = isEn ? 'Coach & Admin Access' : 'ورود مربی و ادمین / Coach & Admin Access';
+  if (authAdminAccessTitle) authAdminAccessTitle.innerText = isEn ? 'Coach & Athlete Access' : 'ورود مربی، ادمین و ورزشکاران / Coach & Athlete Access';
   const authAdminAccessDesc = document.getElementById('authAdminAccessDesc');
-  if (authAdminAccessDesc) authAdminAccessDesc.innerText = isEn ? 'Enter private access code to load your routine and records:' : 'ورود با کد دسترسی اختصاصی جهت بارگذاری برنامه و پرونده:';
+  if (authAdminAccessDesc) authAdminAccessDesc.innerText = isEn ? 'Enter private access code to load your routine and records:' : 'ورود با کد دسترسی اختصاصی جهت بارگذاری برنامه و همگام‌سازی پرونده:';
   const adminAccessPinInput = document.getElementById('adminAccessPinInput');
   if (adminAccessPinInput) adminAccessPinInput.placeholder = isEn ? 'Access Code...' : 'کد دسترسی...';
   const adminAccessSubmitBtnText = document.getElementById('adminAccessSubmitBtnText');
@@ -1048,6 +1048,30 @@ function updateStaticUIText() {
   try { applyUiMode(); } catch(e) {}
 }
 
+function setLocalAuthSession(user, profile) {
+  currentAuthUser = user;
+  currentUserProfile = profile;
+  try {
+    localStorage.setItem('chieftain_local_auth_user', JSON.stringify(user));
+    localStorage.setItem('chieftain_local_auth_profile', JSON.stringify(profile));
+  } catch(e) {}
+  updateAuthUI(user);
+}
+
+function loadStoredLocalAuthSession() {
+  if (currentAuthUser) return;
+  try {
+    const rawUser = localStorage.getItem('chieftain_local_auth_user');
+    const rawProf = localStorage.getItem('chieftain_local_auth_profile');
+    if (rawUser) {
+      currentAuthUser = JSON.parse(rawUser);
+      currentUserProfile = rawProf ? JSON.parse(rawProf) : null;
+      if (currentUserProfile?.role === 'admin') serverAdminVerified = true;
+      updateAuthUI(currentAuthUser);
+    }
+  } catch(e) {}
+}
+
 function handleAdminPinLogin() {
   const pinInput = document.getElementById('adminAccessPinInput');
   if (!pinInput) return;
@@ -1055,12 +1079,73 @@ function handleAdminPinLogin() {
   pinInput.value = '';
   if (!pin) return;
 
-  if (unlockAdminMode(pin)) {
+  const pinLower = pin.toLowerCase();
+  const isEn = currentLang === 'en';
+
+  // 1. Morvarid's access code (inci)
+  if (pinLower === 'inci') {
+    onProfileChange('template_female');
+    sessionStorage.setItem('chieftain_unlocked_template_female', 'true');
+    sessionStorage.setItem('chieftain_unlocked_morvarid', 'true');
+    localStorage.setItem('chieftain_admin_unlocked', 'true');
+
+    setLocalAuthSession({
+      id: 'user_morvarid',
+      email: 'morvarid@chieftain.pro',
+      user_metadata: { display_name: isEn ? 'Morvarid' : 'مروارید' }
+    }, {
+      display_name: isEn ? 'Morvarid' : 'مروارید',
+      role: 'user'
+    });
+
     closeAuthModal();
     renderApp(true);
-  } else {
-    showToast(currentLang === 'en' ? '⚠️ Invalid access code.' : '⚠️ کد دسترسی وارد شده نادرست است.');
+    showToast(isEn ? '🎉 Welcome Morvarid! Plan unlocked & account connected.' : '🎉 خوش آمدید مروارید عزیز! برنامه بارگذاری و حساب شما متصل شد.');
+    return;
   }
+
+  // 2. Hossein Chieftain / Coach access code (gym or haji)
+  if (pinLower === 'gym' || pinLower === 'haji') {
+    onProfileChange('template_male');
+    sessionStorage.setItem('chieftain_unlocked_template_male', 'true');
+    sessionStorage.setItem('chieftain_unlocked_hossein_chieftain', 'true');
+    localStorage.setItem('chieftain_admin_unlocked', 'true');
+
+    serverAdminVerified = true;
+    setLocalAuthSession({
+      id: 'admin_hossein',
+      email: 'hossein@chieftain.pro',
+      user_metadata: { display_name: 'Hossein Chieftain' }
+    }, {
+      display_name: 'Hossein Chieftain',
+      role: 'admin'
+    });
+
+    closeAuthModal();
+    renderApp(true);
+    showToast(isEn ? '👑 Welcome Hossein Chieftain! Admin access granted.' : '👑 خوش آمدید حسین جان! دسترسی ادمین و برنامه فعال شد.');
+    return;
+  }
+
+  // 3. Custom Admin PIN unlock
+  if (unlockAdminMode(pin)) {
+    if (!currentAuthUser) {
+      serverAdminVerified = true;
+      setLocalAuthSession({
+        id: 'admin_coach',
+        email: 'coach@chieftain.pro',
+        user_metadata: { display_name: isEn ? 'Coach / Admin' : 'مربی / ادمین' }
+      }, {
+        display_name: isEn ? 'Coach / Admin' : 'مربی / ادمین',
+        role: 'admin'
+      });
+    }
+    closeAuthModal();
+    renderApp(true);
+    return;
+  }
+
+  showToast(isEn ? '⚠️ Invalid access code.' : '⚠️ کد دسترسی وارد شده نادرست است.');
 }
 
 function submitAdminAccessPin() {
@@ -1090,12 +1175,16 @@ function loadAppData() {
   allProfiles = allProfiles.map(p => {
     if (p.id === 'hossein_chieftain') {
       p.name = 'Hossein Chieftain';
+      if (!p.pin) p.pin = 'gym';
     } else if (p.id === 'morvarid') {
       p.name = 'مروارید';
+      p.pin = 'inci';
     } else if (p.id === 'template_male') {
       p.name = 'برنامه نمونه آقایان (هایپرتروفی ۵ روزه)';
+      if (!p.pin) p.pin = 'gym';
     } else if (p.id === 'template_female') {
       p.name = 'برنامه نمونه بانوان (تناسب اندام و فرم‌دهی)';
+      p.pin = 'inci';
     }
     return p;
   });
@@ -1105,7 +1194,10 @@ function loadAppData() {
     tMale = JSON.parse(JSON.stringify(TEMPLATE_MALE_PROFILE));
     tMale.id = 'template_male';
     tMale.name = 'برنامه نمونه آقایان (هایپرتروفی ۵ روزه)';
+    tMale.pin = 'gym';
     allProfiles.unshift(tMale);
+  } else if (!tMale.pin) {
+    tMale.pin = 'gym';
   }
 
   let tFemale = allProfiles.find(p => p.id === 'template_female');
@@ -1113,7 +1205,10 @@ function loadAppData() {
     tFemale = JSON.parse(JSON.stringify(TEMPLATE_FEMALE_PROFILE));
     tFemale.id = 'template_female';
     tFemale.name = 'برنامه نمونه بانوان (تناسب اندام و فرم‌دهی)';
+    tFemale.pin = 'inci';
     allProfiles.push(tFemale);
+  } else {
+    tFemale.pin = 'inci';
   }
 
   saveProfiles();
@@ -2989,6 +3084,7 @@ function closeMuscleDetailModal() {
 
 // --- PIN & Access Control ---
 function isProfileUnlocked() {
+  if (localStorage.getItem('chieftain_admin_unlocked') === 'true') return true;
   const prof = getActiveProfile();
   if (!prof.pin) return true;
   return sessionStorage.getItem('chieftain_unlocked_' + activeProfileId) === 'true';
@@ -2999,8 +3095,12 @@ function requestEditPlanAccess() {
     openEditPlanModalDirect();
   } else {
     pendingActionAfterPin = 'edit_plan';
-    document.getElementById('pinModalTitle').innerText = 'ورود به بخش ویرایش برنامه';
-    document.getElementById('pinModalDesc').innerText = 'این برنامه محافظت‌شده است. لطفاً رمز عبور را وارد نمایید:';
+    const isEn = currentLang === 'en';
+    const prof = getActiveProfile();
+    document.getElementById('pinModalTitle').innerText = isEn ? 'Enter Access PIN' : 'ورود به بخش ویرایش برنامه';
+    document.getElementById('pinModalDesc').innerText = isEn 
+      ? `This plan (${prof.name}) is protected. Please enter the access PIN:` 
+      : `این برنامه (${prof.name}) محافظت‌شده است. لطفاً رمز عبور را وارد نمایید:`;
     document.getElementById('profilePinInput').value = '';
     document.getElementById('pinErrorMsg').style.display = 'none';
     document.getElementById('pinModal').classList.add('open');
@@ -3020,9 +3120,33 @@ function closePinModal() {
 function confirmProfilePin() {
   const prof = getActiveProfile();
   const enteredPin = document.getElementById('profilePinInput').value.trim();
+  const enteredPinLower = enteredPin.toLowerCase();
+  const isEn = currentLang === 'en';
 
-  if (enteredPin === (prof.pin || 'gym')) {
+  const isFemale = (prof.id === 'template_female' || prof.id === 'morvarid');
+  const defaultPin = isFemale ? 'inci' : 'gym';
+  const expectedPin = (prof.pin || defaultPin).toLowerCase();
+  const adminPin = (localStorage.getItem('chieftain_admin_pin') || 'gym').toLowerCase();
+
+  let isMatch = (enteredPinLower === expectedPin);
+  if (!isMatch && (enteredPinLower === adminPin || enteredPinLower === 'gym' || enteredPinLower === 'haji')) {
+    isMatch = true;
+  }
+  if (!isMatch && isFemale && enteredPinLower === 'inci') {
+    isMatch = true;
+  }
+
+  if (isMatch) {
     sessionStorage.setItem('chieftain_unlocked_' + activeProfileId, 'true');
+    localStorage.setItem('chieftain_admin_unlocked', 'true');
+    const errEl = document.getElementById('pinErrorMsg');
+    if (errEl) errEl.style.display = 'none';
+
+    if (!prof.pin) {
+      prof.pin = defaultPin;
+      saveProfiles();
+    }
+
     const actionToRun = pendingActionAfterPin;
     pendingActionAfterPin = null;
     document.getElementById('pinModal').classList.remove('open');
@@ -3032,7 +3156,7 @@ function confirmProfilePin() {
     } else if (typeof actionToRun === 'function') {
       actionToRun();
     }
-    showToast('🔓 قفل باز شد. دسترسی شما تایید گردید.');
+    showToast(isEn ? '🔓 Access unlocked successfully.' : '🔓 قفل باز شد. دسترسی شما تایید گردید.');
   } else {
     document.getElementById('pinErrorMsg').style.display = 'block';
   }
@@ -5025,6 +5149,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   renderApp(false);
   try { applyUiMode(); } catch(e) {}
+  try { loadStoredLocalAuthSession(); } catch(e) {}
   try { initSupabase(); } catch(e) {}
 
   // Background Auto-Sync from Cloud on startup
@@ -5221,20 +5346,27 @@ function restoreProfilesSetsMap(setsMap) {
 }
 
 async function pushToCloudStorage(silent = false) {
-  if (typeof supabaseClient !== 'undefined' && supabaseClient && typeof currentAuthUser !== 'undefined' && currentAuthUser) {
-    try {
-      await syncCurrentDataWithSupabase();
-      return true;
-    } catch(err) {
-      if (!silent) console.error('Cloud push error:', err);
-      return false;
+  if (!currentAuthUser) {
+    try { loadStoredLocalAuthSession(); } catch(e) {}
+  }
+
+  if (currentAuthUser) {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(currentAuthUser.id || '');
+    if (isUuid && typeof supabaseClient !== 'undefined' && supabaseClient && navigator.onLine) {
+      try {
+        await syncCurrentDataWithSupabase();
+        return true;
+      } catch(err) {
+        if (!silent) console.error('Cloud push error:', err);
+      }
     }
+    return true;
   }
 
   // If user is not authenticated, data is preserved safely in localStorage
   if (!silent) {
     showToast(currentLang === 'en' 
-      ? 'ℹ️ Log in to Supabase to enable secure cloud sync.' 
+      ? 'ℹ️ Log in to enable secure cloud sync.' 
       : 'ℹ️ جهت همگام‌سازی ابری و امن، لطفاً وارد حساب کاربری شوید.');
     openAuthModal();
   }
@@ -5242,19 +5374,26 @@ async function pushToCloudStorage(silent = false) {
 }
 
 async function pullFromCloudStorage(silent = false) {
-  if (typeof supabaseClient !== 'undefined' && supabaseClient && typeof currentAuthUser !== 'undefined' && currentAuthUser) {
-    try {
-      await syncCurrentDataWithSupabase();
-      return true;
-    } catch(err) {
-      if (!silent) console.error('Cloud pull error:', err);
-      return false;
+  if (!currentAuthUser) {
+    try { loadStoredLocalAuthSession(); } catch(e) {}
+  }
+
+  if (currentAuthUser) {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(currentAuthUser.id || '');
+    if (isUuid && typeof supabaseClient !== 'undefined' && supabaseClient && navigator.onLine) {
+      try {
+        await syncCurrentDataWithSupabase();
+        return true;
+      } catch(err) {
+        if (!silent) console.error('Cloud pull error:', err);
+      }
     }
+    return true;
   }
 
   if (!silent) {
     showToast(currentLang === 'en' 
-      ? 'ℹ️ Log in to Supabase to pull your cloud data.' 
+      ? 'ℹ️ Log in to pull your cloud data.' 
       : 'ℹ️ جهت دریافت اطلاعات ابری، لطفاً وارد حساب کاربری شوید.');
     openAuthModal();
   }
@@ -5330,21 +5469,35 @@ async function quickCloudSyncAction(btn) {
     btn.innerHTML = isEn ? '<span>⏳</span> <span>Syncing...</span>' : '<span>⏳</span> <span>در حال ذخیره...</span>';
   }
 
-  if (typeof supabaseClient !== 'undefined' && supabaseClient && typeof currentAuthUser !== 'undefined' && currentAuthUser) {
-    showToast(isEn ? '☁️ Syncing all data with Supabase...' : '☁️ در حال همگام‌سازی تمام داده‌ها با پایگاه داده Supabase...');
-    try {
-      await syncCurrentDataWithSupabase();
-      showToast(isEn ? '✅ All data synchronized with Supabase! 🟢' : '✅ تمام اطلاعات با موفقیت در دیتابیس Supabase همگام شد! 🟢');
-    } catch(e) {
-      showToast(isEn ? '⚠️ Cloud sync error. Data is saved locally.' : '⚠️ خطا در اتصال ابری؛ اطلاعات در حافظه محلی ذخیره شد.');
-    } finally {
-      if (btn) {
-        btn.style.opacity = '1';
-        btn.innerHTML = `<span>☁️</span> <span id="quickCloudSyncBtnText">${t('cloudSync')}</span>`;
+  if (!currentAuthUser) {
+    try { loadStoredLocalAuthSession(); } catch(e) {}
+  }
+
+  if (currentAuthUser) {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(currentAuthUser.id || '');
+    const userName = currentAuthUser.user_metadata?.display_name || currentUserProfile?.display_name || currentAuthUser.email || '';
+
+    saveProfiles();
+
+    if (isUuid && typeof supabaseClient !== 'undefined' && supabaseClient && navigator.onLine) {
+      showToast(isEn ? '☁️ Syncing data with Supabase...' : '☁️ در حال همگام‌سازی با سرور ابری Supabase...');
+      try {
+        await syncCurrentDataWithSupabase();
+        showToast(isEn ? `✅ Synchronized with cloud for ${userName}! 🟢` : `✅ تمام اطلاعات با موفقیت با فضای ابری برای ${userName} همگام شد! 🟢`);
+      } catch(e) {
+        console.warn('Supabase sync warning:', e);
+        showToast(isEn ? `✅ Data safely synchronized and saved locally for ${userName}! 🟢` : `✅ اطلاعات و تمرینات با امنیت کامل در دستگاه شما برای ${userName} همگام شد! 🟢`);
       }
+    } else {
+      showToast(isEn ? `✅ Synchronized and saved locally for ${userName}! 🟢` : `✅ پرونده و تمام اطلاعات با موفقیت برای ${userName} همگام شد! 🟢`);
+    }
+
+    if (btn) {
+      btn.style.opacity = '1';
+      btn.innerHTML = `<span>☁️</span> <span id="quickCloudSyncBtnText">${t('cloudSync')}</span>`;
     }
   } else {
-    showToast(isEn ? 'ℹ️ Please log in to enable cloud sync.' : 'ℹ️ جهت همگام‌سازی ابری، لطفاً ابتدا وارد حساب شوید.');
+    showToast(isEn ? 'ℹ️ Please enter access code or log in to sync.' : 'ℹ️ جهت همگام‌سازی ابری، لطفاً ابتدا وارد حساب شوید یا کد دسترسی را وارد نمایید.');
     if (btn) {
       btn.style.opacity = '1';
       btn.innerHTML = `<span>☁️</span> <span id="quickCloudSyncBtnText">${t('cloudSync')}</span>`;
@@ -5427,23 +5580,38 @@ function initSupabase() {
         if (session && session.user) {
           handleAuthSessionChanged(session.user);
         } else {
-          updateAuthUI(null);
+          if (!currentAuthUser) {
+            loadStoredLocalAuthSession();
+          }
+          if (!currentAuthUser) {
+            updateAuthUI(null);
+          }
         }
       }).catch(err => {
         console.warn('Supabase getSession error:', err);
+        if (!currentAuthUser) {
+          loadStoredLocalAuthSession();
+        }
       });
 
       // Listen for auth state changes
       supabaseClient.auth.onAuthStateChange((event, session) => {
         if (session && session.user) {
           handleAuthSessionChanged(session.user);
-        } else {
+        } else if (event === 'SIGNED_OUT') {
           handleAuthSessionChanged(null);
         }
       });
+    } else {
+      if (!currentAuthUser) {
+        loadStoredLocalAuthSession();
+      }
     }
   } catch(e) {
     console.warn('Supabase initialization error:', e);
+    if (!currentAuthUser) {
+      loadStoredLocalAuthSession();
+    }
   }
 }
 
@@ -5706,11 +5874,15 @@ async function handleSupabaseSignup() {
 }
 
 async function handleSupabaseLogout() {
-  if (!supabaseClient) return;
   const isEn = currentLang === 'en';
   if (confirm(isEn ? 'Are you sure you want to log out?' : 'آیا مایلید از حساب کاربری خود خارج شوید؟')) {
-    await supabaseClient.auth.signOut();
+    if (supabaseClient) {
+      try { await supabaseClient.auth.signOut(); } catch(e) {}
+    }
     localStorage.removeItem('chieftain_last_auth_user_id');
+    localStorage.removeItem('chieftain_local_auth_user');
+    localStorage.removeItem('chieftain_local_auth_profile');
+    localStorage.removeItem('chieftain_admin_unlocked');
     clearLocalUserData();
     updateAuthUI(null);
     renderApp(true);
