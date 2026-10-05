@@ -2626,142 +2626,129 @@ function deleteQuickEditExercise() {
 }
 
 // --- Definitive Scientific Muscle Taxonomy & Mapping ---
+// --- Scientific Muscle Volume Model ---
+// Evidence-informed fractional-set model: primary/direct = 1.00; secondary/indirect = 0.50.
+// Stability/corrective movements are tracked separately and are NOT counted as hypertrophy sets.
+const MUSCLE_VOLUME_MODEL_VERSION = '2026.10-fractional-v1';
 const EXERCISE_MUSCLE_MAPPING = {
-  // Chest (سینه)
-  'chest_press_machine': ['سینه'],
-  'seated_chest_press_machine': ['سینه'],
-  'incline_smith_press': ['سینه'],
-  'smith_incline_bench_press': ['سینه'],
-  'iso_lateral_incline_bench_press': ['سینه'],
-  'peck_deck_fly': ['سینه'],
-  'incline_fly_machine': ['سینه'],
-  'iso_lateral_incline_pec_fly_machine': ['سینه'],
-  'incline_chest_fly': ['سینه'],
-  'seated_cable_pec_fly': ['سینه'],
-  'cable_fly': ['سینه'],
-  'single_arm_peck_deck_fly': ['سینه'],
-
-  // Lats & Back (زیر بغل و پشت)
-  'lat_pulldown': ['پشت'],
-  'neutral_lat_pulldown': ['پشت'],
-  'cable_seated_row': ['پشت'],
-  'cable_row': ['پشت'],
-  'iso_lateral_row': ['پشت'],
-  'ufo_lat_pulldown': ['پشت'],
-  'ufo_linear_row_machine': ['پشت'],
-  'dumbbell_row': ['پشت'],
-  'lat_pulldown_underhand': ['پشت'],
-  'single_arm_pronated_scapular_correction': ['پشت', 'سرشانه'],
-
-  // Shoulders (سرشانه و دلتوئید)
-  'machine_lateral_raise': ['سرشانه'],
-  'standing_lateral_raise_machine': ['سرشانه'],
-  'dumbbell_lateral_raise': ['سرشانه'],
-  'plate_loaded_shoulder_press': ['سرشانه'],
-  'dumbbell_shoulder_press': ['سرشانه'],
-  'cable_lateral_raise': ['سرشانه'],
-  'reverse_peck_deck': ['سرشانه'],
-  'reverse_peck_deck_fly': ['سرشانه'],
-  'cable_face_pull': ['سرشانه'],
-  'face_pull': ['سرشانه'],
-  'prone_itwy': ['سرشانه'],
-  'wall_slide': ['سرشانه'],
-  'dumbbell_shrugs': ['سرشانه'],
-  'chest_supported_dumbbell_shrug': ['سرشانه', 'پشت'],
-
-  // Biceps (جلو بازو)
-  'ez_bar_preacher_curl': ['جلو بازو'],
-  'preacher_curls': ['جلو بازو'],
-  'hammer_preacher_curl': ['جلو بازو'],
-  'preacher_hammer_curl': ['جلو بازو'],
-  'cable_bicep_curl': ['جلو بازو'],
-  'dumbbell_bicep_curl': ['جلو بازو'],
-  'incline_dumbbell_curl': ['جلو بازو'],
-
-  // Triceps (پشت بازو)
-  'rope_tricep_pushdown': ['پشت بازو'],
-  'rope_triceps_pushdown': ['پشت بازو'],
-  'overhead_rope_tricep_extension': ['پشت بازو'],
-  'overhead_triceps_extension': ['پشت بازو'],
-  'cable_tricep_pushdown': ['پشت بازو'],
-  'cable_triceps_pushdown': ['پشت بازو'],
-  'skull_crusher': ['پشت بازو'],
-
-  // Quads (چهارسر ران)
-  'leg_extension': ['چهارسر'],
-  'hack_squat': ['چهارسر', 'باسن'],
-  'leg_press': ['چهارسر', 'باسن'],
-  'smith_squat_mini_ball': ['چهارسر', 'داخل ران', 'باسن'],
-  'smith_machine_squat': ['چهارسر', 'باسن'],
-  'dumbbell_squat': ['چهارسر', 'باسن'],
-  'wall_sit': ['چهارسر'],
-  'cossack_squat': ['چهارسر', 'داخل ران', 'باسن'],
-  'kettlebell_side_lunge': ['چهارسر', 'داخل ران', 'باسن'],
-
-  // Hamstrings (همسترینگ)
-  'leg_curl': ['همسترینگ'],
-  'seated_leg_curl_machine': ['همسترینگ'],
-  'single_leg_cable_hamstring_curl': ['همسترینگ'],
-  'slider_hamstring_curl': ['همسترینگ'],
-  'rdl': ['همسترینگ', 'باسن', 'فیله'],
-  'dumbbell_rdl': ['همسترینگ', 'باسن', 'فیله'],
-  'single_leg_dumbbell_rdl': ['همسترینگ', 'باسن', 'فیله'],
-
-  // Glutes (سرینی و باسن)
-  'hip_thrust': ['باسن'],
-  'glute_bridge': ['باسن'],
-  'glute_bridge_iso': ['باسن'],
-  'glute_bridge_knees_out': ['باسن'],
-  'single_leg_glute_bridge': ['باسن', 'همسترینگ'],
-  'cable_glute_kickback': ['باسن'],
-  'quadruped_glute_kickback': ['باسن'],
-
-  // Abductors / Glute Medius (خارج ران و سرینی میانی)
-  'machine_hip_abduction': ['خارج ران'],
-  'cable_hip_abduction': ['خارج ران'],
-  'bent_knee_cable_hip_abduction': ['خارج ران'],
-  'standing_plate_hip_abduction': ['خارج ران'],
-  'lying_plate_hip_abduction': ['خارج ران'],
-  'side_lying_hip_abduction': ['خارج ران'],
-  'clamshell_plate': ['خارج ران'],
-  'clamshell_band': ['خارج ران'],
-  'clamshell_dumbbell': ['خارج ران'],
-  'clamshell_bodyweight': ['خارج ران'],
-  'fire_hydrant': ['خارج ران'],
-
-  // Adductors (داخل ران)
-  'cable_hip_adduction': ['داخل ران'],
-
-  // Calves (ساق پا)
-  'standing_calf_raise_hack': ['ساق'],
-  'standing_calf_raise_machine': ['ساق'],
-  'seated_calf_raise': ['ساق'],
-  'seated_calf_raise_hamstring_machine': ['ساق'],
-
-  // Lower Back (فیله و پایین کمر)
-  'back_extension': ['فیله', 'باسن'],
-  'dumbbell_incline_row_low_back': ['فیله', 'پشت'],
-
-  // Core & Abs (شکم و عضلات مرکزی)
-  'ab_crunch_machine': ['شکم'],
-  'standing_cable_crunch': ['شکم'],
-  'cable_oblique_crunch': ['شکم'],
-  'bench_crunch': ['شکم'],
-  'bench_reverse_crunch': ['شکم'],
-  'captains_chair_leg_raise_oblique': ['شکم'],
-  'dead_bug': ['شکم'],
-  'dead_bug_iso': ['شکم'],
-  'bird_dog': ['شکم'],
-  'iso_bird_dog': ['شکم'],
-  'side_plank_iso': ['شکم'],
-  'side_plank_dips': ['شکم'],
-  'plank_hold': ['شکم'],
-  'forearm_plank': ['شکم'],
-  'onhand_plank_knee_in': ['شکم'],
-  'straight_arm_bear_plank_knee_extension': ['شکم'],
-  'pike_plank_kickback': ['شکم'],
-  'push_up_plus': ['شکم']
+  "leg_curl": { "همسترینگ": 1.00 },
+  "leg_extension": { "چهارسر": 1.00 },
+  "hack_squat": { "چهارسر": 1.00, "باسن": 0.50 },
+  "leg_press": { "چهارسر": 1.00, "باسن": 0.50 },
+  "seated_chest_press_machine": { "سینه": 1.00, "پشت بازو": 0.50, "سرشانه": 0.50 },
+  "standing_calf_raise_hack": { "ساق": 1.00 },
+  "smith_machine_squat": { "چهارسر": 1.00, "باسن": 0.50, "همسترینگ": 0.50 },
+  "hip_thrust": { "باسن": 1.00, "همسترینگ": 0.50 },
+  "standing_lateral_raise_machine": { "سرشانه": 1.00 },
+  "cable_row": { "پشت": 1.00, "جلو بازو": 0.50 },
+  "lat_pulldown": { "پشت": 1.00, "جلو بازو": 0.50 },
+  "iso_lateral_row": { "پشت": 1.00, "جلو بازو": 0.50 },
+  "reverse_peck_deck_fly": { "سرشانه": 1.00, "پشت": 0.50 },
+  "ufo_linear_row_machine": { "پشت": 1.00, "جلو بازو": 0.50 },
+  "smith_incline_bench_press": { "سینه": 1.00, "سرشانه": 0.50, "پشت بازو": 0.50 },
+  "peck_deck_fly": { "سینه": 1.00 },
+  "iso_lateral_incline_pec_fly_machine": { "سینه": 1.00 },
+  "iso_lateral_incline_bench_press": { "سینه": 1.00, "سرشانه": 0.50, "پشت بازو": 0.50 },
+  "incline_chest_fly": { "سینه": 1.00 },
+  "seated_cable_pec_fly": { "سینه": 1.00 },
+  "preacher_curls": { "جلو بازو": 1.00 },
+  "preacher_hammer_curl": { "جلو بازو": 1.00 },
+  "rope_triceps_pushdown": { "پشت بازو": 1.00 },
+  "cable_triceps_pushdown": { "پشت بازو": 1.00 },
+  "overhead_triceps_extension": { "پشت بازو": 1.00 },
+  "dumbbell_shrugs": { "کول": 1.00 },
+  "chest_supported_dumbbell_shrug": { "کول": 1.00, "پشت": 0.50 },
+  "cable_lateral_raise": { "سرشانه": 1.00 },
+  "face_pull": { "سرشانه": 1.00, "پشت": 0.50 },
+  "dumbbell_shoulder_press": { "سرشانه": 1.00, "پشت بازو": 0.50 },
+  "plate_loaded_shoulder_press": { "سرشانه": 1.00, "پشت بازو": 0.50 },
+  "standing_cable_crunch": { "شکم": 1.00 },
+  "cable_oblique_crunch": { "شکم": 1.00 },
+  "cable_hip_abduction": { "خارج ران": 1.00 },
+  "cable_hip_adduction": { "داخل ران": 1.00 },
+  "bent_knee_cable_hip_abduction": { "خارج ران": 1.00 },
+  "rdl": { "همسترینگ": 1.00, "باسن": 0.50, "فیله": 0.50 },
+  "back_extension": { "فیله": 1.00, "باسن": 0.50, "همسترینگ": 0.50 },
+  "bench_crunch": { "شکم": 1.00 },
+  "wall_sit": { "چهارسر": 1.00 },
+  "side_plank_iso": { "شکم": 1.00 },
+  "dead_bug_iso": { "شکم": 1.00 },
+  "dead_bug": { "شکم": 1.00 },
+  "prone_itwy": { "سرشانه": 1.00, "کول": 0.50 },
+  "glute_bridge_iso": { "باسن": 1.00, "همسترینگ": 0.50 },
+  "glute_bridge": { "باسن": 1.00, "همسترینگ": 0.50 },
+  "iso_bird_dog": { "شکم": 1.00 },
+  "bird_dog": { "شکم": 1.00 },
+  "push_up_plus": { "سراتوس": 1.00, "سرشانه": 0.50 },
+  "wall_slide": { "سرشانه": 1.00 },
+  "cossack_squat": { "داخل ران": 1.00, "چهارسر": 0.50, "باسن": 0.50 },
+  "standing_plate_hip_abduction": { "خارج ران": 1.00 },
+  "lying_plate_hip_abduction": { "خارج ران": 1.00 },
+  "clamshell_dumbbell": { "خارج ران": 1.00 },
+  "side_lying_hip_abduction": { "خارج ران": 1.00 },
+  "glute_bridge_knees_out": { "باسن": 1.00, "خارج ران": 0.50 },
+  "dumbbell_rdl": { "همسترینگ": 1.00, "باسن": 0.50, "فیله": 0.50 },
+  "single_leg_cable_hamstring_curl": { "همسترینگ": 1.00 },
+  "machine_hip_abduction": { "خارج ران": 1.00 },
+  "neutral_lat_pulldown": { "پشت": 1.00, "جلو بازو": 0.50 },
+  "clamshell_plate": { "خارج ران": 1.00 },
+  "standing_calf_raise_machine": { "ساق": 1.00 },
+  "dumbbell_incline_row_low_back": { "پشت": 1.00, "فیله": 0.50, "جلو بازو": 0.50 },
+  "captains_chair_leg_raise_oblique": { "شکم": 1.00 },
+  "single_leg_glute_bridge": { "باسن": 1.00, "همسترینگ": 0.50 },
+  "single_leg_dumbbell_rdl": { "همسترینگ": 1.00, "باسن": 0.50, "فیله": 0.50 },
+  "slider_hamstring_curl": { "همسترینگ": 1.00 },
+  "quadruped_glute_kickback": { "باسن": 1.00 },
+  "plank_hold": { "شکم": 1.00 },
+  "dumbbell_squat": { "چهارسر": 1.00, "باسن": 0.50 },
+  "seated_leg_curl_machine": { "همسترینگ": 1.00 },
+  "kettlebell_side_lunge": { "چهارسر": 1.00, "داخل ران": 0.50, "باسن": 0.50 },
+  "cable_glute_kickback": { "باسن": 1.00 },
+  "seated_calf_raise": { "ساق": 1.00 },
+  "pike_plank_kickback": { "شکم": 1.00, "باسن": 0.50 },
+  "bench_reverse_crunch": { "شکم": 1.00 },
+  "clamshell_bodyweight": { "خارج ران": 1.00 },
+  "fire_hydrant": { "خارج ران": 1.00 },
+  "smith_squat_mini_ball": { "چهارسر": 1.00, "داخل ران": 0.50, "باسن": 0.50 },
+  "forearm_plank": { "شکم": 1.00 },
+  "onhand_plank_knee_in": { "شکم": 1.00, "سرشانه": 0.50 },
+  "straight_arm_bear_plank_knee_extension": { "شکم": 1.00, "چهارسر": 0.50 },
+  "clamshell_band": { "خارج ران": 1.00 },
+  "ab_crunch_machine": { "شکم": 1.00 },
+  "seated_calf_raise_hamstring_machine": { "ساق": 1.00 },
+  "single_arm_peck_deck_fly": { "سینه": 1.00 },
+  "single_arm_pronated_scapular_correction": { "پشت": 1.00, "سرشانه": 0.50, "کول": 0.50 },
+  "cust_1788626478522": { "ساق": 1.00 },
+  "cust_1788626968174": { "ساق": 1.00 },
+  "cust_1788627494546": { "سینه": 1.00 },
+  "cust_1788627548162": { "سینه": 1.00 },
+  "cust_1789820131011": { "شکم": 1.00 },
+  "cust_1789844260437": { "شکم": 1.00 },
+  "cust_1789848449999": { "شکم": 1.00 },
+  "cust_1789848630225": { "شکم": 1.00 },
+  "side_plank_dips": { "شکم": 1.00 }
 };
+
+const EXERCISE_VOLUME_CLASS = {
+  "bird_dog": 'stability',
+  "dead_bug": 'stability',
+  "dead_bug_iso": 'stability',
+  "forearm_plank": 'stability',
+  "glute_bridge_iso": 'stability',
+  "iso_bird_dog": 'stability',
+  "onhand_plank_knee_in": 'stability',
+  "pike_plank_kickback": 'stability',
+  "plank_hold": 'stability',
+  "prone_itwy": 'stability',
+  "push_up_plus": 'stability',
+  "side_plank_dips": 'stability',
+  "side_plank_iso": 'stability',
+  "single_arm_pronated_scapular_correction": 'stability',
+  "straight_arm_bear_plank_knee_extension": 'stability',
+  "wall_sit": 'stability',
+  "wall_slide": 'stability',
+};
+
 
 function renderDynamicWeeklySummary(prof) {
   const isEn = currentLang === 'en';
@@ -2770,6 +2757,8 @@ function renderDynamicWeeklySummary(prof) {
     { key: 'سینه', label: 'Chest' },
     { key: 'پشت', label: 'Lats & Back' },
     { key: 'سرشانه', label: 'Shoulders & Deltoids' },
+    { key: 'کول', label: 'Traps' },
+    { key: 'سراتوس', label: 'Serratus Anterior' },
     { key: 'جلو بازو', label: 'Biceps' },
     { key: 'پشت بازو', label: 'Triceps' },
     { key: 'چهارسر', label: 'Quadriceps (Quads)' },
@@ -2778,12 +2767,14 @@ function renderDynamicWeeklySummary(prof) {
     { key: 'خارج ران', label: 'Abductors & Glute Medius' },
     { key: 'داخل ران', label: 'Adductors' },
     { key: 'ساق', label: 'Calves' },
-    { key: 'فیله', label: 'Lower Back' },
+    { key: 'فیله', label: 'Spinal Erectors / Lower Back' },
     { key: 'شکم', label: 'Core & Abs' }
   ] : [
     { key: 'سینه', label: 'سینه (Chest)' },
     { key: 'پشت', label: 'زیر بغل و پشت (Lats & Back)' },
     { key: 'سرشانه', label: 'سرشانه و دلتوئید (Shoulders)' },
+    { key: 'کول', label: 'کول (Traps)' },
+    { key: 'سراتوس', label: 'سراتوس قدامی (Serratus Anterior)' },
     { key: 'جلو بازو', label: 'جلو بازو (Biceps)' },
     { key: 'پشت بازو', label: 'پشت بازو (Triceps)' },
     { key: 'چهارسر', label: 'چهارسر ران (Quads)' },
@@ -2792,20 +2783,19 @@ function renderDynamicWeeklySummary(prof) {
     { key: 'خارج ران', label: 'خارج ران و سرینی میانی (Abductors)' },
     { key: 'داخل ران', label: 'داخل ران (Adductors)' },
     { key: 'ساق', label: 'ساق پا (Calves)' },
-    { key: 'فیله', label: 'فیله و پایین کمر (Lower Back)' },
+    { key: 'فیله', label: 'فیله و راست‌کننده ستون فقرات (Lower Back)' },
     { key: 'شکم', label: 'عضلات مرکزی و شکم (Core & Abs)' }
   ];
 
   const stats = {};
   muscleGroups.forEach(m => {
-    stats[m.key] = { 
-      key: m.key, 
-      label: m.label, 
-      gymSets: 0, 
-      homeSets: 0, 
-      totalSets: 0, 
-      days: new Set(), 
-      exerciseDetails: [] 
+    stats[m.key] = {
+      key: m.key, label: m.label,
+      directSets: 0, indirectSets: 0, effectiveSets: 0,
+      gymEffectiveSets: 0, homeEffectiveSets: 0,
+      gymRawSets: 0, homeRawSets: 0,
+      stabilitySets: 0,
+      days: new Set(), exerciseDetails: []
     };
   });
 
@@ -2828,27 +2818,52 @@ function renderDynamicWeeklySummary(prof) {
       if (!item || !item.exId) return;
       const ex = findExerciseById(item.exId) || { id: item.exId, fa: item.exId, en: '' };
       const sets = parseSetsFromReps(item.reps, item.sets);
-      const assignedMuscles = EXERCISE_MUSCLE_MAPPING[item.exId] || [];
-      const isGym = (day.type === 'gym');
+      const contributionMap = EXERCISE_MUSCLE_MAPPING[item.exId] || {};
+      const volumeClass = EXERCISE_VOLUME_CLASS[item.exId] || 'hypertrophy';
+      const isGym = day.type === 'gym';
 
-      assignedMuscles.forEach(mKey => {
-        if (stats[mKey]) {
-          if (isGym) stats[mKey].gymSets += sets;
-          else stats[mKey].homeSets += sets;
-          stats[mKey].totalSets += sets;
-          stats[mKey].days.add(day.title);
-          stats[mKey].exerciseDetails.push({
-            exId: item.exId,
-            fa: ex.fa,
-            en: ex.en || '',
-            name: (isEn && ex.en) ? ex.en : ex.fa,
-            dayTitle: day.title,
-            dayType: day.type,
-            sets: sets,
-            reps: item.reps || ex.defaultReps || '3 × 8–12'
-          });
+      Object.entries(contributionMap).forEach(([mKey, coefficient]) => {
+        if (!stats[mKey]) return;
+        const s = stats[mKey];
+        const weighted = sets * coefficient;
+
+        if (volumeClass === 'stability') {
+          s.stabilitySets += weighted;
+        } else {
+          s.effectiveSets += weighted;
+          if (coefficient === 1) s.directSets += sets;
+          else s.indirectSets += sets;
+          if (isGym) s.gymEffectiveSets += weighted;
+          else s.homeEffectiveSets += weighted;
         }
+
+        if (isGym) s.gymRawSets += sets;
+        else s.homeRawSets += sets;
+
+        s.days.add(day.title);
+        s.exerciseDetails.push({
+          exId: item.exId,
+          fa: ex.fa,
+          en: ex.en || '',
+          name: (isEn && ex.en) ? ex.en : ex.fa,
+          dayTitle: day.title,
+          dayType: day.type,
+          sets: sets,
+          coefficient: coefficient,
+          contribution: weighted,
+          role: coefficient === 1 ? 'direct' : 'indirect',
+          volumeClass: volumeClass,
+          reps: item.reps || ex.defaultReps || '3 × 8–12'
+        });
       });
+    });
+  });
+
+  // Round floating-point artifacts (e.g. 7.499999999) for clean UI.
+  Object.values(stats).forEach(s => {
+    ['directSets','indirectSets','effectiveSets','gymEffectiveSets','homeEffectiveSets',
+     'gymRawSets','homeRawSets','stabilitySets'].forEach(k => {
+      s[k] = Math.round((s[k] + Number.EPSILON) * 100) / 100;
     });
   });
 
@@ -2856,47 +2871,56 @@ function renderDynamicWeeklySummary(prof) {
 
   let profDisplayName = prof.name;
   if (isEn) {
-    if (prof.id === 'hossein_chieftain') {
-      profDisplayName = "Hossein's Routine";
-    } else if (prof.id === 'morvarid') {
-      profDisplayName = "Morvarid's Routine";
-    } else if (prof.id === 'template_male') {
-      profDisplayName = "Men's Sample Routine (5-Day Hypertrophy)";
-    } else if (prof.id === 'template_female') {
-      profDisplayName = "Women's Sample Routine (Tone & Fitness)";
-    } else {
-      profDisplayName = prof.name_en || prof.name;
-    }
+    if (prof.id === 'hossein_chieftain') profDisplayName = "Hossein's Routine";
+    else if (prof.id === 'morvarid') profDisplayName = "Morvarid's Routine";
+    else if (prof.id === 'template_male') profDisplayName = "Men's Sample Routine (5-Day Hypertrophy)";
+    else if (prof.id === 'template_female') profDisplayName = "Women's Sample Routine (Tone & Fitness)";
+    else profDisplayName = prof.name_en || prof.name;
   }
 
-  const activeRows = muscleGroups.filter(m => stats[m.key].totalSets > 0).map(m => {
+  const activeRows = muscleGroups.filter(m => {
+    const s = stats[m.key];
+    return s.effectiveSets > 0 || s.stabilitySets > 0;
+  }).map(m => {
     const s = stats[m.key];
     const daysList = Array.from(s.days).map(d => isEn ? translateDayTitle(d) : d).join(isEn ? ', ' : '، ');
     const uniqueExMap = new Map();
     s.exerciseDetails.forEach(e => uniqueExMap.set(e.name, e));
     const uniqueExList = Array.from(uniqueExMap.keys());
-    const displayList = uniqueExList.slice(0, 3).join(isEn ? ', ' : '، ') + (uniqueExList.length > 3 ? ` <span class="summary-more-btn" style="color:var(--accent-blue, #38bdf8); font-weight:700;">(${isEn ? `View all ${uniqueExList.length} exercises 🔍` : `مشاهده همه ${uniqueExList.length} حرکت 🔍`})</span>` : '');
+    const displayList = uniqueExList.slice(0, 3).join(isEn ? ', ' : '، ') +
+      (uniqueExList.length > 3 ? ` <span class="summary-more-btn" style="color:var(--accent-blue,#38bdf8);font-weight:700;">(${isEn ? `View all ${uniqueExList.length} exercises 🔍` : `مشاهده همه ${uniqueExList.length} حرکت 🔍`})</span>` : '');
+
+    const volumeText = s.effectiveSets > 0
+      ? `${s.effectiveSets} ${isEn ? 'effective sets' : 'ست مؤثر'}`
+      : (isEn ? '0 effective sets' : '۰ ست مؤثر');
+    const detailText = isEn
+      ? `${s.directSets} direct + ${s.indirectSets} indirect × 0.5`
+      : `${s.directSets} مستقیم + ${s.indirectSets} غیرمستقیم × ۰٫۵`;
 
     return `
-      <tr onclick="openMuscleDetailModal('${m.key}')" style="cursor:pointer;" title="${isEn ? 'Click to view scientific details and exercises' : 'کلیک برای مشاهده جزئیات علمی و کامل حرکات این عضله'}">
+      <tr onclick="openMuscleDetailModal('${m.key}')" style="cursor:pointer;" title="${isEn ? 'Click to view the calculation breakdown' : 'کلیک برای مشاهده جزئیات محاسبه'}">
         <td>
           <b>${s.label}</b>
-          <div class="summary-subtext-accent" style="font-size:10px; color:var(--accent-blue, #38bdf8); margin-top:2px;">${isEn ? '🔍 Click for detailed analysis' : '🔍 کلیک برای تحلیل دقیق'}</div>
+          <div style="font-size:10px;color:var(--accent-blue,#38bdf8);margin-top:2px;">🔍 ${isEn ? 'Calculation details' : 'جزئیات محاسبه'}</div>
         </td>
         <td>
-          <span class="set-highlight">${s.totalSets} ${isEn ? 'sets' : 'ست'}</span>
-          <div style="font-size:10.5px; margin-top:3px; display:flex; gap:6px;">
-            <span class="summary-gym-badge" style="color:var(--accent-blue, #38bdf8); font-weight:700;">🏋️ ${s.gymSets} ${isEn ? 'Gym' : 'باشگاه'}</span>
-            ${s.homeSets > 0 ? `<span style="color:#34d399; font-weight:700;">🏠 ${s.homeSets} ${isEn ? 'Home' : 'خانه'}</span>` : ''}
+          <span class="set-highlight">${volumeText}</span>
+          <div style="font-size:10px;margin-top:3px;color:var(--text-muted);">${detailText}</div>
+          <div style="font-size:10.5px;margin-top:3px;display:flex;gap:6px;">
+            <span style="color:var(--accent-blue,#38bdf8);font-weight:700;">🏋️ ${s.gymEffectiveSets} ${isEn ? 'gym' : 'باشگاه'}</span>
+            ${s.homeEffectiveSets > 0 ? `<span style="color:#34d399;font-weight:700;">🏠 ${s.homeEffectiveSets} ${isEn ? 'home' : 'خانه'}</span>` : ''}
           </div>
+          ${s.stabilitySets > 0 ? `<div style="font-size:10px;color:#fbbf24;margin-top:3px;">🛡️ ${s.stabilitySets} ${isEn ? 'stability sets (not counted above)' : 'ست ثبات (در عدد بالا حساب نشده)'}</div>` : ''}
         </td>
         <td>${s.days.size} ${isEn ? 'sessions' : 'جلسه'} (${daysList})</td>
-        <td style="font-size:11.5px; color:var(--text-muted, #cbd5e1);">${displayList}</td>
-      </tr>
-    `;
+        <td style="font-size:11.5px;color:var(--text-muted,#cbd5e1);">${displayList}</td>
+      </tr>`;
   }).join('');
 
-  const mobileCards = muscleGroups.filter(m => stats[m.key].totalSets > 0).map(m => {
+  const mobileCards = muscleGroups.filter(m => {
+    const s = stats[m.key];
+    return s.effectiveSets > 0 || s.stabilitySets > 0;
+  }).map(m => {
     const s = stats[m.key];
     const daysList = Array.from(s.days).map(d => isEn ? translateDayTitle(d) : d).join(isEn ? ', ' : '، ');
     const uniqueExMap = new Map();
@@ -2904,64 +2928,62 @@ function renderDynamicWeeklySummary(prof) {
     const uniqueExList = Array.from(uniqueExMap.keys());
 
     return `
-      <div class="summary-mobile-card" onclick="openMuscleDetailModal('${m.key}')" style="cursor:pointer;" title="${isEn ? 'Click for full details' : 'کلیک برای جزئیات کامل'}">
+      <div class="summary-mobile-card" onclick="openMuscleDetailModal('${m.key}')" style="cursor:pointer;">
         <div class="summary-mobile-top">
           <span class="summary-mobile-title">${s.label}</span>
-          <span class="set-highlight">${s.totalSets} ${isEn ? 'sets' : 'ست'}</span>
+          <span class="set-highlight">${s.effectiveSets} ${isEn ? 'effective' : 'ست مؤثر'}</span>
         </div>
-        <div style="font-size:10px; display:flex; gap:5px; margin-bottom:4px;">
-          <span class="summary-gym-badge" style="color:var(--accent-blue, #38bdf8); font-weight:700;">🏋️ ${s.gymSets} ${isEn ? 'Gym sets' : 'ست باشگاه'}</span>
-          ${s.homeSets > 0 ? `<span style="color:#34d399; font-weight:700;">🏠 ${s.homeSets} ${isEn ? 'Home' : 'خانه'}</span>` : ''}
+        <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px;">
+          ${s.directSets} ${isEn ? 'direct' : 'مستقیم'} + ${s.indirectSets} ${isEn ? 'indirect' : 'غیرمستقیم'} × 0.5
         </div>
-        <div class="summary-mobile-freq">
-          <span>📅</span> <span>${s.days.size} ${isEn ? 'sessions: ' : 'جلسه: '}${daysList}</span>
+        <div style="font-size:10px;display:flex;gap:5px;margin-bottom:4px;">
+          <span style="color:var(--accent-blue,#38bdf8);font-weight:700;">🏋️ ${s.gymEffectiveSets}</span>
+          ${s.homeEffectiveSets > 0 ? `<span style="color:#34d399;font-weight:700;">🏠 ${s.homeEffectiveSets}</span>` : ''}
+          ${s.stabilitySets > 0 ? `<span style="color:#fbbf24;font-weight:700;">🛡️ ${s.stabilitySets} ${isEn ? 'stability' : 'ثبات'}</span>` : ''}
         </div>
+        <div class="summary-mobile-freq"><span>📅</span><span>${s.days.size} ${isEn ? 'sessions: ' : 'جلسه: '}${daysList}</span></div>
         <div class="summary-mobile-chips">
           ${uniqueExList.slice(0, 2).map(e => `<span class="summary-mobile-chip">${e}</span>`).join('')}
-          ${uniqueExList.length > 2 ? `<span class="summary-mobile-chip summary-mobile-chip-more" style="background:rgba(56,189,248,0.2); color:var(--accent-blue, #38bdf8); font-weight:800;">+${uniqueExList.length - 2} ${isEn ? 'more... 🔍' : 'دیگر... 🔍'}</span>` : ''}
+          ${uniqueExList.length > 2 ? `<span class="summary-mobile-chip summary-mobile-chip-more">+${uniqueExList.length - 2} ${isEn ? 'more... 🔍' : 'دیگر... 🔍'}</span>` : ''}
         </div>
-      </div>
-    `;
+      </div>`;
   }).join('');
 
   return `
     <section id="weekly-summary" class="summary-card">
       <div class="day-header">
         <div class="day-title-wrap">
-          <h2 class="day-title">📊 ${isEn ? 'Smart Weekly Volume Summary' : 'جمع‌بندی هوشمند حجم هفتگی'} (${profDisplayName})</h2>
-          <span class="day-location-badge badge-gym">${isEn ? 'Dynamic Calculation' : 'محاسبه پویا'}</span>
+          <h2 class="day-title">📊 ${isEn ? 'Scientific Weekly Muscle Volume' : '📊 جمع‌بندی علمی حجم هفتگی عضلات'} (${profDisplayName})</h2>
+          <span class="day-location-badge badge-gym">${isEn ? 'Fractional-set model' : 'مدل ست‌های کسری'}</span>
         </div>
       </div>
 
-      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">
-        ${isEn 
-          ? `These statistics are dynamically calculated based on the exercises and sets in <b>${profDisplayName}</b>.` 
-          : `این آمار به صورت کاملاً پویا بر اساس حرکات و ست‌های برنامه اختصاصی <b>${prof.name}</b> محاسبه شده است.`}
-      </p>
+      <div style="font-size:12px;color:var(--text-muted);line-height:1.7;margin-bottom:12px;padding:10px 12px;border:1px solid var(--border-color);border-radius:10px;background:rgba(56,189,248,.04);">
+        ${isEn
+          ? `<b>How it is calculated:</b> direct/primary work = 1.0 set; meaningful indirect/secondary work = 0.5 set. Stability/corrective work is shown separately and is not counted as hypertrophy volume.`
+          : `<b>روش محاسبه:</b> عضله هدف مستقیم = ۱ ست، درگیری غیرمستقیم/ثانویه = ۰٫۵ ست مؤثر. حرکات ثباتی و اصلاحی جداگانه نمایش داده می‌شوند و در حجم هایپرتروفی بالا حساب نمی‌شوند.`}
+      </div>
 
-      <!-- Desktop Table View -->
       <div class="table-container">
         <table>
           <thead>
             <tr>
               <th>${isEn ? 'Muscle Group' : 'گروه عضلانی'}</th>
-              <th>${isEn ? 'Total Direct Sets / Week' : 'مجموع ست مستقیم در هفته'}</th>
+              <th>${isEn ? 'Effective Hypertrophy Volume / Week' : 'حجم مؤثر هایپرتروفی / هفته'}</th>
               <th>${isEn ? 'Training Frequency' : 'تعداد جلسات تمرین'}</th>
-              <th>${isEn ? 'Sample Exercises' : 'نمونه حرکات برنامه'}</th>
+              <th>${isEn ? 'Exercises' : 'حرکات'}</th>
             </tr>
           </thead>
           <tbody>
-            ${activeRows || `<tr><td colspan="4" style="text-align:center; padding:16px;">${isEn ? 'No exercises found for volume calculation in this routine.' : 'هنوز حرکتی برای محاسبه حجم در این برنامه ثبت نشده است.'}</td></tr>`}
+            ${activeRows || `<tr><td colspan="4" style="text-align:center;padding:16px;">${isEn ? 'No volume found.' : 'هنوز حرکتی برای محاسبه حجم ثبت نشده است.'}</td></tr>`}
           </tbody>
         </table>
       </div>
 
-      <!-- Mobile Responsive Cards View (Zero horizontal scroll on phone) -->
       <div class="summary-mobile-grid">
-        ${mobileCards || `<div style="text-align:center; color:var(--text-muted); padding:16px;">${isEn ? 'No exercises found for volume calculation in this routine.' : 'هنوز حرکتی برای محاسبه حجم در این برنامه ثبت نشده است.'}</div>`}
+        ${mobileCards || `<div style="text-align:center;color:var(--text-muted);padding:16px;">${isEn ? 'No volume found.' : 'هنوز حرکتی برای محاسبه حجم ثبت نشده است.'}</div>`}
       </div>
-    </section>
-  `;
+    </section>`;
 }
 
 function getSupersetDisplayTitle(ss) {
@@ -3169,44 +3191,65 @@ function renderWorkoutDays() {
 function openMuscleDetailModal(mKey) {
   const stats = window.__currentMuscleStats?.[mKey];
   if (!stats) return;
+  const isEn = currentLang === 'en';
 
-  document.getElementById('muscleDetailModalTitle').innerText = `📊 تحلیل دقیق حجم: ${stats.label}`;
-  
-  // Stats Row
+  document.getElementById('muscleDetailModalTitle').innerText =
+    `${isEn ? '📊 Scientific volume analysis:' : '📊 تحلیل علمی حجم:'} ${stats.label}`;
+
   const statsRow = document.getElementById('muscleDetailStatsRow');
   statsRow.innerHTML = `
-    <div style="background:#162035; border:1px solid var(--border-color); border-radius:10px; padding:8px; text-align:center;">
-      <div style="font-size:10px; color:var(--text-muted);">مجموع کل در هفته</div>
-      <div style="font-size:16px; font-weight:900; color:#00f2fe; margin-top:2px;">${stats.totalSets} ست</div>
+    <div style="background:#162035;border:1px solid var(--border-color);border-radius:10px;padding:8px;text-align:center;">
+      <div style="font-size:10px;color:var(--text-muted);">${isEn ? 'Effective sets' : 'ست مؤثر'}</div>
+      <div style="font-size:16px;font-weight:900;color:#00f2fe;margin-top:2px;">${stats.effectiveSets}</div>
     </div>
-    <div style="background:#162035; border:1px solid rgba(56,189,248,0.3); border-radius:10px; padding:8px; text-align:center;">
-      <div style="font-size:10px; color:#38bdf8;">🏋️ ست اصلی باشگاه</div>
-      <div style="font-size:16px; font-weight:900; color:#38bdf8; margin-top:2px;">${stats.gymSets} ست</div>
+    <div style="background:#162035;border:1px solid rgba(56,189,248,.3);border-radius:10px;padding:8px;text-align:center;">
+      <div style="font-size:10px;color:#38bdf8;">${isEn ? 'Direct' : 'مستقیم'}</div>
+      <div style="font-size:16px;font-weight:900;color:#38bdf8;margin-top:2px;">${stats.directSets}</div>
     </div>
-    <div style="background:#162035; border:1px solid rgba(52,211,153,0.3); border-radius:10px; padding:8px; text-align:center;">
-      <div style="font-size:10px; color:#34d399;">🏠 ست ثبات / خانه</div>
-      <div style="font-size:16px; font-weight:900; color:#34d399; margin-top:2px;">${stats.homeSets} ست</div>
+    <div style="background:#162035;border:1px solid rgba(52,211,153,.3);border-radius:10px;padding:8px;text-align:center;">
+      <div style="font-size:10px;color:#34d399;">${isEn ? 'Indirect' : 'غیرمستقیم'}</div>
+      <div style="font-size:16px;font-weight:900;color:#34d399;margin-top:2px;">${stats.indirectSets} × 0.5</div>
     </div>
   `;
 
-  // Exercise details list
+  const subtitle = document.getElementById('muscleDetailModalSubtitle');
+  if (subtitle) {
+    subtitle.innerHTML = isEn
+      ? `Effective volume = direct sets × 1.0 + indirect sets × 0.5. <span style="color:#fbbf24;">Stability/corrective sets (${stats.stabilitySets}) are tracked separately.</span>`
+      : `حجم مؤثر = ست مستقیم × ۱ + ست غیرمستقیم × ۰٫۵. <span style="color:#fbbf24;">ست‌های ثبات/اصلاحی (${stats.stabilitySets}) جداگانه ثبت شده‌اند.</span>`;
+  }
+
   const listEl = document.getElementById('muscleDetailExercisesList');
-  listEl.innerHTML = stats.exerciseDetails.map((item, idx) => `
-    <div style="background:#152033; border:1px solid var(--border-color); border-radius:10px; padding:9px 11px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
-      <div>
-        <div style="font-size:13px; font-weight:800; color:#fff;">${idx+1}. ${item.fa}</div>
-        ${item.en ? `<div style="font-size:10.5px; color:#94a3b8; direction:ltr; text-align:right;">${item.en}</div>` : ''}
-        <div style="display:flex; gap:6px; align-items:center; margin-top:4px;">
-          <span style="font-size:10px; color:#cbd5e1; background:rgba(255,255,255,0.06); padding:1px 6px; border-radius:4px;">🗓️ ${item.dayTitle}</span>
-          <span style="font-size:10px; padding:1px 6px; border-radius:4px; ${item.dayType==='gym' ? 'background:rgba(56,189,248,0.15); color:#38bdf8;' : 'background:rgba(52,211,153,0.15); color:#34d399;'}">${item.dayType==='gym' ? '🏋️ باشگاه' : '🏠 خانه'}</span>
+  const details = stats.exerciseDetails;
+
+  listEl.innerHTML = details.map((item, idx) => {
+    const isStability = item.volumeClass === 'stability';
+    const roleText = isStability
+      ? (isEn ? 'Stability / corrective' : 'ثبات / اصلاحی')
+      : (item.coefficient === 1
+          ? (isEn ? 'Direct • ×1.0' : 'مستقیم • ×۱')
+          : (isEn ? 'Indirect • ×0.5' : 'غیرمستقیم • ×۰٫۵'));
+    const contributionText = isStability
+      ? (isEn ? `${item.contribution} stability exposure` : `${item.contribution} ست ثبات`)
+      : (isEn ? `${item.contribution} effective sets` : `${item.contribution} ست مؤثر`);
+
+    return `
+      <div style="background:#152033;border:1px solid ${isStability ? 'rgba(251,191,36,.25)' : 'var(--border-color)'};border-radius:10px;padding:9px 11px;display:flex;justify-content:space-between;align-items:center;gap:8px;">
+        <div>
+          <div style="font-size:13px;font-weight:800;color:#fff;">${idx+1}. ${item.fa}</div>
+          ${item.en ? `<div style="font-size:10.5px;color:#94a3b8;direction:ltr;text-align:right;">${item.en}</div>` : ''}
+          <div style="display:flex;gap:6px;align-items:center;margin-top:4px;flex-wrap:wrap;">
+            <span style="font-size:10px;color:#cbd5e1;background:rgba(255,255,255,.06);padding:1px 6px;border-radius:4px;">🗓️ ${item.dayTitle}</span>
+            <span style="font-size:10px;padding:1px 6px;border-radius:4px;${item.dayType==='gym'?'background:rgba(56,189,248,.15);color:#38bdf8;':'background:rgba(52,211,153,.15);color:#34d399;'}">${item.dayType==='gym'?'🏋️ باشگاه':'🏠 خانه'}</span>
+            <span style="font-size:10px;padding:1px 6px;border-radius:4px;${isStability?'background:rgba(251,191,36,.12);color:#fbbf24;':'background:rgba(255,255,255,.06);color:#cbd5e1;'}">${roleText}</span>
+          </div>
         </div>
-      </div>
-      <div style="text-align:left; flex-shrink:0;">
-        <div class="reps-badge" style="font-size:10.5px; padding:2px 7px;">${item.reps}</div>
-        <div style="font-size:11px; color:#00f2fe; font-weight:800; margin-top:3px; text-align:center;">${item.sets} ست مستقیم</div>
-      </div>
-    </div>
-  `).join('');
+        <div style="text-align:left;flex-shrink:0;">
+          <div class="reps-badge" style="font-size:10.5px;padding:2px 7px;">${item.reps}</div>
+          <div style="font-size:11px;color:${isStability?'#fbbf24':'#00f2fe'};font-weight:800;margin-top:3px;text-align:center;">${contributionText}</div>
+        </div>
+      </div>`;
+  }).join('');
 
   document.getElementById('muscleDetailModal').classList.add('open');
 }
