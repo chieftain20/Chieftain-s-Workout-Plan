@@ -1,12 +1,5 @@
-import json
-from pathlib import Path
+"""Compatibility entry point for the weekly Summary regression tests.
 
-ROOT = Path(__file__).resolve().parent
-with open(ROOT / "master_exercises.json", encoding="utf-8") as f:
-    exercises = json.load(f)
-
-assert len(exercises) == 96
-assert all(e.get("id") and e.get("fa") for e in exercises)
-
-print("PASS: exercise library is readable and contains", len(exercises), "exercises.")
-print("For muscle-volume correctness run: python test_scientific_summary.py")
+The production Summary is validated by test_scientific_summary.py.
+"""
+exec((__import__('pathlib').Path(__file__).with_name('test_scientific_summary.py')).read_text(encoding='utf-8'), globals())

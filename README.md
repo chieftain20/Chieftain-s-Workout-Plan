@@ -54,8 +54,3 @@ Planned improvements include:
 ## License
 
 This project is open source. See the repository for licensing information.
-
-
-## Scientific Weekly Volume Summary
-
-The weekly muscle summary uses an evidence-informed fractional-set model: direct/primary muscle work counts as 1.0 set, meaningful indirect/secondary work counts as 0.5 set, and stability/corrective work is tracked separately rather than being counted as hypertrophy volume. See `SCIENTIFIC_VOLUME_MODEL.md` for the methodology and rationale.
