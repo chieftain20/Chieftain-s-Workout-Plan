@@ -3774,17 +3774,19 @@ body[dir="ltr"],
       </div>
     </div>
 
-    <!-- Confidential Coach, Admin & Athlete Access Box -->
-    <div style="background:rgba(15,23,42,0.85); border:1px solid #38bdf844; border-radius:10px; padding:12px; margin-top:14px;">
+    <div style="margin-top:12px; text-align:center;">
+      <button id="adminAccessRevealBtn" type="button" class="btn-header-action" style="padding:6px 10px; font-size:11px; opacity:.75;" aria-expanded="false" aria-controls="adminAccessFormSection" onclick="toggleAdminAccessForm(true)">
+        <span id="adminAccessRevealBtnText">ورود مدیریت</span>
+      </button>
+    </div>
+    <div id="adminAccessFormSection" style="display:none; background:rgba(15,23,42,0.85); border:1px solid #38bdf844; border-radius:10px; padding:12px; margin-top:10px;">
       <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
         <span style="font-size:16px;">🛡️</span>
-        <span id="authAdminAccessTitle" style="font-size:12px; font-weight:800; color:#38bdf8;">ورود مربی، ادمین و ورزشکاران / Coach & Athlete Access</span>
+        <span id="adminAccessTitle" style="font-size:12px; font-weight:800; color:#38bdf8;">ورود مدیریت</span>
       </div>
-      <p id="authAdminAccessDesc" style="font-size:11px; color:#94a3b8; line-height:1.5; margin-bottom:10px;">
-        ورود با کد دسترسی اختصاصی جهت بارگذاری برنامه و همگام‌سازی پرونده:
-      </p>
+      <p id="adminAccessDesc" style="font-size:11px; color:#94a3b8; line-height:1.5; margin-bottom:10px;">برای ادامه، کد ورود را وارد کنید.</p>
       <div style="display:flex; gap:8px;">
-        <input type="password" id="adminAccessPinInput" class="form-input" style="flex:1; direction:ltr; text-align:center; letter-spacing:2px; font-size:13px;" placeholder="کد دسترسی..." onkeydown="if(event.key==='Enter') handleAdminPinLogin()">
+        <input type="password" id="adminAccessPinInput" class="form-input" style="flex:1; direction:ltr; text-align:center; letter-spacing:2px; font-size:13px;" placeholder="کد ورود..." onkeydown="if(event.key==='Enter') handleAdminPinLogin()">
         <button id="adminAccessSubmitBtn" type="button" class="btn-header-action btn-action-primary" style="padding:0 14px; font-weight:800;" onclick="handleAdminPinLogin()">
           <span id="adminAccessSubmitBtnText">ورود</span>
         </button>
@@ -7146,17 +7148,19 @@ function updateStaticUIText() {
   const authLogoutBtnText = document.getElementById('authLogoutBtnText');
   if (authLogoutBtnText) authLogoutBtnText.innerText = isEn ? 'Log Out' : 'خروج از حساب';
 
-  // Confidential Coach & Admin Access Box in Auth Modal
+  // Secondary management entry in the auth modal
   const signupName = document.getElementById('signupName');
   if (signupName) signupName.placeholder = isEn ? 'e.g. Sam, Sarah' : 'مثلاً: علی، سارا';
-  const authAdminAccessTitle = document.getElementById('authAdminAccessTitle');
-  if (authAdminAccessTitle) authAdminAccessTitle.innerText = isEn ? 'Cloud Admin & Local Offline Access' : 'ورود ادمین ابری و دسترسی محلی آفلاین';
-  const authAdminAccessDesc = document.getElementById('authAdminAccessDesc');
-  if (authAdminAccessDesc) authAdminAccessDesc.innerText = isEn ? 'Cloud admin code: validated securely by Supabase before a cloud session is issued. Local gym/haji codes remain offline only.' : 'کد ادمین ابری در Supabase اعتبارسنجی می‌شود و سپس نشست واقعی ابری می‌گیرد. کدهای محلی gym و haji فقط آفلاین هستند.';
+  const adminAccessRevealBtnText = document.getElementById('adminAccessRevealBtnText');
+  if (adminAccessRevealBtnText) adminAccessRevealBtnText.innerText = isEn ? 'Management access' : 'ورود مدیریت';
+  const adminAccessTitle = document.getElementById('adminAccessTitle');
+  if (adminAccessTitle) adminAccessTitle.innerText = isEn ? 'Management login' : 'ورود مدیریت';
+  const adminAccessDesc = document.getElementById('adminAccessDesc');
+  if (adminAccessDesc) adminAccessDesc.innerText = isEn ? 'Enter your access code to continue.' : 'برای ادامه، کد ورود را وارد کنید.';
   const adminAccessPinInput = document.getElementById('adminAccessPinInput');
-  if (adminAccessPinInput) adminAccessPinInput.placeholder = isEn ? 'Access Code...' : 'کد دسترسی...';
+  if (adminAccessPinInput) adminAccessPinInput.placeholder = isEn ? 'Access code...' : 'کد ورود...';
   const adminAccessSubmitBtnText = document.getElementById('adminAccessSubmitBtnText');
-  if (adminAccessSubmitBtnText) adminAccessSubmitBtnText.innerText = isEn ? 'Cloud Admin / Local' : 'ادمین ابری / محلی';
+  if (adminAccessSubmitBtnText) adminAccessSubmitBtnText.innerText = isEn ? 'Continue' : 'ورود';
 
   // Cloud Sync Modal
   const syncModalTitle = document.getElementById('syncModalTitle');
@@ -12249,11 +12253,23 @@ async function handleAuthSessionChanged(user) {
 }
 
 function openAuthModal() {
+  toggleAdminAccessForm(false);
   document.getElementById('authModal')?.classList.add('open');
 }
 
 function closeAuthModal() {
+  toggleAdminAccessForm(false);
   document.getElementById('authModal')?.classList.remove('open');
+}
+
+function toggleAdminAccessForm(forceOpen) {
+  const section = document.getElementById('adminAccessFormSection');
+  const button = document.getElementById('adminAccessRevealBtn');
+  if (!section) return;
+  const isOpen = typeof forceOpen === 'boolean' ? forceOpen : section.style.display === 'none';
+  section.style.display = isOpen ? 'block' : 'none';
+  button?.setAttribute('aria-expanded', String(isOpen));
+  if (isOpen) document.getElementById('adminAccessPinInput')?.focus();
 }
 
 function switchAuthTab(tab) {

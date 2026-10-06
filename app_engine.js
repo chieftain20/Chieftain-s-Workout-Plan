@@ -880,17 +880,19 @@ function updateStaticUIText() {
   const authLogoutBtnText = document.getElementById('authLogoutBtnText');
   if (authLogoutBtnText) authLogoutBtnText.innerText = isEn ? 'Log Out' : 'خروج از حساب';
 
-  // Confidential Coach & Admin Access Box in Auth Modal
+  // Secondary management entry in the auth modal
   const signupName = document.getElementById('signupName');
   if (signupName) signupName.placeholder = isEn ? 'e.g. Sam, Sarah' : 'مثلاً: علی، سارا';
-  const authAdminAccessTitle = document.getElementById('authAdminAccessTitle');
-  if (authAdminAccessTitle) authAdminAccessTitle.innerText = isEn ? 'Cloud Admin & Local Offline Access' : 'ورود ادمین ابری و دسترسی محلی آفلاین';
-  const authAdminAccessDesc = document.getElementById('authAdminAccessDesc');
-  if (authAdminAccessDesc) authAdminAccessDesc.innerText = isEn ? 'Cloud admin code: validated securely by Supabase before a cloud session is issued. Local gym/haji codes remain offline only.' : 'کد ادمین ابری در Supabase اعتبارسنجی می‌شود و سپس نشست واقعی ابری می‌گیرد. کدهای محلی gym و haji فقط آفلاین هستند.';
+  const adminAccessRevealBtnText = document.getElementById('adminAccessRevealBtnText');
+  if (adminAccessRevealBtnText) adminAccessRevealBtnText.innerText = isEn ? 'Management access' : 'ورود مدیریت';
+  const adminAccessTitle = document.getElementById('adminAccessTitle');
+  if (adminAccessTitle) adminAccessTitle.innerText = isEn ? 'Management login' : 'ورود مدیریت';
+  const adminAccessDesc = document.getElementById('adminAccessDesc');
+  if (adminAccessDesc) adminAccessDesc.innerText = isEn ? 'Enter your access code to continue.' : 'برای ادامه، کد ورود را وارد کنید.';
   const adminAccessPinInput = document.getElementById('adminAccessPinInput');
-  if (adminAccessPinInput) adminAccessPinInput.placeholder = isEn ? 'Access Code...' : 'کد دسترسی...';
+  if (adminAccessPinInput) adminAccessPinInput.placeholder = isEn ? 'Access code...' : 'کد ورود...';
   const adminAccessSubmitBtnText = document.getElementById('adminAccessSubmitBtnText');
-  if (adminAccessSubmitBtnText) adminAccessSubmitBtnText.innerText = isEn ? 'Cloud Admin / Local' : 'ادمین ابری / محلی';
+  if (adminAccessSubmitBtnText) adminAccessSubmitBtnText.innerText = isEn ? 'Continue' : 'ورود';
 
   // Cloud Sync Modal
   const syncModalTitle = document.getElementById('syncModalTitle');
@@ -5983,11 +5985,23 @@ async function handleAuthSessionChanged(user) {
 }
 
 function openAuthModal() {
+  toggleAdminAccessForm(false);
   document.getElementById('authModal')?.classList.add('open');
 }
 
 function closeAuthModal() {
+  toggleAdminAccessForm(false);
   document.getElementById('authModal')?.classList.remove('open');
+}
+
+function toggleAdminAccessForm(forceOpen) {
+  const section = document.getElementById('adminAccessFormSection');
+  const button = document.getElementById('adminAccessRevealBtn');
+  if (!section) return;
+  const isOpen = typeof forceOpen === 'boolean' ? forceOpen : section.style.display === 'none';
+  section.style.display = isOpen ? 'block' : 'none';
+  button?.setAttribute('aria-expanded', String(isOpen));
+  if (isOpen) document.getElementById('adminAccessPinInput')?.focus();
 }
 
 function switchAuthTab(tab) {
