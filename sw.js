@@ -1,7 +1,8 @@
-const CACHE_NAME = 'chieftain-workout-v10.9';
+const CACHE_NAME = 'chieftain-workout-v11.0';
 const STATIC_ASSETS = [
   './',
   './index.html',
+  './app_engine.js',
   './styles.css',
   './manifest.webmanifest',
   './icons/icon.svg',
@@ -26,6 +27,10 @@ self.addEventListener('activate', (event) => {
       );
     }).then(() => self.clients.claim())
   );
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
 });
 
 self.addEventListener('fetch', (event) => {

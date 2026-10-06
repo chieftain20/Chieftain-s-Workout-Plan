@@ -1,0 +1,2 @@
+[functions.cloud-admin-login]
+verify_jwt = false

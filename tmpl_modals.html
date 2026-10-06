@@ -1179,7 +1179,7 @@
       </div>
 
       <div style="display:flex; flex-direction:column; gap:8px;">
-        <button class="btn-header-action btn-action-primary" style="justify-content:center; padding:10px; font-weight:800;" onclick="syncCurrentDataWithSupabase()">
+        <button id="authSyncNowBtn" class="btn-header-action btn-action-primary" style="justify-content:center; padding:10px; font-weight:800;" onclick="syncCurrentDataWithSupabase()">
           <span>🔄</span> <span id="authSyncNowBtnText">همگام‌سازی فوری با دیتابیس</span>
         </button>
         <button class="btn-header-action" style="justify-content:center; padding:9px; color:#f87171; border-color:#f8717155;" onclick="handleSupabaseLogout()">
@@ -1199,7 +1199,7 @@
       </p>
       <div style="display:flex; gap:8px;">
         <input type="password" id="adminAccessPinInput" class="form-input" style="flex:1; direction:ltr; text-align:center; letter-spacing:2px; font-size:13px;" placeholder="کد دسترسی..." onkeydown="if(event.key==='Enter') handleAdminPinLogin()">
-        <button type="button" class="btn-header-action btn-action-primary" style="padding:0 14px; font-weight:800;" onclick="handleAdminPinLogin()">
+        <button id="adminAccessSubmitBtn" type="button" class="btn-header-action btn-action-primary" style="padding:0 14px; font-weight:800;" onclick="handleAdminPinLogin()">
           <span id="adminAccessSubmitBtnText">ورود</span>
         </button>
       </div>

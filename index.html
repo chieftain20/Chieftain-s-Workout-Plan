@@ -2539,7 +2539,7 @@ body[dir="ltr"],
       <span>⚙️</span>
     </button>
 
-    <button id="quickRefreshCloudBtn" class="btn-header-action" onclick="forceSyncAndHardRefresh(this)" title="دریافت آخرین نسخه از سرور ابری و رفرش کامل بدون کش" style="border-color:#10b98188; color:#34d399; background:rgba(16,185,129,0.08);">
+    <button id="quickRefreshCloudBtn" class="btn-header-action" onclick="forceSyncAndHardRefresh(this)" title="بررسی نسخه منتشرشده و راه‌اندازی دوباره برنامه" style="border-color:#10b98188; color:#34d399; background:rgba(16,185,129,0.08);">
       <span>🔄</span>
       <span id="quickRefreshCloudBtnText">به‌روزرسانی و رفرش</span>
     </button>
@@ -3333,7 +3333,7 @@ body[dir="ltr"],
   </div>
 </div>
 
-<!-- Detailed Muscle Group Breakdown Modal -->
+<!-- Scientific Muscle Volume Breakdown Modal -->
 <div id="muscleDetailModal" class="modal-overlay">
   <div class="modal-dialog" style="max-width: 520px;">
     <button class="modal-close-btn" onclick="closeMuscleDetailModal()">✕</button>
@@ -3342,7 +3342,7 @@ body[dir="ltr"],
       <h3 id="muscleDetailModalTitle" style="margin:0;">تحلیل آناتومیک و تفکیک حجم</h3>
     </div>
     <p id="muscleDetailModalSubtitle" style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
-      تفکیک علمی ست‌های پرفشار باشگاه و حرکات ثبات و فعال‌سازی در خانه
+      مدل علمی حجم: ست مستقیم × ۱ + ست غیرمستقیم × ۰٫۵؛ حرکات ثبات و اصلاحی جداگانه گزارش می‌شوند
     </p>
 
     <!-- Quick Stats Summary Row -->
@@ -3765,7 +3765,7 @@ body[dir="ltr"],
       </div>
 
       <div style="display:flex; flex-direction:column; gap:8px;">
-        <button class="btn-header-action btn-action-primary" style="justify-content:center; padding:10px; font-weight:800;" onclick="syncCurrentDataWithSupabase()">
+        <button id="authSyncNowBtn" class="btn-header-action btn-action-primary" style="justify-content:center; padding:10px; font-weight:800;" onclick="syncCurrentDataWithSupabase()">
           <span>🔄</span> <span id="authSyncNowBtnText">همگام‌سازی فوری با دیتابیس</span>
         </button>
         <button class="btn-header-action" style="justify-content:center; padding:9px; color:#f87171; border-color:#f8717155;" onclick="handleSupabaseLogout()">
@@ -3785,7 +3785,7 @@ body[dir="ltr"],
       </p>
       <div style="display:flex; gap:8px;">
         <input type="password" id="adminAccessPinInput" class="form-input" style="flex:1; direction:ltr; text-align:center; letter-spacing:2px; font-size:13px;" placeholder="کد دسترسی..." onkeydown="if(event.key==='Enter') handleAdminPinLogin()">
-        <button type="button" class="btn-header-action btn-action-primary" style="padding:0 14px; font-weight:800;" onclick="handleAdminPinLogin()">
+        <button id="adminAccessSubmitBtn" type="button" class="btn-header-action btn-action-primary" style="padding:0 14px; font-weight:800;" onclick="handleAdminPinLogin()">
           <span id="adminAccessSubmitBtnText">ورود</span>
         </button>
       </div>
@@ -6266,6 +6266,8 @@ const TEMPLATE_FEMALE_PROFILE = {
 
 // --- Application State Management ---
 let currentAuthUser = null;
+// Local/offline identities are intentionally kept separate from Supabase Auth users.
+let currentLocalUser = null;
 let customExercises = [];
 let allProfiles = [];
 let activeProfileId = 'template_male';
@@ -6718,7 +6720,7 @@ const UI_TRANSLATIONS_MAP = {
   "خروج از حساب": "Log Out",
   "خروجی گرفتن فایل JSON برنامه": "Export Routine JSON File",
   "درصد چربی دستگاه (اختیاری)": "Device Body Fat % (Optional)",
-  "دریافت آخرین نسخه از سرور ابری و رفرش کامل بدون کش": "Pull latest version from cloud and hard refresh without cache",
+  "بررسی نسخه منتشرشده و راه‌اندازی دوباره برنامه": "Check the published app version and restart the app",
   "دسترسی به بانک جهانی و ویدیوهای تمام حرکات در MuscleWiki": "Access global exercise directory & videos on MuscleWiki",
   "دسترسی به نقشه آناتومی تعاملی بدن و ویدیوی آموزشی تمام حرکات بدنسازی دنیا:": "Interactive anatomical body map and tutorial videos for all gym exercises worldwide:",
   "دقیقه": "min",
@@ -7082,6 +7084,8 @@ function updateStaticUIText() {
       const email = currentAuthUser.email || '';
       const name = currentAuthUser.user_metadata?.display_name || email.split('@')[0] || (isEn ? 'Account' : 'حساب');
       authBtnText.innerText = name;
+    } else if (typeof currentLocalUser !== 'undefined' && currentLocalUser) {
+      authBtnText.innerText = currentLocalUser.user_metadata?.display_name || currentLocalUser.email || (isEn ? 'Local mode' : 'حالت محلی');
     } else {
       authBtnText.innerText = t('loginAccount');
     }
@@ -7146,13 +7150,13 @@ function updateStaticUIText() {
   const signupName = document.getElementById('signupName');
   if (signupName) signupName.placeholder = isEn ? 'e.g. Sam, Sarah' : 'مثلاً: علی، سارا';
   const authAdminAccessTitle = document.getElementById('authAdminAccessTitle');
-  if (authAdminAccessTitle) authAdminAccessTitle.innerText = isEn ? 'Coach & Athlete Access' : 'ورود مربی، ادمین و ورزشکاران / Coach & Athlete Access';
+  if (authAdminAccessTitle) authAdminAccessTitle.innerText = isEn ? 'Cloud Admin & Local Offline Access' : 'ورود ادمین ابری و دسترسی محلی آفلاین';
   const authAdminAccessDesc = document.getElementById('authAdminAccessDesc');
-  if (authAdminAccessDesc) authAdminAccessDesc.innerText = isEn ? 'Enter private access code to load your routine and records:' : 'ورود با کد دسترسی اختصاصی جهت بارگذاری برنامه و همگام‌سازی پرونده:';
+  if (authAdminAccessDesc) authAdminAccessDesc.innerText = isEn ? 'Cloud admin code: validated securely by Supabase before a cloud session is issued. Local gym/haji codes remain offline only.' : 'کد ادمین ابری در Supabase اعتبارسنجی می‌شود و سپس نشست واقعی ابری می‌گیرد. کدهای محلی gym و haji فقط آفلاین هستند.';
   const adminAccessPinInput = document.getElementById('adminAccessPinInput');
   if (adminAccessPinInput) adminAccessPinInput.placeholder = isEn ? 'Access Code...' : 'کد دسترسی...';
   const adminAccessSubmitBtnText = document.getElementById('adminAccessSubmitBtnText');
-  if (adminAccessSubmitBtnText) adminAccessSubmitBtnText.innerText = isEn ? 'Unlock' : 'ورود';
+  if (adminAccessSubmitBtnText) adminAccessSubmitBtnText.innerText = isEn ? 'Cloud Admin / Local' : 'ادمین ابری / محلی';
 
   // Cloud Sync Modal
   const syncModalTitle = document.getElementById('syncModalTitle');
@@ -7315,25 +7319,30 @@ function updateStaticUIText() {
 }
 
 function setLocalAuthSession(user, profile) {
-  currentAuthUser = user;
+  if (supabaseClient) {
+    supabaseClient.auth.signOut({ scope: 'local' }).catch(() => {});
+  }
+  currentAuthUser = null;
+  currentLocalUser = user;
   currentUserProfile = profile;
   try {
     localStorage.setItem('chieftain_local_auth_user', JSON.stringify(user));
     localStorage.setItem('chieftain_local_auth_profile', JSON.stringify(profile));
   } catch(e) {}
-  updateAuthUI(user);
+  serverAdminVerified = false;
+  updateAuthUI(null);
 }
 
 function loadStoredLocalAuthSession() {
-  if (currentAuthUser) return;
+  if (currentAuthUser || currentLocalUser) return;
   try {
     const rawUser = localStorage.getItem('chieftain_local_auth_user');
     const rawProf = localStorage.getItem('chieftain_local_auth_profile');
     if (rawUser) {
-      currentAuthUser = JSON.parse(rawUser);
+      currentLocalUser = JSON.parse(rawUser);
       currentUserProfile = rawProf ? JSON.parse(rawProf) : null;
-      if (currentUserProfile?.role === 'admin') serverAdminVerified = true;
-      updateAuthUI(currentAuthUser);
+      serverAdminVerified = false;
+      updateAuthUI(null);
     }
   } catch(e) {}
 }
@@ -7497,7 +7506,7 @@ async function handleAdminPinLogin() {
     sessionStorage.setItem('chieftain_unlocked_hossein_chieftain', 'true');
     localStorage.setItem('chieftain_admin_unlocked', 'true');
 
-    serverAdminVerified = true;
+    serverAdminVerified = false;
     setLocalAuthSession({
       id: 'admin_hossein',
       email: 'hossein@chieftain.pro',
@@ -7523,28 +7532,37 @@ async function handleAdminPinLogin() {
     return;
   }
 
-  // 3. Custom Admin PIN unlock
-  if (unlockAdminMode(pin)) {
-    if (!currentAuthUser) {
-      serverAdminVerified = true;
-      setLocalAuthSession({
-        id: 'admin_coach',
-        email: 'coach@chieftain.pro',
-        user_metadata: { display_name: isEn ? 'Coach / Admin' : 'مربی / ادمین' }
-      }, {
-        display_name: isEn ? 'Coach / Admin' : 'مربی / ادمین',
-        role: 'admin'
+  // Cloud admin access is checked server-side; this browser never contains the secret.
+  const submitBtn = document.querySelector('#adminAccessSubmitBtn');
+  const oldLabel = submitBtn?.innerHTML;
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.style.opacity = '0.6'; }
+  try {
+    if (!supabaseClient) throw new Error(isEn ? 'Cloud authentication is unavailable.' : 'اتصال احراز هویت ابری برقرار نیست.');
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
+    let response;
+    try {
+      response = await fetch(`${SUPABASE_URL}/functions/v1/cloud-admin-login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', apikey: SUPABASE_ANON_KEY },
+        body: JSON.stringify({ code: pin }),
+        signal: controller.signal
       });
+    } finally {
+      clearTimeout(timeoutId);
     }
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.token_hash) throw new Error(result.error || (isEn ? 'Invalid access code.' : 'کد دسترسی نادرست است.'));
+    const { data, error } = await supabaseClient.auth.verifyOtp({ token_hash: result.token_hash, type: 'magiclink' });
+    if (error) throw error;
+    if (!data?.session?.user) throw new Error(isEn ? 'Cloud sign-in did not return a session.' : 'ورود ابری نشست معتبر برنگرداند.');
     closeAuthModal();
-    renderApp(true);
-    if (activeMainTab === 'metrics') {
-      try { renderBodyMetricsView(); } catch(e) {}
-    }
-    return;
+    showToast(isEn ? '✅ Secure cloud admin session established.' : '✅ ورود امن ادمین ابری برقرار شد.');
+  } catch (err) {
+    showToast(`⚠️ ${err.message || (isEn ? 'Cloud admin sign-in failed.' : 'ورود ادمین ابری ناموفق بود.')}`);
+  } finally {
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.style.opacity = '1'; if (oldLabel) submitBtn.innerHTML = oldLabel; }
   }
-
-  showToast(isEn ? '⚠️ Invalid access code.' : '⚠️ کد دسترسی وارد شده نادرست است.');
 }
 
 function submitAdminAccessPin() {
@@ -7763,7 +7781,7 @@ function getAllExercises() {
     return m;
   });
 
-  const currentUserId = (typeof currentAuthUser !== 'undefined' && currentAuthUser) ? currentAuthUser.id : (activeProfileId || 'local');
+  const currentUserId = currentAuthUser?.id || currentLocalUser?.id || activeProfileId || 'local';
   const visibleCustom = (customExercises || []).filter(e => {
     if (isAdminUnlocked()) return true;
     if (e.isApproved) return true;
@@ -7955,8 +7973,9 @@ function renderHeader() {
   const titleEl = document.getElementById('appTitle');
   const isEn = currentLang === 'en';
   if (titleEl) {
-    if (typeof currentAuthUser !== 'undefined' && currentAuthUser) {
-      const name = currentAuthUser.user_metadata?.display_name || currentAuthUser.email?.split('@')[0] || '';
+    const identity = currentAuthUser || currentLocalUser;
+    if (identity) {
+      const name = identity.user_metadata?.display_name || identity.email?.split('@')[0] || '';
       titleEl.innerText = isEn ? `Workout Plan: ${name || prof.name}` : `برنامه تمرینی ${name || prof.name}`;
     } else {
       titleEl.innerText = isEn ? 'Chieftain Pro | Specialized Workout System' : 'سامانه تخصصی بدنسازی و تمرین | Chieftain Pro';
@@ -8933,8 +8952,8 @@ const EXERCISE_MUSCLE_MAPPING = {
   'cable_lateral_raise': {'سرشانه': 1},
   'reverse_peck_deck': {'سرشانه': 1, 'پشت': .5},
   'reverse_peck_deck_fly': {'سرشانه': 1, 'پشت': .5},
-  'cable_face_pull': {'سرشانه': 1, 'پشت': .5},
-  'face_pull': {'سرشانه': 1, 'پشت': .5},
+  'cable_face_pull': {'سرشانه': 1, 'پشت': .5, 'کول': .5},
+  'face_pull': {'سرشانه': 1, 'پشت': .5, 'کول': .5},
   'prone_itwy': {'سرشانه': 1, 'کول': .5},
   'wall_slide': {'سرشانه': 1},
   'dumbbell_shrugs': {'کول': 1},
@@ -8963,7 +8982,7 @@ const EXERCISE_MUSCLE_MAPPING = {
   'hack_squat': {'چهارسر': 1, 'باسن': .5},
   'leg_press': {'چهارسر': 1, 'باسن': .5},
   'smith_squat_mini_ball': {'چهارسر': 1, 'داخل ران': .5, 'باسن': .5},
-  'smith_machine_squat': {'چهارسر': 1, 'باسن': .5, 'همسترینگ': .5},
+  'smith_machine_squat': {'چهارسر': 1, 'باسن': .5},
   'dumbbell_squat': {'چهارسر': 1, 'باسن': .5},
   'wall_sit': {'چهارسر': 1},
   'cossack_squat': {'داخل ران': 1, 'چهارسر': .5, 'باسن': .5},
@@ -8974,14 +8993,14 @@ const EXERCISE_MUSCLE_MAPPING = {
   'seated_leg_curl_machine': {'همسترینگ': 1},
   'single_leg_cable_hamstring_curl': {'همسترینگ': 1},
   'slider_hamstring_curl': {'همسترینگ': 1},
-  'rdl': {'همسترینگ': 1, 'باسن': .5, 'فیله': .5},
-  'dumbbell_rdl': {'همسترینگ': 1, 'باسن': .5, 'فیله': .5},
-  'single_leg_dumbbell_rdl': {'همسترینگ': 1, 'باسن': .5, 'فیله': .5},
+  'rdl': {'همسترینگ': 1, 'باسن': 1, 'فیله': .5},
+  'dumbbell_rdl': {'همسترینگ': 1, 'باسن': 1, 'فیله': .5},
+  'single_leg_dumbbell_rdl': {'همسترینگ': 1, 'باسن': 1, 'فیله': .5},
 
   // Glutes
-  'hip_thrust': {'باسن': 1, 'همسترینگ': .5},
-  'glute_bridge': {'باسن': 1, 'همسترینگ': .5},
-  'glute_bridge_iso': {'باسن': 1, 'همسترینگ': .5},
+  'hip_thrust': {'باسن': 1},
+  'glute_bridge': {'باسن': 1},
+  'glute_bridge_iso': {'باسن': 1},
   'glute_bridge_knees_out': {'باسن': 1, 'خارج ران': .5},
   'single_leg_glute_bridge': {'باسن': 1, 'همسترینگ': .5},
   'cable_glute_kickback': {'باسن': 1},
@@ -9033,15 +9052,15 @@ const EXERCISE_MUSCLE_MAPPING = {
   'onhand_plank_knee_in': {'شکم': 1},
   'straight_arm_bear_plank_knee_extension': {'شکم': 1},
   'pike_plank_kickback': {'شکم': 1, 'باسن': .5},
-  'push_up_plus': {'شکم': .5, 'سرشانه': .5},
+  'push_up_plus': {'سراتوس قدامی': 1},
   'cust_1789820131011': {'شکم': 1},
   'cust_1789844260437': {'شکم': 1},
   'cust_1789848449999': {'شکم': 1},
   'cust_1789848630225': {'شکم': 1},
 
   // Pec-minor release is activation/mobility, not hypertrophy volume.
-  'cust_1788627494546': {},
-  'cust_1788627548162': {}
+  'cust_1788627494546': {'سینه‌ای کوچک': 1},
+  'cust_1788627548162': {'سینه‌ای کوچک': 1}
 };
 
 // Exercises whose primary purpose is stability, motor control, isometric control or mobility.
@@ -9051,13 +9070,93 @@ const STABILITY_EXERCISES = new Set([
   'side_plank_iso', 'side_plank_dips', 'plank_hold', 'forearm_plank',
   'onhand_plank_knee_in', 'straight_arm_bear_plank_knee_extension',
   'wall_slide', 'prone_itwy', 'single_arm_pronated_scapular_correction',
-  'push_up_plus', 'pec_minor_release',
+  'push_up_plus', 'pec_minor_release', 'pike_plank_kickback',
   'cust_1788627494546', 'cust_1788627548162'
 ]);
 
 function formatVolumeNumber(n) {
   const rounded = Math.round((Number(n) || 0) * 10) / 10;
   return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+}
+
+// Pure weekly accounting helper, kept separate from rendering so the model can be tested.
+function calculateWeeklyMuscleStats(prof, muscleGroups, exerciseLookup, parseSets, isEnglish = false) {
+  const stats = {};
+  muscleGroups.forEach(m => {
+    stats[m.key] = {
+      key: m.key, label: m.label,
+      directSets: 0, indirectSets: 0, effectiveSets: 0,
+      gymSets: 0, homeSets: 0, gymEffectiveSets: 0, homeEffectiveSets: 0,
+      stabilitySets: 0, gymStabilitySets: 0, homeStabilitySets: 0,
+      days: new Set(), stabilityDays: new Set(), dayTitles: new Map(), exerciseDetails: [], stabilityExerciseDetails: []
+    };
+  });
+
+  let overallStabilitySets = 0;
+  let gymStabilitySets = 0;
+  let homeStabilitySets = 0;
+  (prof.days || []).forEach(day => {
+    if (!day || day.type === 'rest') return;
+    const dayItems = [];
+    if (Array.isArray(day.singles)) day.singles.forEach(s => { if (s && s.exId) dayItems.push(s); });
+    if (Array.isArray(day.supersets)) day.supersets.forEach(ss => {
+      if (ss && Array.isArray(ss.exercises)) ss.exercises.forEach(s => { if (s && s.exId) dayItems.push(s); });
+    });
+
+    dayItems.forEach(item => {
+      if (!item || !item.exId) return;
+      const ex = exerciseLookup(item.exId) || { id: item.exId, fa: item.exId, en: '' };
+      const sets = parseSets(item.reps, item.sets);
+      if (!(sets > 0)) return;
+      const isGym = day.type === 'gym';
+      const isStability = STABILITY_EXERCISES.has(item.exId);
+      const dayKey = day.id || day.title || `day-${(prof.days || []).indexOf(day)}`;
+      const contributionMap = EXERCISE_MUSCLE_MAPPING[item.exId] || {};
+      if (isStability) {
+        overallStabilitySets += sets;
+        if (isGym) gymStabilitySets += sets;
+        else homeStabilitySets += sets;
+      }
+
+      Object.entries(contributionMap).forEach(([mKey, weight]) => {
+        const s = stats[mKey];
+        const w = Number(weight);
+        if (!s || ![DIRECT_SET_WEIGHT, INDIRECT_SET_WEIGHT].includes(w)) return;
+        const detail = {
+          exId: item.exId, fa: ex.fa, en: ex.en || '', name: isEnglish && ex.en ? ex.en : ex.fa,
+          dayTitle: day.title || '', dayType: day.type, sets,
+          reps: item.reps || ex.defaultReps || '3 × 8–12',
+          contribution: w, contributionType: w === DIRECT_SET_WEIGHT ? 'direct' : 'indirect',
+          effectiveSets: isStability ? 0 : sets * w
+        };
+        if (isStability) {
+          s.stabilitySets += sets;
+          if (isGym) s.gymStabilitySets += sets;
+          else s.homeStabilitySets += sets;
+          s.stabilityDays.add(dayKey);
+          s.dayTitles.set(dayKey, day.title || dayKey);
+          s.stabilityExerciseDetails.push(detail);
+          return;
+        }
+
+        if (w === DIRECT_SET_WEIGHT) s.directSets += sets;
+        else s.indirectSets += sets;
+        s.effectiveSets += sets * w;
+        if (isGym) {
+          s.gymSets += sets;
+          s.gymEffectiveSets += sets * w;
+        } else {
+          s.homeSets += sets;
+          s.homeEffectiveSets += sets * w;
+        }
+        s.days.add(dayKey);
+        s.dayTitles.set(dayKey, day.title || dayKey);
+        s.exerciseDetails.push(detail);
+      });
+    });
+  });
+
+  return { stats, overallStabilitySets, gymStabilitySets, homeStabilitySets };
 }
 
 function renderDynamicWeeklySummary(prof) {
@@ -9067,6 +9166,8 @@ function renderDynamicWeeklySummary(prof) {
     { key: 'سینه', label: 'Chest' },
     { key: 'پشت', label: 'Lats & Back' },
     { key: 'سرشانه', label: 'Shoulders & Deltoids' },
+    { key: 'سراتوس قدامی', label: 'Serratus Anterior' },
+    { key: 'سینه‌ای کوچک', label: 'Pectoralis Minor' },
     { key: 'کول', label: 'Traps' },
     { key: 'جلو بازو', label: 'Biceps' },
     { key: 'پشت بازو', label: 'Triceps' },
@@ -9082,6 +9183,8 @@ function renderDynamicWeeklySummary(prof) {
     { key: 'سینه', label: 'سینه (Chest)' },
     { key: 'پشت', label: 'زیر بغل و پشت (Lats & Back)' },
     { key: 'سرشانه', label: 'سرشانه و دلتوئید (Shoulders)' },
+    { key: 'سراتوس قدامی', label: 'سراتوس قدامی (Serratus Anterior)' },
+    { key: 'سینه‌ای کوچک', label: 'سینه‌ای کوچک (Pectoralis Minor)' },
     { key: 'کول', label: 'کول و تراپز (Traps)' },
     { key: 'جلو بازو', label: 'جلو بازو (Biceps)' },
     { key: 'پشت بازو', label: 'پشت بازو (Triceps)' },
@@ -9095,78 +9198,13 @@ function renderDynamicWeeklySummary(prof) {
     { key: 'شکم', label: 'عضلات مرکزی و شکم (Core & Abs)' }
   ];
 
-  const stats = {};
-  muscleGroups.forEach(m => {
-    stats[m.key] = {
-      key: m.key, label: m.label,
-      directSets: 0, indirectSets: 0, effectiveSets: 0,
-      gymEffectiveSets: 0, homeEffectiveSets: 0,
-      stabilitySets: 0, days: new Set(), exerciseDetails: []
-    };
-  });
-
-  let overallStabilitySets = 0;
-
-  (prof.days || []).forEach(day => {
-    if (!day || day.type === 'rest') return;
-
-    const dayItems = [];
-    if (Array.isArray(day.singles)) day.singles.forEach(s => { if (s && s.exId) dayItems.push(s); });
-    if (Array.isArray(day.supersets)) {
-      day.supersets.forEach(ss => {
-        if (ss && Array.isArray(ss.exercises)) ss.exercises.forEach(s => { if (s && s.exId) dayItems.push(s); });
-      });
-    }
-
-    dayItems.forEach(item => {
-      if (!item || !item.exId) return;
-      const ex = findExerciseById(item.exId) || { id: item.exId, fa: item.exId, en: '' };
-      const sets = parseSetsFromReps(item.reps, item.sets);
-      const isGym = day.type === 'gym';
-      const contributionMap = EXERCISE_MUSCLE_MAPPING[item.exId] || {};
-      const isStability = STABILITY_EXERCISES.has(item.exId);
-
-      if (isStability) {
-        overallStabilitySets += sets;
-      }
-
-      Object.entries(contributionMap).forEach(([mKey, weight]) => {
-        if (!stats[mKey]) return;
-        const w = Number(weight) || 0;
-        if (w <= 0) return;
-        const isDirect = w === DIRECT_SET_WEIGHT;
-        const effective = sets * w;
-        const s = stats[mKey];
-
-        // Stability/corrective work is displayed separately and not added to hypertrophy volume.
-        if (isStability) {
-          s.stabilitySets += sets;
-          s.days.add(day.title);
-          return;
-        }
-
-        if (isDirect) s.directSets += sets;
-        else s.indirectSets += sets;
-        s.effectiveSets += effective;
-        if (isGym) s.gymEffectiveSets += effective;
-        else s.homeEffectiveSets += effective;
-        s.days.add(day.title);
-        s.exerciseDetails.push({
-          exId: item.exId,
-          fa: ex.fa, en: ex.en || '',
-          name: (isEn && ex.en) ? ex.en : ex.fa,
-          dayTitle: day.title, dayType: day.type,
-          sets, reps: item.reps || ex.defaultReps || '3 × 8–12',
-          contribution: w,
-          contributionType: isDirect ? 'direct' : 'indirect',
-          effectiveSets: effective
-        });
-      });
-    });
-  });
+  const totals = calculateWeeklyMuscleStats(prof, muscleGroups, findExerciseById, parseSetsFromReps, isEn);
+  const stats = totals.stats;
+  const overallStabilitySets = totals.overallStabilitySets;
 
   window.__currentMuscleStats = stats;
   window.__weeklyStabilitySets = overallStabilitySets;
+  window.__weeklyStabilityByLocation = { gym: totals.gymStabilitySets, home: totals.homeStabilitySets };
 
   let profDisplayName = prof.name;
   if (isEn) {
@@ -9179,13 +9217,16 @@ function renderDynamicWeeklySummary(prof) {
 
   const activeRows = muscleGroups.filter(m => stats[m.key].effectiveSets > 0 || stats[m.key].stabilitySets > 0).map(m => {
     const s = stats[m.key];
-    const daysList = Array.from(s.days).map(d => isEn ? translateDayTitle(d) : d).join(isEn ? ', ' : '، ');
+    const daysList = Array.from(s.days).map(d => {
+      const title = s.dayTitles.get(d) || d;
+      return isEn ? translateDayTitle(title) : title;
+    }).join(isEn ? ', ' : '، ');
     const uniqueExMap = new Map();
     s.exerciseDetails.forEach(e => uniqueExMap.set(e.name, e));
     const uniqueExList = Array.from(uniqueExMap.keys());
     const displayList = uniqueExList.slice(0, 3).join(isEn ? ', ' : '، ') + (uniqueExList.length > 3 ? ` <span class="summary-more-btn">(${isEn ? `View all ${uniqueExList.length} exercises 🔍` : `مشاهده همه ${uniqueExList.length} حرکت 🔍`})</span>` : '');
     const volumeText = s.effectiveSets > 0 ? `${formatVolumeNumber(s.effectiveSets)} ${isEn ? 'effective sets' : 'ست مؤثر'}` : (isEn ? 'Stability only' : 'فقط ثباتی');
-    const breakdown = s.directSets || s.indirectSets ? `${formatVolumeNumber(s.directSets)} ${isEn ? 'direct' : 'مستقیم'} + ${formatVolumeNumber(s.indirectSets)} ${isEn ? 'indirect × 0.5' : 'غیرمستقیم × ۰٫۵'}` : '';
+    const breakdown = s.directSets || s.indirectSets ? `${formatVolumeNumber(s.directSets)} ${isEn ? 'direct' : 'مستقیم'} + ${formatVolumeNumber(s.indirectSets)} ${isEn ? `indirect × 0.5 = ${formatVolumeNumber(s.indirectSets * INDIRECT_SET_WEIGHT)}` : `غیرمستقیم × ۰٫۵ = ${formatVolumeNumber(s.indirectSets * INDIRECT_SET_WEIGHT)}`}` : '';
 
     return `
       <tr onclick="openMuscleDetailModal('${m.key}')" style="cursor:pointer;" title="${isEn ? 'Click to view scientific details and exercises' : 'کلیک برای مشاهده جزئیات علمی و کامل حرکات این عضله'}">
@@ -9194,19 +9235,22 @@ function renderDynamicWeeklySummary(prof) {
           <span class="set-highlight">${volumeText}</span>
           <div style="font-size:10.5px; margin-top:3px; display:flex; flex-wrap:wrap; gap:6px;">
             ${breakdown ? `<span class="summary-gym-badge">${breakdown}</span>` : ''}
-            ${s.gymEffectiveSets > 0 ? `<span class="summary-gym-badge">🏋️ ${formatVolumeNumber(s.gymEffectiveSets)} ${isEn ? 'Gym' : 'باشگاه'}</span>` : ''}
-            ${s.homeEffectiveSets > 0 ? `<span style="color:#34d399; font-weight:700;">🏠 ${formatVolumeNumber(s.homeEffectiveSets)} ${isEn ? 'Home' : 'خانه'}</span>` : ''}
-            ${s.stabilitySets > 0 ? `<span style="color:#fbbf24; font-weight:700;">🛡️ ${formatVolumeNumber(s.stabilitySets)} ${isEn ? 'stability' : 'ثباتی'}</span>` : ''}
+            ${s.gymSets > 0 ? `<span class="summary-gym-badge">🏋️ ${formatVolumeNumber(s.gymSets)} ${isEn ? 'Gym sets' : 'ست باشگاه'} (${formatVolumeNumber(s.gymEffectiveSets)} ${isEn ? 'effective' : 'مؤثر'})</span>` : ''}
+            ${s.homeSets > 0 ? `<span style="color:#34d399; font-weight:700;">🏠 ${formatVolumeNumber(s.homeSets)} ${isEn ? 'Home sets' : 'ست خانه'} (${formatVolumeNumber(s.homeEffectiveSets)} ${isEn ? 'effective' : 'مؤثر'})</span>` : ''}
+            ${s.stabilitySets > 0 ? `<span style="color:#fbbf24; font-weight:700;">🛡️ ${formatVolumeNumber(s.stabilitySets)} ${isEn ? 'stability/corrective sets' : 'ست ثباتی/اصلاحی'}${s.gymStabilitySets ? ` · 🏋️ ${formatVolumeNumber(s.gymStabilitySets)}` : ''}${s.homeStabilitySets ? ` · 🏠 ${formatVolumeNumber(s.homeStabilitySets)}` : ''}</span>` : ''}
           </div>
         </td>
-        <td>${s.days.size} ${isEn ? 'sessions' : 'جلسه'}${daysList ? ` (${daysList})` : ''}</td>
+        <td>${s.days.size} ${isEn ? 'hypertrophy exposures' : 'جلسه هایپرتروفی'}${daysList ? ` (${daysList})` : ''}${s.stabilityDays.size ? `<div style="color:#fbbf24">🛡️ ${s.stabilityDays.size} ${isEn ? 'stability exposures' : 'جلسه ثباتی'}</div>` : ''}</td>
         <td style="font-size:11.5px; color:var(--text-muted, #cbd5e1);">${displayList || (isEn ? 'Stability / activation work' : 'تمرین ثبات / فعال‌سازی')}</td>
       </tr>`;
   }).join('');
 
   const mobileCards = muscleGroups.filter(m => stats[m.key].effectiveSets > 0 || stats[m.key].stabilitySets > 0).map(m => {
     const s = stats[m.key];
-    const daysList = Array.from(s.days).map(d => isEn ? translateDayTitle(d) : d).join(isEn ? ', ' : '، ');
+    const daysList = Array.from(s.days).map(d => {
+      const title = s.dayTitles.get(d) || d;
+      return isEn ? translateDayTitle(title) : title;
+    }).join(isEn ? ', ' : '، ');
     const uniqueExMap = new Map();
     s.exerciseDetails.forEach(e => uniqueExMap.set(e.name, e));
     const uniqueExList = Array.from(uniqueExMap.keys());
@@ -9216,9 +9260,9 @@ function renderDynamicWeeklySummary(prof) {
         <div style="font-size:10px; display:flex; flex-wrap:wrap; gap:5px; margin-bottom:4px;">
           ${s.directSets > 0 ? `<span class="summary-gym-badge">${formatVolumeNumber(s.directSets)} ${isEn ? 'direct' : 'مستقیم'}</span>` : ''}
           ${s.indirectSets > 0 ? `<span class="summary-gym-badge">${formatVolumeNumber(s.indirectSets)} ${isEn ? 'indirect ×0.5' : 'غیرمستقیم ×۰٫۵'}</span>` : ''}
-          ${s.stabilitySets > 0 ? `<span style="color:#fbbf24; font-weight:700;">🛡️ ${formatVolumeNumber(s.stabilitySets)} ${isEn ? 'stability' : 'ثباتی'}</span>` : ''}
+          ${s.stabilitySets > 0 ? `<span style="color:#fbbf24; font-weight:700;">🛡️ ${formatVolumeNumber(s.stabilitySets)} ${isEn ? 'stability/corrective' : 'ثباتی/اصلاحی'}</span>` : ''}
         </div>
-        <div class="summary-mobile-freq">📅 ${s.days.size} ${isEn ? 'sessions' : 'جلسه'}${daysList ? `: ${daysList}` : ''}</div>
+        <div class="summary-mobile-freq">📅 ${s.days.size} ${isEn ? 'hypertrophy exposures' : 'جلسه هایپرتروفی'}${s.stabilityDays.size ? ` · 🛡️ ${s.stabilityDays.size} ${isEn ? 'stability' : 'ثباتی'}` : ''}${daysList ? `: ${daysList}` : ''}</div>
         <div class="summary-mobile-chips">${uniqueExList.slice(0, 2).map(e => `<span class="summary-mobile-chip">${e}</span>`).join('')}${uniqueExList.length > 2 ? `<span class="summary-mobile-chip summary-mobile-chip-more">+${uniqueExList.length - 2} ${isEn ? 'more…' : 'دیگر…'}</span>` : ''}</div>
       </div>`;
   }).join('');
@@ -9234,6 +9278,8 @@ function renderDynamicWeeklySummary(prof) {
       <p style="font-size:13px;color:var(--text-muted);margin-bottom:8px;">
         ${isEn ? 'Direct sets count as 1.0; meaningful indirect sets count as 0.5. Stability/corrective work is shown separately.' : 'ست مستقیم = ۱٫۰ و ست غیرمستقیم معنی‌دار = ۰٫۵ محاسبه می‌شود. حرکات ثباتی و اصلاحی جداگانه نمایش داده می‌شوند.'}
       </p>
+      <p style="font-size:12px;color:#fbbf24;margin:0 0 10px;">${isEn ? '🛡️ Stability and corrective sets are tracked separately and are not included in Effective Hypertrophy Sets.' : '🛡️ ست‌های ثباتی و اصلاحی جداگانه ثبت می‌شوند و در محاسبه «ست مؤثر هایپرتروفی» لحاظ نمی‌شوند.'}</p>
+      ${overallStabilitySets > 0 ? `<div style="font-size:11px;color:#fbbf24;margin:0 0 10px;">🛡️ ${isEn ? 'Total stability/corrective sets' : 'مجموع ست‌های ثباتی/اصلاحی'}: ${formatVolumeNumber(overallStabilitySets)}${totals.gymStabilitySets ? ` · 🏋️ ${formatVolumeNumber(totals.gymStabilitySets)}` : ''}${totals.homeStabilitySets ? ` · 🏠 ${formatVolumeNumber(totals.homeStabilitySets)}` : ''}</div>` : ''}
       <p style="font-size:11px;color:var(--text-muted);margin-bottom:12px;">${isEn ? `Weekly stability / activation work: <b>${formatVolumeNumber(overallStabilitySets)} sets</b>. Click any muscle for the full calculation.` : `مجموع ست‌های ثبات / فعال‌سازی هفتگی: <b>${formatVolumeNumber(overallStabilitySets)} ست</b>. برای دیدن فرمول هر عضله روی آن کلیک کن.`}</p>
 
       <div class="table-container">
@@ -10821,7 +10867,7 @@ function applyLibraryFilters() {
   let list = getAllExercises();
 
   // 1. Scope filter
-  const currentUserId = (typeof currentAuthUser !== 'undefined' && currentAuthUser) ? currentAuthUser.id : (activeProfileId || 'local');
+  const currentUserId = currentAuthUser?.id || currentLocalUser?.id || activeProfileId || 'local';
   if (currentLibraryScope === 'public') {
     list = list.filter(e => !e.isCustom || e.isApproved);
   } else if (currentLibraryScope === 'private') {
@@ -11190,7 +11236,7 @@ function saveCustomExercise() {
 
   const isApproved = isAdminUnlocked();
   const reqPublic = Boolean(document.getElementById('custRequestPublic')?.checked);
-  const currentUserId = (typeof currentAuthUser !== 'undefined' && currentAuthUser) ? currentAuthUser.id : (activeProfileId || 'local');
+  const currentUserId = currentAuthUser?.id || currentLocalUser?.id || activeProfileId || 'local';
 
   const newEx = {
     id: 'cust_' + Date.now(),
@@ -11839,61 +11885,35 @@ async function forceSyncAndHardRefresh(btn) {
   if (btn) {
     btn.style.opacity = '0.6';
     btn.innerHTML = isEn 
-      ? '<span>⏳</span> <span>Syncing and clearing cache...</span>'
-      : '<span>⏳</span> <span>در حال همگام‌سازی و پاک‌سازی کش...</span>';
+      ? '<span>⏳</span> <span>Updating the app...</span>'
+      : '<span>⏳</span> <span>در حال به‌روزرسانی برنامه...</span>';
   }
-  showToast(isEn 
-    ? '🔄 Syncing cloud data and clearing browser cache...' 
-    : '🔄 در حال دریافت آخرین اطلاعات ابری و پاک‌سازی کش مرورگر...');
+  showToast(isEn ? '🔄 Checking for an app update…' : '🔄 در حال بررسی نسخه جدید برنامه…');
 
-  // 1. Sync from Supabase first if authenticated
-  if (typeof supabaseClient !== 'undefined' && supabaseClient && typeof currentAuthUser !== 'undefined' && currentAuthUser) {
-    try {
-      await syncCurrentDataWithSupabase();
-    } catch(e) {
-      console.error('Supabase sync error during refresh:', e);
-    }
-  }
-
-  // 2. Clear all Service Worker caches and CacheStorage
-  if ('caches' in window) {
-    try {
-      const cacheNames = await caches.keys();
-      for (const cName of cacheNames) {
-        await caches.delete(cName);
-      }
-    } catch(e) {}
-  }
-
-  // 3. Force update Service Worker registrations
-  if ('serviceWorker' in navigator) {
-    try {
-      const regs = await navigator.serviceWorker.getRegistrations();
-      for (const r of regs) {
-        await r.update();
-      }
-    } catch(e) {}
-  }
-
-  // 4. Reload local data and UI
+  const withTimeout = (promise, ms) => new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('timeout')), ms);
+    Promise.resolve(promise).then(value => { clearTimeout(timer); resolve(value); }, error => { clearTimeout(timer); reject(error); });
+  });
   try {
-    loadAppData();
-    renderApp();
-  } catch(e) {}
-
-  showToast(isEn 
-    ? '🎉 Cache cleared and refreshed! 🟢' 
-    : '🎉 کش مرورگر پاک شد و اطلاعات همگام گردید! 🟢');
-
-  // 5. Force hard-reload the window bypassing browser cache
-  setTimeout(() => {
-    try {
-      const cleanUrl = window.location.origin + window.location.pathname;
-      window.location.replace(cleanUrl + '?cache_bust=' + Date.now() + window.location.hash);
-    } catch(e) {
-      window.location.reload();
+    if ('serviceWorker' in navigator) {
+      const registration = await withTimeout(navigator.serviceWorker.getRegistration(), 4000);
+      if (registration) {
+        try { await withTimeout(registration.update(), 5000); } catch (e) { console.warn('Service worker update check:', e); }
+        if (registration.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+        if (registration.installing) {
+          await withTimeout(new Promise(resolve => {
+            const worker = registration.installing;
+            if (!worker || worker.state === 'activated') return resolve();
+            worker.addEventListener('statechange', () => { if (worker.state === 'activated' || worker.state === 'redundant') resolve(); });
+          }), 5000).catch(() => {});
+        }
+      }
     }
-  }, 500);
+  } catch (e) {
+    console.warn('Service worker refresh unavailable:', e);
+  }
+  showToast(isEn ? '✅ App update check complete. Reloading…' : '✅ بررسی به‌روزرسانی تمام شد؛ برنامه بارگذاری مجدد می‌شود…');
+  setTimeout(() => window.location.reload(), 250);
 }
 
 async function quickCloudSyncAction(btn) {
@@ -12003,6 +12023,23 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 let supabaseClient = null;
 
+function isUuid(value) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value || '');
+}
+
+// Cloud writes use only the identity from the live Supabase Auth session.
+async function getAuthenticatedSupabaseUserId() {
+  if (!supabaseClient || !currentAuthUser || !isUuid(currentAuthUser.id)) return null;
+  try {
+    const { data, error } = await supabaseClient.auth.getSession();
+    const sessionUser = data?.session?.user;
+    if (error || !sessionUser || sessionUser.id !== currentAuthUser.id || !isUuid(sessionUser.id)) return null;
+    return sessionUser.id;
+  } catch (e) {
+    return null;
+  }
+}
+
 function initSupabase() {
   try {
     if (typeof window !== 'undefined' && window.supabase && window.supabase.createClient) {
@@ -12059,6 +12096,7 @@ function updateAuthUI(user) {
 
   if (user) {
     currentAuthUser = user;
+    currentLocalUser = null;
     const name = currentUserProfile?.display_name || user.user_metadata?.display_name || user.email?.split('@')[0] || 'کاربر';
     if (btnText) {
       btnText.innerText = serverAdminVerified ? `👑 ${name}` : name;
@@ -12088,8 +12126,30 @@ function updateAuthUI(user) {
       }
     }
     updateAdminUI();
+  } else if (currentLocalUser) {
+    const localUser = currentLocalUser;
+    const name = currentUserProfile?.display_name || localUser.user_metadata?.display_name || localUser.email?.split('@')[0] || 'کاربر';
+    if (btnText) btnText.innerText = name;
+    if (btn) {
+      btn.style.borderColor = '#fbbf2488';
+      btn.style.color = '#fbbf24';
+      btn.style.background = 'rgba(245,158,11,0.12)';
+    }
+    if (loggedOutView) loggedOutView.style.display = 'none';
+    if (loggedInView) loggedInView.style.display = 'block';
+    if (emailDisplay) emailDisplay.innerText = currentLang === 'en' ? 'Local / offline mode' : 'حالت محلی / آفلاین';
+    if (nameDisplay) nameDisplay.innerText = currentLang === 'en'
+      ? `Welcome, ${name} (Local / offline)`
+      : `خوش آمدید، ${name} (حالت محلی / آفلاین)`;
+    const syncBtn = document.getElementById('authSyncNowBtn');
+    if (syncBtn) syncBtn.style.display = 'none';
+    const appTitleEl = document.getElementById('appTitle');
+    if (appTitleEl) appTitleEl.innerText = currentLang === 'en' ? `${name}'s Workout System | Local` : `سامانه تمرینی ${name} | محلی`;
+    updateAdminUI();
   } else {
     currentAuthUser = null;
+    const syncBtn = document.getElementById('authSyncNowBtn');
+    if (syncBtn) syncBtn.style.display = '';
     serverAdminVerified = false;
     currentUserProfile = null;
     if (btnText) btnText.innerText = 'ورود / حساب';
@@ -12164,6 +12224,10 @@ function clearLocalUserData() {
 
 async function handleAuthSessionChanged(user) {
   if (user) {
+    currentLocalUser = null;
+    currentUserProfile = null;
+    localStorage.removeItem('chieftain_local_auth_user');
+    localStorage.removeItem('chieftain_local_auth_profile');
     const lastUserId = localStorage.getItem('chieftain_last_auth_user_id');
     if (lastUserId && lastUserId !== user.id) {
       console.log('Account switch detected:', lastUserId, '->', user.id, '- clearing previous user local data');
@@ -12297,6 +12361,7 @@ async function handleSupabaseLogout() {
     localStorage.removeItem('chieftain_local_auth_user');
     localStorage.removeItem('chieftain_local_auth_profile');
     localStorage.removeItem('chieftain_admin_unlocked');
+    currentLocalUser = null;
     clearLocalUserData();
     updateAuthUI(null);
     renderApp(true);
@@ -12306,10 +12371,11 @@ async function handleSupabaseLogout() {
 }
 
 async function pushLogToSupabase(exId, logEntry) {
-  if (!supabaseClient || !currentAuthUser) return;
+  const userId = await getAuthenticatedSupabaseUserId();
+  if (!userId) return;
   try {
     await supabaseClient.from('workout_logs').insert({
-      user_id: currentAuthUser.id,
+      user_id: userId,
       exercise_id: exId,
       log_entry: logEntry,
       created_at: new Date(logEntry.timestamp || Date.now()).toISOString()
@@ -12320,10 +12386,11 @@ async function pushLogToSupabase(exId, logEntry) {
 }
 
 async function pushMetricToSupabase(metricRecord) {
-  if (!supabaseClient || !currentAuthUser) return;
+  const userId = await getAuthenticatedSupabaseUserId();
+  if (!userId) return;
   try {
     await supabaseClient.from('body_metrics').insert({
-      user_id: currentAuthUser.id,
+      user_id: userId,
       metric_record: metricRecord,
       created_at: new Date(metricRecord.timestamp || Date.now()).toISOString()
     });
@@ -12333,11 +12400,11 @@ async function pushMetricToSupabase(metricRecord) {
 }
 
 async function syncCurrentDataWithSupabase() {
-  if (!supabaseClient || !currentAuthUser) return;
+  const userId = await getAuthenticatedSupabaseUserId();
+  if (!userId) return false;
 
   try {
     showToast('☁️ در حال همگام‌سازی با پایگاه داده اختصاصی Supabase...');
-    const userId = currentAuthUser.id;
 
     // 1. Check if user already has routines in Supabase
     const { data: remoteRoutines } = await supabaseClient
@@ -12426,8 +12493,10 @@ async function syncCurrentDataWithSupabase() {
 
     renderApp();
     showToast('✅ اطلاعات و لاگ‌ها به صورت امن در دیتابیس Supabase ذخیره شدند! 🟢');
+    return true;
   } catch(err) {
     console.error('Supabase sync error:', err);
+    throw err;
   }
 }
 

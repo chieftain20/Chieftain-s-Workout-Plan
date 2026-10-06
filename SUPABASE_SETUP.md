@@ -172,4 +172,25 @@ In your Supabase Dashboard:
 
 2. **Option B (Supabase Dashboard UI):**
    - Go to **Authentication > Users**.
-   - Click on the user and edit **User Metadata / App Metadata**, setting `role` to `admin`.
+   - Click on the user and edit **App Metadata**, setting `role` to `admin`.
+
+---
+
+## 3. Secure Cloud Admin Code Login
+
+The gym and haji codes continue to unlock the local/offline experience. They are not Supabase accounts and cannot sync data. Cloud Admin uses the cloud-admin-login Edge Function, which validates a private code on the server and returns a one-time Supabase Auth magic-link token. The browser exchanges that token for a real Auth session; table access continues to use the existing RLS policies above.
+
+No SQL migration is needed. Deploy the function and configure these values in the Supabase project:
+
+- ADMIN_ACCESS_CODE: generate a long, random private code (at least 32 characters).
+- ADMIN_EMAIL: the dedicated email address for the cloud admin account. The function creates this Supabase Auth user on first successful use, marks its server-owned app_metadata.role as admin, and issues a one-time sign-in token.
+- SUPABASE_SERVICE_ROLE_KEY: Supabase provides this server-side secret to Edge Functions in the project environment. If it is not present, configure it as a function secret. Never put it in the repository or browser.
+
+From a trusted terminal with the Supabase CLI linked to this project, set the private values and deploy:
+
+    supabase secrets set ADMIN_ACCESS_CODE='replace-with-a-long-random-value' ADMIN_EMAIL='admin@example.com'
+    supabase functions deploy cloud-admin-login --project-ref dtdwutbzwddindwqqgir
+
+The function has verify_jwt = false because the user must be able to exchange the code before a session exists. It validates the code itself, limits repeated failures per running function instance, and returns only a short-lived, one-use Auth token hash. Keep the access code private and rotate it through Supabase secrets if exposed. Do not add it to index.html, app_engine.js, GitHub Actions, or any client-side configuration.
+
+The deployed frontend and function must use the same Supabase project. Cloud login and database sync cannot work until the function is deployed and its secrets are configured. The existing email/password auth flow remains available.

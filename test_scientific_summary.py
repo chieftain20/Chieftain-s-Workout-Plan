@@ -1,42 +1,115 @@
-"""Regression tests for Chieftain's scientific weekly-volume model.
-
-Model used by app_engine.js:
-  direct contribution   = 1.0
-  meaningful indirect  = 0.5
-  stability/corrective  = tracked separately, not added to hypertrophy volume
-"""
+"""Behavioral regression checks for Chieftain's fractional weekly volume model."""
 import json
 import re
+import shutil
+import subprocess
+import tempfile
+from html.parser import HTMLParser
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 JS = (ROOT / "app_engine.js").read_text(encoding="utf-8")
+HTML = (ROOT / "index.html").read_text(encoding="utf-8")
+SW = (ROOT / "sw.js").read_text(encoding="utf-8")
 MASTER = json.loads((ROOT / "master_exercises.json").read_text(encoding="utf-8"))
+NODE = shutil.which("node")
+assert NODE, "Node.js is required for behavior and syntax checks."
 
-start = JS.index("const EXERCISE_MUSCLE_MAPPING = {")
-end = JS.index("};\n\n// Exercises whose primary purpose", start) + 2
-mapping_block = JS[start:end]
-
-# Every exercise key in the production mapping has an object value.
+mapping_start = JS.index("const EXERCISE_MUSCLE_MAPPING = {")
+mapping_end = JS.index("};\n\n// Exercises whose primary purpose", mapping_start) + 2
+mapping_block = JS[mapping_start:mapping_end]
 MAPPED_IDS = set(re.findall(r"^\s*'([^']+)'\s*:\s*\{", mapping_block, re.M))
 MASTER_IDS = {e["id"] for e in MASTER}
-
-# Extract every numeric coefficient used by the mapping.
 WEIGHTS = [float(x) for x in re.findall(r":\s*([01](?:\.\d+)?)\s*[,}]", mapping_block)]
 
 assert MASTER_IDS <= MAPPED_IDS, f"Unmapped master exercises: {sorted(MASTER_IDS - MAPPED_IDS)}"
-assert WEIGHTS, "No muscle contribution weights found."
-assert all(w in (0.5, 1.0) for w in WEIGHTS), f"Unexpected contribution weights: {sorted(set(WEIGHTS))}"
-assert "DIRECT_SET_WEIGHT = 1.0" in JS
-assert "INDIRECT_SET_WEIGHT = 0.5" in JS
-assert "STABILITY_EXERCISES = new Set" in JS
-assert "effectiveSets" in JS
-assert "directSets" in JS
-assert "indirectSets" in JS
-assert "stabilitySets" in JS
-assert "Scientific Weekly Muscle Volume" in JS
+assert WEIGHTS and all(w in (0.5, 1.0) for w in WEIGHTS), f"Unexpected weights: {sorted(set(WEIGHTS))}"
+assert "'dumbbell_shrugs': {'کول': 1}" in mapping_block
+assert "'push_up_plus': {'سراتوس قدامی': 1}" in mapping_block
+assert "'dead_bug'" in JS and "'wall_slide'" in JS and "'bird_dog'" in JS
+assert "'./index.html'" in SW and "'./app_engine.js'" in SW
 
-print(f"PASS: {len(MASTER_IDS)} master exercises are mapped.")
-print("PASS: contribution weights are limited to direct=1.0 and indirect=0.5.")
-print("PASS: stability/corrective work is tracked separately.")
-print("PASS: effective/direct/indirect/stability fields and scientific Summary UI are present.")
+render_start = JS.index("function renderDynamicWeeklySummary")
+muscle_groups_start = JS.index("const muscleGroups = isEn ? [", render_start)
+muscle_groups_end = JS.index("  ];", muscle_groups_start) + 4
+muscle_keys = set(re.findall(r"key:\s*'([^']+)'", JS[muscle_groups_start:muscle_groups_end]))
+mapping_muscles = set(re.findall(r"'([^']+)':\s*(?:1|\.5)", mapping_block))
+assert mapping_muscles <= muscle_keys, f"Muscle labels missing from Summary: {sorted(mapping_muscles - muscle_keys)}"
+
+constants_and_mapping = JS[JS.index("const DIRECT_SET_WEIGHT = 1.0;"):JS.index("function formatVolumeNumber")]
+calculator = JS[JS.index("function calculateWeeklyMuscleStats"):JS.index("function renderDynamicWeeklySummary")]
+assert "rir" not in calculator.lower(), "RIR must not affect set-volume arithmetic."
+behavior_script = constants_and_mapping + calculator + r"""
+globalThis.calculate = calculateWeeklyMuscleStats;
+globalThis.map = EXERCISE_MUSCLE_MAPPING;
+globalThis.stability = STABILITY_EXERCISES;
+"""
+
+node_script = behavior_script + r"""
+const groups = [...new Set(Object.values(map).flatMap(Object.keys))].map(key => ({key, label:key}));
+const lookup = id => ({id, fa:id, en:id, defaultReps:'3 × 10'});
+const parseSets = (_reps, fallback) => Number(fallback) || 0;
+const profile = days => ({days});
+const item = (exId, sets) => ({exId, sets, reps:'3 × 10', rir:2});
+const result = calculate(profile([{id:'a',title:'A',type:'gym',singles:[item('peck_deck_fly',3)]}]), groups, lookup, parseSets).stats;
+if (result['سینه'].directSets !== 3 || result['سینه'].effectiveSets !== 3) throw Error('3 direct sets must equal 3 effective sets');
+
+const indirect = calculate(profile([{id:'a',title:'A',type:'gym',singles:[item('hack_squat',3)]}]), groups, lookup, parseSets).stats;
+if (indirect['باسن'].indirectSets !== 3 || indirect['باسن'].effectiveSets !== 1.5) throw Error('3 secondary sets must equal 1.5 effective sets');
+
+const stability = calculate(profile([{id:'a',title:'A',type:'home',singles:[item('dead_bug',3)]}]), groups, lookup, parseSets);
+if (stability.overallStabilitySets !== 3 || stability.stats['شکم'].stabilitySets !== 3 || stability.stats['شکم'].effectiveSets !== 0) throw Error('Stability sets must be separate from hypertrophy');
+
+const locations = calculate(profile([
+  {id:'gym-day',title:'Gym',type:'gym',singles:[item('hip_thrust',3)]},
+  {id:'home-day',title:'Home',type:'home',singles:[item('hip_thrust',2)]}
+]), groups, lookup, parseSets).stats['باسن'];
+if (locations.gymSets !== 3 || locations.homeSets !== 2 || locations.gymEffectiveSets !== 3 || locations.homeEffectiveSets !== 2) throw Error('Gym and Home sets must stay separate');
+if (locations.days.size !== 2) throw Error('Frequency must count distinct training days');
+
+const exposureStats = calculate(profile([
+  {id:'gym-day',title:'Gym',type:'gym',singles:[item('hip_thrust',2), item('dead_bug',1)]},
+  {id:'home-day',title:'Home',type:'home',singles:[item('dead_bug',2)]}
+]), groups, lookup, parseSets).stats;
+if (exposureStats['باسن'].days.size !== 1 || exposureStats['شکم'].days.size !== 0 || exposureStats['شکم'].stabilityDays.size !== 2) throw Error('Hypertrophy and stability frequency must remain distinct');
+console.log('PASS: direct, indirect, stability, location, and frequency calculations.');
+"""
+result = subprocess.run([NODE, "-e", node_script], capture_output=True, text=True, encoding="utf-8")
+assert result.returncode == 0, result.stdout + result.stderr
+print(result.stdout.strip())
+
+
+class ScriptParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.blocks = []
+        self.current = None
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "script":
+            values = dict(attrs)
+            if "src" not in values and values.get("type", "text/javascript") in ("text/javascript", "application/javascript"):
+                self.current = []
+
+    def handle_data(self, data):
+        if self.current is not None:
+            self.current.append(data)
+
+    def handle_endtag(self, tag):
+        if tag == "script" and self.current is not None:
+            self.blocks.append("".join(self.current))
+            self.current = None
+
+
+with tempfile.TemporaryDirectory() as temp:
+    paths = [ROOT / "app_engine.js"]
+    parser = ScriptParser()
+    parser.feed(HTML)
+    for i, block in enumerate(parser.blocks):
+        path = Path(temp) / f"inline-{i}.js"
+        path.write_text(block, encoding="utf-8")
+        paths.append(path)
+    for path in paths:
+        checked = subprocess.run([NODE, "--check", str(path)], capture_output=True, text=True, encoding="utf-8")
+        assert checked.returncode == 0, f"JavaScript syntax error in {path.name}:\n{checked.stderr}"
+print("PASS: app_engine.js and generated inline JavaScript have no syntax errors.")

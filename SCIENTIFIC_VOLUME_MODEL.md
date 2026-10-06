@@ -6,7 +6,9 @@
 - **Meaningful indirect contribution:** 0.5 set.
 - **Stability / corrective / activation drills:** tracked separately and not added to hypertrophy effective-set totals.
 
-The 0.5 fractional-set convention is used as a practical model for indirect work. It is an estimate of training volume, not a direct measurement of muscle stimulus.
+The fractional-set method is supported as the best-fitting counting method in the 2026 meta-regression of resistance-training dose response (67 studies, 2,058 participants). In that analysis, indirect sets counted as 0.5 performed better than counting them as 0 or 1 for the primary hypertrophy and strength models: [Pelland et al., Sports Medicine (2026), PMID 41343037](https://pubmed.ncbi.nlm.nih.gov/41343037/).
+
+That result supports fractional counting as a practical accounting method; it does not prove that every exercise has the same stimulus for every secondary muscle. The exercise-specific direct/indirect classifications here are biomechanical estimates and should be interpreted alongside technique, range of motion, effort, and individual anatomy. They are not a direct measurement of muscle stimulus.
 
 ## Formula
 
@@ -16,6 +18,7 @@ Example:
 
 - 3 Hack Squat sets → Quadriceps: 3.0 effective sets.
 - The same 3 Hack Squat sets → Glutes: 1.5 effective sets.
+- 3 RDL sets → Hamstrings: 3.0, Glutes: 3.0, and spinal erectors: 1.5 estimated effective sets.
 
 ## Important interpretation
 
