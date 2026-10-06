@@ -8993,16 +8993,19 @@ const EXERCISE_MUSCLE_MAPPING = {
   'seated_leg_curl_machine': {'همسترینگ': 1},
   'single_leg_cable_hamstring_curl': {'همسترینگ': 1},
   'slider_hamstring_curl': {'همسترینگ': 1},
-  'rdl': {'همسترینگ': 1, 'باسن': 1, 'فیله': .5},
-  'dumbbell_rdl': {'همسترینگ': 1, 'باسن': 1, 'فیله': .5},
-  'single_leg_dumbbell_rdl': {'همسترینگ': 1, 'باسن': 1, 'فیله': .5},
+  'rdl': {'همسترینگ': 1, 'باسن': .5, 'فیله': .5},
+  'dumbbell_rdl': {'همسترینگ': 1, 'باسن': .5, 'فیله': .5},
+  'single_leg_dumbbell_rdl': {'همسترینگ': 1, 'باسن': .5, 'فیله': .5},
 
   // Glutes
+  // Bent-knee hip extension: hip thrusts and bridges do not provide meaningful
+  // long-length hamstring stimulus, so hamstrings receive zero hypertrophy-set
+  // credit here (not a claim of zero force production).
   'hip_thrust': {'باسن': 1},
   'glute_bridge': {'باسن': 1},
   'glute_bridge_iso': {'باسن': 1},
   'glute_bridge_knees_out': {'باسن': 1, 'خارج ران': .5},
-  'single_leg_glute_bridge': {'باسن': 1, 'همسترینگ': .5},
+  'single_leg_glute_bridge': {'باسن': 1},
   'cable_glute_kickback': {'باسن': 1},
   'quadruped_glute_kickback': {'باسن': 1},
 

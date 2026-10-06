@@ -18,7 +18,12 @@ Example:
 
 - 3 Hack Squat sets → Quadriceps: 3.0 effective sets.
 - The same 3 Hack Squat sets → Glutes: 1.5 effective sets.
-- 3 RDL sets → Hamstrings: 3.0, Glutes: 3.0, and spinal erectors: 1.5 estimated effective sets.
+- 3 RDL sets → Hamstrings: 3.0 direct sets; Glutes: 1.5 and spinal erectors: 1.5 estimated effective sets from indirect contributions.
+
+## Exercise-specific notes
+
+- Hip thrusts and glute bridges count glutes as direct and hamstrings as zero for this accounting model. The bent-knee position offsets much of the hamstrings' lengthening from hip flexion, and hip extension shortens them further. This is an accounting zero, not a claim that the hamstrings produce no force. In a nine-week hip-thrust versus squat trial, hamstring cross-sectional area showed little to no growth in either group; that supports the conservative accounting choice but does not establish zero stimulus for every person or technique. [Plotkin et al. (2023)](https://pmc.ncbi.nlm.nih.gov/articles/PMC10349977/).
+- RDL variants count hamstrings as direct and glutes and spinal erectors as indirect. The model records one primary direct target per set while retaining fractional credit for secondary muscles, rather than counting a single RDL set as two full direct sets.
 
 ## Important interpretation
 

@@ -26,6 +26,15 @@ assert MASTER_IDS <= MAPPED_IDS, f"Unmapped master exercises: {sorted(MASTER_IDS
 assert WEIGHTS and all(w in (0.5, 1.0) for w in WEIGHTS), f"Unexpected weights: {sorted(set(WEIGHTS))}"
 assert "'dumbbell_shrugs': {'کول': 1}" in mapping_block
 assert "'push_up_plus': {'سراتوس قدامی': 1}" in mapping_block
+for rdl_id in ("rdl", "dumbbell_rdl", "single_leg_dumbbell_rdl"):
+    expected = f"'{rdl_id}': {{'همسترینگ': 1, 'باسن': .5, 'فیله': .5}}"
+    assert expected in mapping_block, f"Unexpected contribution mapping for {rdl_id}"
+for bridge_id in ("hip_thrust", "glute_bridge", "glute_bridge_iso", "glute_bridge_knees_out", "single_leg_glute_bridge"):
+    bridge_entry = re.search(rf"'{bridge_id}': \{{([^}}]+)\}}", mapping_block)
+    assert bridge_entry, f"Missing contribution mapping for {bridge_id}"
+    assert "'باسن': 1" in bridge_entry.group(1), f"{bridge_id} must count glutes as direct"
+    assert "'همسترинг'" not in bridge_entry.group(1), f"{bridge_id} must not count hamstrings"
+assert "'push_up_plus'" in JS[JS.index("const STABILITY_EXERCISES"):JS.index("function formatVolumeNumber")]
 assert "'dead_bug'" in JS and "'wall_slide'" in JS and "'bird_dog'" in JS
 assert "'./index.html'" in SW and "'./app_engine.js'" in SW
 
@@ -57,8 +66,19 @@ if (result['سینه'].directSets !== 3 || result['سینه'].effectiveSets !== 
 const indirect = calculate(profile([{id:'a',title:'A',type:'gym',singles:[item('hack_squat',3)]}]), groups, lookup, parseSets).stats;
 if (indirect['باسن'].indirectSets !== 3 || indirect['باسن'].effectiveSets !== 1.5) throw Error('3 secondary sets must equal 1.5 effective sets');
 
-const stability = calculate(profile([{id:'a',title:'A',type:'home',singles:[item('dead_bug',3)]}]), groups, lookup, parseSets);
-if (stability.overallStabilitySets !== 3 || stability.stats['شکم'].stabilitySets !== 3 || stability.stats['شکم'].effectiveSets !== 0) throw Error('Stability sets must be separate from hypertrophy');
+const rdlStats = calculate(profile([{id:'a',title:'A',type:'gym',singles:[item('rdl',3)]}]), groups, lookup, parseSets).stats;
+if (rdlStats['همسترینگ'].directSets !== 3 || rdlStats['همسترینگ'].indirectSets !== 0 || rdlStats['همسترینگ'].effectiveSets !== 3) throw Error('RDL hamstrings must count as direct');
+if (rdlStats['باسن'].directSets !== 0 || rdlStats['باسن'].indirectSets !== 3 || rdlStats['باسن'].effectiveSets !== 1.5) throw Error('RDL glutes must count as indirect');
+if (rdlStats['فیله'].directSets !== 0 || rdlStats['فیله'].indirectSets !== 3 || rdlStats['فیله'].effectiveSets !== 1.5) throw Error('RDL erectors must count as indirect');
+
+const bridgeStats = calculate(profile([{id:'a',title:'A',type:'gym',singles:[item('single_leg_glute_bridge',3)]}]), groups, lookup, parseSets).stats;
+if (bridgeStats['باسن'].directSets !== 3 || bridgeStats['همسترینگ'].directSets !== 0 || bridgeStats['همسترینگ'].indirectSets !== 0) throw Error('Single-leg glute bridge must count glutes only');
+
+const thrustStats = calculate(profile([{id:'a',title:'A',type:'gym',singles:[item('hip_thrust',3)]}]), groups, lookup, parseSets).stats;
+if (thrustStats['باسن'].directSets !== 3 || thrustStats['همسترینگ'].directSets !== 0 || thrustStats['همسترینگ'].indirectSets !== 0) throw Error('Hip thrust must count glutes only');
+
+const stability = calculate(profile([{id:'a',title:'A',type:'home',singles:[item('push_up_plus',3)]}]), groups, lookup, parseSets);
+if (stability.overallStabilitySets !== 3 || stability.stats['سراتوس قدامی'].stabilitySets !== 3 || stability.stats['سراتوس قدامی'].effectiveSets !== 0) throw Error('Push-up plus must remain stability-only');
 
 const locations = calculate(profile([
   {id:'gym-day',title:'Gym',type:'gym',singles:[item('hip_thrust',3)]},
