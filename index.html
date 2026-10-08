@@ -3381,6 +3381,21 @@ body[dir="ltr"],
         <span id="cloudStatusBadge" style="font-size:10.5px; padding:2px 8px; border-radius:10px; background:rgba(16,185,129,0.15); color:#34d399; font-weight:800;">🟢 آماده</span>
       </div>
 
+      <!-- Account-scoped outbox conflict indicator. Hidden unless unresolved conflicts exist. -->
+      <div id="cloudConflictRow" style="display:none; margin-bottom:8px;">
+        <span id="cloudConflictBadge" style="font-size:10.5px; padding:3px 9px; border-radius:10px; background:rgba(245,158,11,0.18); color:#fbbf24; font-weight:800;"></span>
+      </div>
+
+      <!-- Explicit legacy import + conflict resolver entry points -->
+      <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;">
+        <button class="btn-header-action" style="padding:4px 10px; font-size:10.5px;" onclick="openLegacyImportModal()">
+          <span id="legacyImportBtnText">📦 ایمپورت داده‌های قدیمی</span>
+        </button>
+        <button class="btn-header-action" style="padding:4px 10px; font-size:10.5px;" onclick="openConflictResolver()">
+          <span id="conflictResolverBtnText">⚖️ تعارض‌های همگام‌سازی</span>
+        </button>
+      </div>
+
       <!-- Cloud User Status View -->
       <div id="syncModalUserBox" style="margin-bottom:12px;"></div>
 
@@ -3725,6 +3740,9 @@ body[dir="ltr"],
           <span>🚀</span>
           <span id="loginSubmitBtnText">ورود امن به حساب</span>
         </button>
+        <button id="forgotPasswordBtn" type="button" class="btn-header-action" style="width:100%; justify-content:center; padding:7px; font-size:11.5px;" onclick="handleForgotPasswordClick()">
+          <span id="forgotPasswordBtnText">🔑 رمز عبور را فراموش کرده‌اید؟</span>
+        </button>
       </div>
 
       <!-- Signup Form -->
@@ -3936,6 +3954,67 @@ body[dir="ltr"],
         بستن ✕
       </button>
     </div>
+  </div>
+</div>
+
+<!-- Legacy Local Data Import (explicit, read-only discovery, never automatic) -->
+<div id="legacyImportModal" class="modal-overlay">
+  <div class="modal-content" style="max-width:460px;">
+    <h3 id="legacyImportTitle" style="margin:0 0 6px;">📦 ایمپورت داده‌های محلی قدیمی</h3>
+    <p id="legacyImportDesc" style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">
+      داده‌های ذخیره‌شده با نسخه‌های قبلی برنامه می‌توانند به این حساب منتقل شوند. کلیدهای قدیمی خوانده می‌شوند و دست‌نخورده می‌مانند؛ هیچ چیزی به سرور ارسال نمی‌شود.
+    </p>
+    <div id="legacyImportPreview" style="background:rgba(255,255,255,0.03); border:1px solid var(--border-light); border-radius:10px; padding:10px; margin-bottom:10px;"></div>
+    <div id="legacyImportResult" style="display:none; font-size:12px; font-weight:800; color:#34d399; margin-bottom:10px;"></div>
+    <div style="display:flex; gap:8px;">
+      <button id="legacyImportConfirmBtn" class="btn-header-action btn-action-primary" style="flex:1; justify-content:center; padding:9px; font-weight:800;" onclick="confirmLegacyImport()">
+        <span id="legacyImportConfirmBtnText">✅ تأیید و انتقال</span>
+      </button>
+      <button class="btn-header-action" style="flex:1; justify-content:center; padding:9px;" onclick="closeLegacyImportModal()">
+        <span id="legacyImportCancelBtnText">انصراف</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Password Recovery: set a new password after PASSWORD_RECOVERY -->
+<div id="setPasswordModal" class="modal-overlay">
+  <div class="modal-content" style="max-width:420px;">
+    <h3 id="setPasswordTitle" style="margin:0 0 6px;">🔑 تعیین رمز عبور جدید</h3>
+    <p id="setPasswordDesc" style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">
+      رمز عبور جدید خود را وارد کنید. رمز عبور هرگز ذخیره یا نمایش داده نمی‌شود.
+    </p>
+    <div style="margin-bottom:10px;">
+      <label id="newPasswordLabel" class="form-label">🔒 رمز عبور جدید:</label>
+      <input type="password" id="newPasswordInput" class="form-input" placeholder="••••••••" autocomplete="new-password" style="direction:ltr; text-align:left;">
+    </div>
+    <div style="margin-bottom:10px;">
+      <label id="confirmPasswordLabel" class="form-label">🔒 تکرار رمز عبور جدید:</label>
+      <input type="password" id="confirmPasswordInput" class="form-input" placeholder="••••••••" autocomplete="new-password" style="direction:ltr; text-align:left;">
+    </div>
+    <div id="setPasswordMessage" style="display:none; font-size:12px; font-weight:800; margin-bottom:10px;"></div>
+    <div style="display:flex; gap:8px;">
+      <button id="setPasswordSubmitBtn" class="btn-header-action btn-action-primary" style="flex:1; justify-content:center; padding:9px; font-weight:800;" onclick="handleSetNewPassword()">
+        <span id="setPasswordSubmitBtnText">💾 ذخیره رمز عبور</span>
+      </button>
+      <button class="btn-header-action" style="flex:1; justify-content:center; padding:9px;" onclick="closeSetPasswordModal()">
+        <span id="setPasswordCancelBtnText">انصراف</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Conflict Resolver: an explicit choice is always required -->
+<div id="conflictResolverModal" class="modal-overlay">
+  <div class="modal-content" style="max-width:480px;">
+    <h3 id="conflictResolverTitle" style="margin:0 0 6px;">⚖️ تعارض‌های همگام‌سازی</h3>
+    <p id="conflictResolverDesc" style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">
+      برای هر مورد، نسخه ابری و نسخه محلی با هم متفاوت‌اند. هیچ انتخابی به‌صورت خودکار انجام نمی‌شود.
+    </p>
+    <div id="conflictListBox" style="max-height:320px; overflow-y:auto; margin-bottom:10px;"></div>
+    <button class="btn-header-action" style="width:100%; justify-content:center; padding:9px;" onclick="closeConflictResolver()">
+      <span id="conflictResolverCloseBtnText">بستن</span>
+    </button>
   </div>
 </div>
 
@@ -6284,6 +6363,1497 @@ window.currentLang = currentLang;
 // Currently active log target
 let currentLogTarget = { exId: '', exFa: '', dayId: '', setsCount: 3 };
 
+// >>> ACCOUNT_SCOPE_STORAGE_BEGIN
+// ==============================================================================
+// 🗂️ Account-Scoped Local Storage Layer   (namespace: chieftain_v10:<scope>:*)
+// ------------------------------------------------------------------------------
+// Every piece of user-owned local data is namespaced by exactly one scope:
+//
+//   scope = 'uuid:<supabase-auth-uuid>'    when a real cloud session is active
+//   scope = 'local:<offline-identity-id>'  for offline identities (e.g. admin_hossein)
+//   scope = 'local:anonymous'              before any identity is known
+//
+// Keys belonging to another scope are never readable, never enumerable and never
+// writable from the current scope: every read/write below is built from the
+// current scope prefix, and enumeration filters on that same prefix.
+//
+// Legacy pre-v10 keys are deliberately NOT read. They are left byte-identical
+// until the explicit, user-confirmed import flow ships.
+// ==============================================================================
+const SCOPE_STORAGE_PREFIX = 'chieftain_v10:';
+
+function getAccountScope() {
+  try {
+    if (typeof currentAuthUser !== 'undefined' && currentAuthUser && currentAuthUser.id
+        && typeof isUuid === 'function' && isUuid(currentAuthUser.id)) {
+      return 'uuid:' + currentAuthUser.id;
+    }
+    if (typeof currentLocalUser !== 'undefined' && currentLocalUser && currentLocalUser.id) {
+      return 'local:' + currentLocalUser.id;
+    }
+  } catch (e) {}
+  return 'local:anonymous';
+}
+
+function scopePrefix() {
+  return SCOPE_STORAGE_PREFIX + getAccountScope() + ':';
+}
+
+function scopedKey(name, sub) {
+  return scopePrefix() + name + (sub === undefined || sub === null ? '' : ':' + String(sub));
+}
+
+function scopedGetRaw(name, sub) {
+  try { return localStorage.getItem(scopedKey(name, sub)); } catch (e) { return null; }
+}
+
+function scopedGetJSON(name, sub, fallback) {
+  try {
+    const raw = scopedGetRaw(name, sub);
+    if (raw === null || raw === undefined) return fallback;
+    const parsed = JSON.parse(raw);
+    return (parsed === null || parsed === undefined) ? fallback : parsed;
+  } catch (e) { return fallback; }
+}
+
+function scopedSetRaw(name, sub, value) {
+  try { localStorage.setItem(scopedKey(name, sub), value); return true; } catch (e) { return false; }
+}
+
+function scopedSetJSON(name, sub, value) {
+  return scopedSetRaw(name, sub, JSON.stringify(value));
+}
+
+function scopedRemove(name, sub) {
+  try { localStorage.removeItem(scopedKey(name, sub)); } catch (e) {}
+}
+
+// Sub-keys of one data kind for the CURRENT scope only. A key belonging to any
+// other scope can never appear in this result.
+function scopedSubKeys(name) {
+  const prefix = scopePrefix() + name + ':';
+  const out = [];
+  try {
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith(prefix)) out.push(key.slice(prefix.length));
+    });
+  } catch (e) {}
+  return out;
+}
+
+function scopedEntryMap(name) {
+  const result = {};
+  scopedSubKeys(name).forEach(sub => { result[sub] = scopedGetJSON(name, sub, null); });
+  return result;
+}
+
+// true when the identity or the derived scope has changed since the last call.
+let lastAppliedScope = null;
+function scopeChangedSinceLastApply() {
+  const current = getAccountScope();
+  if (current === lastAppliedScope) return false;
+  lastAppliedScope = current;
+  return true;
+}
+// <<< ACCOUNT_SCOPE_STORAGE_END
+
+// Swap the in-memory workspace whenever the account scope changes.
+// Called from every identity transition: cloud sign-in/restore, offline sign-in,
+// stored-session restore and sign-out. It never moves data between scopes.
+function applyAccountScopeChange() {
+  if (!scopeChangedSinceLastApply()) return;
+  if (typeof loadAppData === 'function') loadAppData();
+  if (typeof renderApp === 'function') {
+    try { renderApp(true); } catch (e) {}
+  }
+  // Session/login flush: any operations queued for this account are drained now
+  // (the flush itself is gated, so this is a no-op until the contract is verified).
+  if (typeof scheduleOutboxFlush === 'function') scheduleOutboxFlush(0);
+  if (typeof updateConflictBadge === 'function') updateConflictBadge();
+}
+
+// >>> CLOUD_OUTBOX_BEGIN
+// ==============================================================================
+// 📤 Account-Scoped Outbox & Cloud Sync (RPC-only)
+// ------------------------------------------------------------------------------
+// SAFETY GATE
+//   The STEP 1 database migration has NOT been applied to any project. Until the
+//   contract is verified on the target database, every cloud call below is
+//   INERT: operations still queue locally, but nothing is transmitted.
+//   Setting CLOUD_SYNC_GATE.contractVerified = true is a deliberate, reviewed
+//   action that must follow the STEP 1 safety gates (G0-G8).
+//
+// CONTRACT
+//   * Cloud writes go exclusively through the STEP 1 RPCs. There is no direct
+//     table INSERT / UPDATE / DELETE anywhere in this client.
+//   * Ownership is always the authenticated Supabase UUID, derived server-side
+//     from auth.uid(). No RPC argument ever carries a user id.
+//   * An RPC returning NULL means "CAS conflict or tombstone hit". It is NEVER
+//     treated as success and is NEVER auto-resolved.
+// ==============================================================================
+
+const CLOUD_SYNC_GATE = { contractVerified: false };
+
+function isCloudSyncEnabled() {
+  return CLOUD_SYNC_GATE.contractVerified === true;
+}
+
+// The only RPC names this client is permitted to call.
+const OUTBOX_ALLOWED_KINDS = [
+  'upsert_routine', 'tombstone_routine',
+  'upsert_workout_log', 'update_workout_log', 'tombstone_workout_log',
+  'upsert_body_metric', 'update_body_metric', 'tombstone_body_metric',
+  'upsert_custom_exercise', 'tombstone_custom_exercise',
+  'upsert_set_state', 'tombstone_set_state'
+];
+
+function isAllowedOutboxKind(kind) {
+  return OUTBOX_ALLOWED_KINDS.indexOf(kind) >= 0;
+}
+
+// --- Deterministic identity ---------------------------------------------------
+// A compact synchronous SHA-1, used ONLY to derive stable idempotency keys.
+// It is not used for security. The tests verify it against the standard
+// "abc" -> a9993e364706816aba3e25717850c26c9cd0d89d vector.
+function sha1Hex(input) {
+  const msg = String(input);
+  const bytes = [];
+  for (let i = 0; i < msg.length; i++) {
+    let c = msg.charCodeAt(i);
+    if (c < 0x80) bytes.push(c);
+    else if (c < 0x800) bytes.push(0xc0 | (c >> 6), 0x80 | (c & 0x3f));
+    else if (c < 0xd800 || c >= 0xe000) bytes.push(0xe0 | (c >> 12), 0x80 | ((c >> 6) & 0x3f), 0x80 | (c & 0x3f));
+    else {
+      i++;
+      c = 0x10000 + (((c & 0x3ff) << 10) | (msg.charCodeAt(i) & 0x3ff));
+      bytes.push(0xf0 | (c >> 18), 0x80 | ((c >> 12) & 0x3f), 0x80 | ((c >> 6) & 0x3f), 0x80 | (c & 0x3f));
+    }
+  }
+  const bitLen = bytes.length * 8;
+  bytes.push(0x80);
+  while (bytes.length % 64 !== 56) bytes.push(0);
+  const hi = Math.floor(bitLen / 0x100000000);
+  const lo = bitLen >>> 0;
+  bytes.push((hi >>> 24) & 0xff, (hi >>> 16) & 0xff, (hi >>> 8) & 0xff, hi & 0xff);
+  bytes.push((lo >>> 24) & 0xff, (lo >>> 16) & 0xff, (lo >>> 8) & 0xff, lo & 0xff);
+
+  let h0 = 0x67452301, h1 = 0xEFCDAB89, h2 = 0x98BADCFE, h3 = 0x10325476, h4 = 0xC3D2E1F0;
+  const w = new Array(80);
+  for (let i = 0; i < bytes.length; i += 64) {
+    for (let j = 0; j < 16; j++) {
+      w[j] = ((bytes[i + j * 4] << 24) | (bytes[i + j * 4 + 1] << 16) | (bytes[i + j * 4 + 2] << 8) | bytes[i + j * 4 + 3]) >>> 0;
+    }
+    for (let j = 16; j < 80; j++) {
+      const v = (w[j - 3] ^ w[j - 8] ^ w[j - 14] ^ w[j - 16]) >>> 0;
+      w[j] = ((v << 1) | (v >>> 31)) >>> 0;
+    }
+    let a = h0, b = h1, c = h2, d = h3, e = h4;
+    for (let j = 0; j < 80; j++) {
+      let f, k;
+      if (j < 20) { f = (b & c) | ((~b) & d); k = 0x5A827999; }
+      else if (j < 40) { f = b ^ c ^ d; k = 0x6ED9EBA1; }
+      else if (j < 60) { f = (b & c) | (b & d) | (c & d); k = 0x8F1BBCDC; }
+      else { f = b ^ c ^ d; k = 0xCA62C1D6; }
+      const t = ((((a << 5) | (a >>> 27)) >>> 0) + (f >>> 0) + e + k + w[j]) >>> 0;
+      e = d; d = c; c = (((b << 30) | (b >>> 2)) >>> 0); b = a; a = t;
+    }
+    h0 = (h0 + a) >>> 0; h1 = (h1 + b) >>> 0; h2 = (h2 + c) >>> 0; h3 = (h3 + d) >>> 0; h4 = (h4 + e) >>> 0;
+  }
+  const hex8 = n => ('00000000' + n.toString(16)).slice(-8);
+  return hex8(h0) + hex8(h1) + hex8(h2) + hex8(h3) + hex8(h4);
+}
+
+// Stable UUID derived from stable inputs. The same logical record always yields
+// the same id, which is what makes replay and re-import idempotent.
+function deterministicUuid() {
+  const parts = Array.prototype.slice.call(arguments).map(v => String(v));
+  const chars = sha1Hex(parts.join('\u0001')).slice(0, 32).split('');
+  chars[12] = '5';
+  chars[16] = ((parseInt(chars[16], 16) & 0x3) | 0x8).toString(16);
+  const s = chars.join('');
+  return s.slice(0, 8) + '-' + s.slice(8, 12) + '-' + s.slice(12, 16) + '-' + s.slice(16, 20) + '-' + s.slice(20, 32);
+}
+
+// --- Outbox storage -----------------------------------------------------------
+
+const OUTBOX_KIND = 'outbox';
+const OUTBOX_MAX_OPS = 500;
+const OUTBOX_FLUSH_DEBOUNCE_MS = 2000;
+
+function readOutbox() {
+  const raw = scopedGetJSON(OUTBOX_KIND, null, []);
+  return Array.isArray(raw) ? raw : [];
+}
+
+function writeOutbox(ops) {
+  scopedSetJSON(OUTBOX_KIND, null, Array.isArray(ops) ? ops : []);
+}
+
+// Operation identity is the ROW, not the operation kind. An upsert and a
+// tombstone for the same row must supersede one another instead of queuing as
+// two independent operations.
+function outboxOpId(rowKey) {
+  return 'row|' + (rowKey === undefined || rowKey === null ? '' : String(rowKey));
+}
+
+function outboxStatusSummary() {
+  const summary = { pending: 0, conflict: 0, failed: 0, done: 0, total: 0 };
+  readOutbox().forEach(op => {
+    summary.total++;
+    if (op.status === 'pending') summary.pending++;
+    else if (op.status === 'conflict') summary.conflict++;
+    else if (op.status === 'failed') summary.failed++;
+    else if (op.status === 'done') summary.done++;
+  });
+  return summary;
+}
+
+// --- Enqueue ------------------------------------------------------------------
+// spec = { kind, rowKey, payload, expectedRevision }
+// payload keys are exactly the STEP 1 RPC parameter names (p_*). A user id is
+// never part of a payload.
+function enqueueOutboxOp(spec) {
+  if (!spec || !isAllowedOutboxKind(spec.kind)) return null;
+
+  // Only a real cloud account has anything to sync. Offline/legacy identities
+  // queue nothing, so a `local:` workspace never accumulates cloud operations.
+  if (getAccountScope().indexOf('uuid:') !== 0) return null;
+
+  const rowKey = (spec.rowKey === undefined || spec.rowKey === null) ? '' : String(spec.rowKey);
+  const id = outboxOpId(rowKey);
+  const now = Date.now();
+  const ops = readOutbox();
+
+  // Coalescing / superseding. An unresolved conflict is NEVER clobbered.
+  for (let i = 0; i < ops.length; i++) {
+    const existing = ops[i];
+    if (existing.id !== id || existing.status !== 'pending') continue;
+
+    const existingIsUpsert = existing.kind.indexOf('upsert_') === 0;
+    const incomingIsUpsert = spec.kind.indexOf('upsert_') === 0;
+
+    if (existingIsUpsert && incomingIsUpsert) {
+      // Latest local state wins; position and expected revision are preserved.
+      existing.payload = spec.payload || {};
+      existing.updatedAt = now;
+      writeOutbox(ops);
+      scheduleOutboxFlush();
+      return existing;
+    }
+    if (existingIsUpsert && !incomingIsUpsert && (existing.attempts || 0) === 0) {
+      // Deleted before the create was ever transmitted: the row never existed
+      // remotely, so neither operation is needed. Nothing is resurrected.
+      ops.splice(i, 1);
+      writeOutbox(ops);
+      updateConflictBadge();
+      return null;
+    }
+    break;
+  }
+
+  if (ops.length >= OUTBOX_MAX_OPS) {
+    console.warn('[Chieftain] Outbox is full; refusing to queue more operations.');
+    return null;
+  }
+
+  // If this row was previously pulled from the cloud, CAS against its known
+  // revision instead of attempting a fresh insert.
+  const known = (typeof knownRevisionFor === 'function') ? knownRevisionFor(rowKey) : null;
+  const effectiveExpected = (spec.expectedRevision === undefined || spec.expectedRevision === null)
+    ? known : spec.expectedRevision;
+
+  const op = {
+    id: id,
+    kind: spec.kind,
+    rowKey: rowKey,
+    ownerScope: getAccountScope(),
+    payload: spec.payload || {},
+    expectedRevision: effectiveExpected,
+    attempts: 0,
+    lastError: null,
+    status: 'pending',
+    createdAt: now,
+    updatedAt: now
+  };
+  if (op.payload && Object.prototype.hasOwnProperty.call(op.payload, 'p_expected_revision')) {
+    op.payload.p_expected_revision = effectiveExpected;
+  }
+  ops.push(op);
+  writeOutbox(ops);
+  scheduleOutboxFlush();
+  return op;
+}
+
+// --- Convenience enqueue helpers (thin wrappers over the STEP 1 RPC contract) --
+
+function enqueueRoutineUpsert(profile) {
+  if (!profile || !profile.id) return null;
+  // B3: the device-local lock PIN is never persisted to the cloud.
+  const profileData = Object.assign({}, profile);
+  delete profileData.pin;
+  return enqueueOutboxOp({
+    kind: 'upsert_routine',
+    rowKey: profile.id,
+    payload: {
+      p_profile_key: profile.id,
+      p_routine_data: { days: profile.days || [] },
+      p_profile_data: profileData,
+      p_expected_revision: null
+    },
+    expectedRevision: null
+  });
+}
+
+function enqueueRoutineTombstone(profileKey) {
+  if (!profileKey) return null;
+  return enqueueOutboxOp({
+    kind: 'tombstone_routine',
+    rowKey: profileKey,
+    payload: { p_profile_key: profileKey, p_expected_revision: null },
+    expectedRevision: null
+  });
+}
+
+function enqueueLogUpsert(profileKey, exId, logEntry) {
+  if (!profileKey || !exId || !logEntry) return null;
+  const clientId = deterministicUuid('log', profileKey, exId, logEntry.timestamp);
+  return enqueueOutboxOp({
+    kind: 'upsert_workout_log',
+    rowKey: clientId,
+    payload: {
+      p_profile_key: profileKey,
+      p_client_record_id: clientId,
+      p_exercise_id: exId,
+      p_log_entry: logEntry,
+      p_expected_revision: null
+    },
+    expectedRevision: null
+  });
+}
+
+function enqueueLogTombstone(profileKey, exId, timestamp) {
+  if (!profileKey || !exId || timestamp === undefined || timestamp === null) return null;
+  const clientId = deterministicUuid('log', profileKey, exId, timestamp);
+  return enqueueOutboxOp({
+    kind: 'tombstone_workout_log',
+    rowKey: clientId,
+    payload: { p_client_record_id: clientId, p_expected_revision: null },
+    expectedRevision: null
+  });
+}
+
+function enqueueMetricUpsert(profileKey, metricRecord) {
+  if (!profileKey || !metricRecord || !metricRecord.id) return null;
+  const clientId = deterministicUuid('metric', profileKey, metricRecord.id);
+  return enqueueOutboxOp({
+    kind: 'upsert_body_metric',
+    rowKey: clientId,
+    payload: {
+      p_profile_key: profileKey,
+      p_client_record_id: clientId,
+      p_metric_record: metricRecord,
+      p_expected_revision: null
+    },
+    expectedRevision: null
+  });
+}
+
+function enqueueSetStateUpsert(profileKey, weekKey, stateData) {
+  if (!profileKey || !weekKey) return null;
+  return enqueueOutboxOp({
+    kind: 'upsert_set_state',
+    rowKey: profileKey + '|' + weekKey,
+    payload: {
+      p_profile_key: profileKey,
+      p_week_key: weekKey,
+      p_state_data: stateData,
+      p_expected_revision: null
+    },
+    expectedRevision: null
+  });
+}
+
+function enqueueCustomExerciseUpsert(exercise) {
+  if (!exercise || !exercise.id) return null;
+  const clientId = deterministicUuid('custom_exercise', exercise.id);
+  // ownerId is stripped: ownership is server-side only.
+  const data = Object.assign({}, exercise);
+  delete data.ownerId;
+  return enqueueOutboxOp({
+    kind: 'upsert_custom_exercise',
+    rowKey: clientId,
+    payload: { p_client_record_id: clientId, p_exercise_data: data, p_expected_revision: null },
+    expectedRevision: null
+  });
+}
+
+// --- Flush --------------------------------------------------------------------
+
+let outboxFlushInFlight = false;
+let outboxFlushTimer = null;
+
+async function flushOutboxNow() {
+  if (!isCloudSyncEnabled()) {
+    return { flushed: 0, conflicted: 0, stopped: false, skipped: true, reason: 'cloud_sync_disabled' };
+  }
+  if (typeof navigator !== 'undefined' && navigator && navigator.onLine === false) {
+    return { flushed: 0, conflicted: 0, stopped: false, skipped: true, reason: 'offline' };
+  }
+  if (typeof getAuthenticatedSupabaseUserId !== 'function') {
+    return { flushed: 0, conflicted: 0, stopped: false, skipped: true, reason: 'no_identity_helper' };
+  }
+  const userId = await getAuthenticatedSupabaseUserId();
+  if (!userId) {
+    return { flushed: 0, conflicted: 0, stopped: false, skipped: true, reason: 'no_authenticated_session' };
+  }
+  if (!supabaseClient) {
+    return { flushed: 0, conflicted: 0, stopped: false, skipped: true, reason: 'no_client' };
+  }
+  if (outboxFlushInFlight) {
+    return { flushed: 0, conflicted: 0, stopped: false, skipped: true, reason: 'in_flight' };
+  }
+
+  outboxFlushInFlight = true;
+  let flushed = 0;
+  let conflicted = 0;
+  let stopped = false;
+
+  try {
+    const ops = readOutbox();
+    for (let i = 0; i < ops.length; i++) {
+      const op = ops[i];
+      if (op.status !== 'pending') continue;   // conflicts and failures wait for the user
+
+      // Defensive: an operation may only ever be transmitted under the account
+      // that queued it. The outbox is scope-keyed, so this cannot normally fire.
+      if (op.ownerScope && op.ownerScope !== getAccountScope()) {
+        op.status = 'failed';
+        op.lastError = 'owner_scope_mismatch';
+        op.updatedAt = Date.now();
+        writeOutbox(ops);
+        continue;
+      }
+
+      if (!isAllowedOutboxKind(op.kind)) {
+        op.status = 'failed';
+        op.lastError = 'unknown_rpc_kind';
+        op.updatedAt = Date.now();
+        writeOutbox(ops);
+        continue;
+      }
+
+      let res;
+      try {
+        // The RPC name is the operation kind, and the payload already uses the
+        // exact STEP 1 parameter names.
+        res = await supabaseClient.rpc(op.kind, op.payload);
+      } catch (err) {
+        res = { error: { message: (err && err.message) || 'transport error' } };
+      }
+
+      if (res && res.error) {
+        // Transport or server error: keep it queued and stop the pass so the
+        // queue order is preserved for the next attempt.
+        op.attempts = (op.attempts || 0) + 1;
+        op.lastError = (res.error && res.error.message) || 'rpc_error';
+        op.status = 'pending';
+        op.updatedAt = Date.now();
+        writeOutbox(ops);
+        stopped = true;
+        break;
+      }
+
+      const revision = res ? res.data : null;
+      if (revision === null || revision === undefined) {
+        // NULL revision = CAS conflict or tombstone hit. NEVER a success.
+        op.status = 'conflict';
+        op.lastError = 'cas_conflict_or_tombstone';
+        op.attempts = (op.attempts || 0) + 1;
+        op.updatedAt = Date.now();
+        conflicted++;
+      } else {
+        op.status = 'done';
+        op.revision = revision;
+        op.lastError = null;
+        op.updatedAt = Date.now();
+        // Remember the row's new revision so a later edit CAS-es correctly.
+        if (typeof rememberRevision === 'function') rememberRevision(op.rowKey, revision);
+        flushed++;
+      }
+      writeOutbox(ops);
+    }
+
+    // Completed operations leave the queue. Conflicts stay until the user
+    // resolves them; nothing is discarded automatically.
+    const remaining = readOutbox().filter(o => o.status !== 'done');
+    writeOutbox(remaining);
+  } finally {
+    outboxFlushInFlight = false;
+    updateConflictBadge();
+  }
+
+  return { flushed: flushed, conflicted: conflicted, stopped: stopped, skipped: false };
+}
+
+function scheduleOutboxFlush(delayMs) {
+  if (typeof setTimeout !== 'function') return;
+  if (outboxFlushTimer) clearTimeout(outboxFlushTimer);
+  const delay = (typeof delayMs === 'number') ? delayMs : OUTBOX_FLUSH_DEBOUNCE_MS;
+  outboxFlushTimer = setTimeout(() => {
+    outboxFlushTimer = null;
+    flushOutboxNow().catch(() => {});
+  }, delay);
+}
+
+// --- Conflict state -----------------------------------------------------------
+
+function listOutboxConflicts() {
+  return readOutbox().filter(op => op.status === 'conflict');
+}
+
+// Which resolutions are offered for a given operation. Choices that would be
+// unsafe are simply not offered, rather than implemented speculatively.
+//   'keep_cloud'  always safe: drops the local queued operation.
+//   'cancel'      always safe: leaves the conflict unresolved.
+//   'keep_local'  needs the current cloud revision -> only while the gate is open.
+//   'keep_both'   needs a client_record_id and must not be a tombstone.
+function outboxConflictChoices(op) {
+  const choices = ['keep_cloud', 'cancel'];
+  if (isCloudSyncEnabled()) choices.push('keep_local');
+  const isTombstone = !!op && typeof op.kind === 'string' && op.kind.indexOf('tombstone_') === 0;
+  const hasClientId = !!(op && op.payload && op.payload.p_client_record_id);
+  if (!isTombstone && hasClientId) choices.push('keep_both');
+  return choices;
+}
+
+// Explicit, user-driven resolution. Conflicts are never resolved automatically.
+//   'keep_cloud' -> drop the local queued operation
+//   'keep_local' -> overwrite the cloud row, CAS-ing against its current revision
+//   'keep_both'  -> re-issue as a new record (fresh client_record_id)
+//   'cancel'     -> leave the conflict unresolved
+// Returns { ok, reason }. Choices not offered for an operation are rejected.
+async function resolveOutboxConflict(opId, resolution) {
+  const ops = readOutbox();
+  const idx = ops.findIndex(o => o.id === opId);
+  if (idx < 0) return { ok: false, reason: 'not_found' };
+  const op = ops[idx];
+  if (op.status !== 'conflict') return { ok: false, reason: 'not_a_conflict' };
+
+  if (outboxConflictChoices(op).indexOf(resolution) < 0) {
+    return { ok: false, reason: 'unsupported_choice' };
+  }
+
+  if (resolution === 'cancel') {
+    return { ok: true, reason: 'left_unresolved' };
+  }
+
+  if (resolution === 'keep_cloud') {
+    ops.splice(idx, 1);
+    writeOutbox(ops);
+    updateConflictBadge();
+    return { ok: true, reason: 'kept_cloud' };
+  }
+
+  if (resolution === 'keep_local') {
+    const rev = await fetchRowRevision(op);
+    if (!rev.ok) return { ok: false, reason: rev.reason };
+    const updated = Object.assign({}, op);
+    updated.payload = Object.assign({}, op.payload, { p_expected_revision: rev.revision });
+    updated.expectedRevision = rev.revision;
+    updated.status = 'pending';
+    updated.attempts = 0;
+    updated.lastError = null;
+    updated.updatedAt = Date.now();
+    ops.splice(idx, 1, updated);
+    writeOutbox(ops);
+    updateConflictBadge();
+    scheduleOutboxFlush();
+    return { ok: true, reason: 'kept_local' };
+  }
+
+  if (resolution === 'keep_both') {
+    const freshId = deterministicUuid('keep-both', op.id, Date.now(), Math.random());
+    const fresh = Object.assign({}, op);
+    fresh.id = outboxOpId(freshId);
+    fresh.rowKey = freshId;
+    fresh.payload = Object.assign({}, op.payload, { p_client_record_id: freshId, p_expected_revision: null });
+    fresh.expectedRevision = null;
+    fresh.attempts = 0;
+    fresh.lastError = null;
+    fresh.status = 'pending';
+    fresh.updatedAt = Date.now();
+    ops.splice(idx, 1, fresh);
+    writeOutbox(ops);
+    updateConflictBadge();
+    scheduleOutboxFlush();
+    return { ok: true, reason: 'kept_both' };
+  }
+
+  return { ok: false, reason: 'unsupported_choice' };
+}
+
+function updateConflictBadge() {
+  if (typeof document === 'undefined' || !document.getElementById) return;
+  const row = document.getElementById('cloudConflictRow');
+  const badge = document.getElementById('cloudConflictBadge');
+  if (!row || !badge) return;
+  const s = outboxStatusSummary();
+  if (!s.conflict && !s.failed) {
+    row.style.display = 'none';
+    badge.textContent = '';
+    return;
+  }
+  const isEn = (typeof currentLang !== 'undefined' && currentLang === 'en');
+  row.style.display = '';
+  if (s.conflict) {
+    badge.textContent = isEn ? `⚠️ ${s.conflict} unresolved sync conflict(s)` : `⚠️ ${s.conflict} تعارض همگام‌سازی حل‌نشده`;
+  } else {
+    badge.textContent = isEn ? `⚠️ ${s.failed} sync operation(s) failed` : `⚠️ ${s.failed} عملیات همگام‌سازی ناموفق`;
+  }
+}
+// <<< CLOUD_OUTBOX_END
+
+// >>> LEGACY_IMPORT_BEGIN
+// ==============================================================================
+// 📦 Explicit Legacy Import (pre-v10 unscoped keys)
+// ------------------------------------------------------------------------------
+// SAFETY
+//   * Discovery is READ ONLY. Nothing is written or removed while discovering.
+//   * Import NEVER runs automatically and NEVER uploads anything.
+//   * Import is always explicitly confirmed by the user, and always targets the
+//     CURRENT scope. The confirmation names that scope, so two accounts can never
+//     be merged silently.
+//   * Legacy keys are left byte-identical afterwards.
+// ==============================================================================
+
+const LEGACY_EXACT_KEYS = [
+  'chieftain_profiles_v9', 'chieftain_profiles_v8', 'chieftain_profiles_v7', 'chieftain_profiles_v6',
+  'chieftain_active_profile_id', 'chieftain_custom_exercises', 'chieftain_master_overrides'
+];
+const LEGACY_PREFIXES = ['chieftain_logs_', 'chieftain_metrics_', 'chieftain_sets_', 'chieftain_draft_log_'];
+const LEGACY_IMPORT_MARKER = 'legacy_import';
+
+function isLegacyUserDataKey(key) {
+  if (!key || typeof key !== 'string') return false;
+  if (key.indexOf(SCOPE_STORAGE_PREFIX) === 0) return false;      // already scoped
+  if (LEGACY_EXACT_KEYS.indexOf(key) >= 0) return true;
+  for (let i = 0; i < LEGACY_PREFIXES.length; i++) {
+    if (key.indexOf(LEGACY_PREFIXES[i]) === 0) return true;
+  }
+  return false;
+}
+
+function listLegacyKeys() {
+  try { return Object.keys(localStorage).filter(isLegacyUserDataKey).sort(); }
+  catch (e) { return []; }
+}
+
+// Read-only. Returns a preview of everything that COULD be imported.
+function discoverLegacyData() {
+  const keys = listLegacyKeys();
+  const preview = {
+    keys: keys,
+    counts: { profiles: 0, logs: 0, metrics: 0, sets: 0, drafts: 0, customExercises: 0, masterOverrides: 0 },
+    profileNames: [],
+    activeProfileId: null,
+    invalid: [],
+    totalRecords: 0
+  };
+  if (!keys.length) return preview;
+
+  let legacyProfiles = null;
+  keys.forEach(key => {
+    let raw = null;
+    try { raw = localStorage.getItem(key); } catch (e) { preview.invalid.push(key); return; }
+    if (raw === null) return;
+
+    if (key.indexOf('chieftain_profiles_v') === 0) {
+      try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          if (!legacyProfiles) legacyProfiles = parsed;
+          preview.counts.profiles = Math.max(preview.counts.profiles, parsed.length);
+          preview.profileNames = parsed.map(p => ({ id: p && p.id, name: p && p.name }));
+        }
+      } catch (e) { preview.invalid.push(key); }
+    } else if (key === 'chieftain_active_profile_id') {
+      preview.activeProfileId = raw;
+    } else if (key === 'chieftain_custom_exercises') {
+      try { const p = JSON.parse(raw); if (Array.isArray(p)) preview.counts.customExercises = p.length; }
+      catch (e) { preview.invalid.push(key); }
+    } else if (key === 'chieftain_master_overrides') {
+      try { const p = JSON.parse(raw); if (p && typeof p === 'object') preview.counts.masterOverrides = Object.keys(p).length; }
+      catch (e) { preview.invalid.push(key); }
+    } else if (key.indexOf('chieftain_logs_') === 0) {
+      try { const p = JSON.parse(raw); if (Array.isArray(p)) preview.counts.logs += p.length; }
+      catch (e) { preview.invalid.push(key); }
+    } else if (key.indexOf('chieftain_metrics_') === 0) {
+      try { const p = JSON.parse(raw); if (Array.isArray(p)) preview.counts.metrics += p.length; }
+      catch (e) { preview.invalid.push(key); }
+    } else if (key.indexOf('chieftain_sets_') === 0) {
+      try { const p = JSON.parse(raw); if (p && typeof p === 'object') preview.counts.sets += 1; }
+      catch (e) { preview.invalid.push(key); }
+    } else if (key.indexOf('chieftain_draft_log_') === 0) {
+      try { const p = JSON.parse(raw); if (p && typeof p === 'object') preview.counts.drafts += 1; }
+      catch (e) { preview.invalid.push(key); }
+    }
+  });
+
+  preview.totalRecords = preview.counts.profiles + preview.counts.logs + preview.counts.metrics +
+    preview.counts.sets + preview.counts.drafts + preview.counts.customExercises + preview.counts.masterOverrides;
+  preview._legacyProfiles = legacyProfiles;
+  return preview;
+}
+
+// Stable fingerprint of the legacy payload, used only for import bookkeeping.
+function legacyDataFingerprint(keys) {
+  try {
+    const parts = (keys || []).map(k => {
+      let v = '';
+      try { v = localStorage.getItem(k) || ''; } catch (e) { v = ''; }
+      return k + '=' + v.length + ':' + sha1Hex(v).slice(0, 12);
+    });
+    return sha1Hex(parts.join('\u0001')).slice(0, 24);
+  } catch (e) { return 'unknown'; }
+}
+
+function readLegacyJson(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (raw === null) return fallback;
+    const parsed = JSON.parse(raw);
+    return (parsed === null || parsed === undefined) ? fallback : parsed;
+  } catch (e) { return fallback; }
+}
+
+// Resolve "<profileId>_<rest>" against known profile ids (longest match wins).
+function splitLegacyProfileKey(rest, ids) {
+  const sorted = (ids || []).slice().sort((a, b) => b.length - a.length);
+  for (let i = 0; i < sorted.length; i++) {
+    if (rest === sorted[i]) return { profileId: sorted[i], sub: '' };
+    if (rest.indexOf(sorted[i] + '_') === 0) return { profileId: sorted[i], sub: rest.slice(sorted[i].length + 1) };
+  }
+  const idx = rest.indexOf('_');
+  if (idx < 0) return { profileId: rest, sub: '' };
+  return { profileId: rest.slice(0, idx), sub: rest.slice(idx + 1) };
+}
+
+// Explicit, confirmed import into the CURRENT scope. Idempotent: running it twice
+// adds nothing, because every merge is keyed by a stable identity.
+async function runLegacyImport(options) {
+  const opts = options || {};
+  const result = { imported: 0, skipped: 0, conflict: 0, invalid: 0, keys: [], scope: getAccountScope(), details: {} };
+
+  if (!opts.confirmed) {
+    result.skipped = 1;
+    result.details.reason = 'not_confirmed';
+    return result;
+  }
+
+  const preview = discoverLegacyData();
+  if (!preview.keys.length) {
+    result.details.reason = 'no_legacy_data';
+    return result;
+  }
+  result.keys = preview.keys;
+  result.invalid = preview.invalid.length;
+
+  const ids = (preview.profileNames || []).map(p => p && p.id).filter(Boolean);
+  const include = opts.include || { profiles: true, logs: true, metrics: true, sets: true, drafts: true, customExercises: true, masterOverrides: true };
+
+  // ---- profiles first: log/draft keys resolve against profile ids -----------
+  if (include.profiles) {
+    const legacyProfiles = Array.isArray(preview._legacyProfiles) ? preview._legacyProfiles : [];
+    legacyProfiles.forEach(p => {
+      if (!p || !p.id) { result.invalid++; return; }
+      const existing = allProfiles.find(x => x.id === p.id);
+      if (existing) { result.skipped++; return; }
+      const copy = JSON.parse(JSON.stringify(p));
+      allProfiles.push(copy);
+      result.imported++;
+    });
+    if (legacyProfiles.length) scopedSetJSON('profiles', null, allProfiles);
+
+    const legacyActive = preview.activeProfileId;
+    if (legacyActive && !scopedGetRaw('active_profile_id', null) && allProfiles.some(p => p.id === legacyActive)) {
+      scopedSetRaw('active_profile_id', null, legacyActive);
+    }
+  }
+
+  const knownIds = allProfiles.map(p => p && p.id).filter(Boolean);
+
+  // ---- logs ----------------------------------------------------------------
+  if (include.logs) {
+    preview.keys.filter(k => k.indexOf('chieftain_logs_') === 0).forEach(key => {
+      const rest = key.slice('chieftain_logs_'.length);
+      const split = splitLegacyProfileKey(rest, knownIds);
+      if (!split.profileId || !split.sub) { result.invalid++; return; }
+      const incoming = readLegacyJson(key, []);
+      if (!Array.isArray(incoming)) { result.invalid++; return; }
+      const sub = split.profileId + ':' + split.sub;
+      const local = scopedGetJSON('logs', sub, []);
+      const list = Array.isArray(local) ? local : [];
+      const seen = new Set(list.map(l => l && l.timestamp));
+      let added = 0;
+      incoming.forEach(item => {
+        if (!item || item.timestamp === undefined) { result.invalid++; return; }
+        if (seen.has(item.timestamp)) { result.skipped++; return; }
+        list.push(item); seen.add(item.timestamp); added++; result.imported++;
+      });
+      if (added) {
+        list.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+        scopedSetJSON('logs', sub, list);
+      }
+    });
+  }
+
+  // ---- metrics -------------------------------------------------------------
+  if (include.metrics) {
+    preview.keys.filter(k => k.indexOf('chieftain_metrics_') === 0).forEach(key => {
+      const profileId = key.slice('chieftain_metrics_'.length);
+      const incoming = readLegacyJson(key, []);
+      if (!Array.isArray(incoming)) { result.invalid++; return; }
+      const local = scopedGetJSON('metrics', profileId, null);
+      if (Array.isArray(local)) {
+        const seen = new Set(local.map(m => m && m.id).filter(Boolean));
+        const seenTs = new Set(local.map(m => m && m.timestamp));
+        let added = 0;
+        incoming.forEach(m => {
+          if (!m) { result.invalid++; return; }
+          if ((m.id && seen.has(m.id)) || seenTs.has(m.timestamp)) { result.skipped++; return; }
+          local.push(m); if (m.id) seen.add(m.id); seenTs.add(m.timestamp); added++; result.imported++;
+        });
+        if (added) scopedSetJSON('metrics', profileId, local);
+      } else {
+        scopedSetJSON('metrics', profileId, incoming);
+        result.imported += incoming.length;
+      }
+    });
+  }
+
+  // ---- sets ----------------------------------------------------------------
+  if (include.sets) {
+    preview.keys.filter(k => k.indexOf('chieftain_sets_') === 0).forEach(key => {
+      const profileId = key.slice('chieftain_sets_'.length);
+      const incoming = readLegacyJson(key, null);
+      if (!incoming || typeof incoming !== 'object') { result.invalid++; return; }
+      if (scopedGetJSON('sets', profileId, null)) { result.skipped++; return; }
+      scopedSetJSON('sets', profileId, incoming);
+      result.imported++;
+    });
+  }
+
+  // ---- drafts --------------------------------------------------------------
+  if (include.drafts) {
+    preview.keys.filter(k => k.indexOf('chieftain_draft_log_') === 0).forEach(key => {
+      const rest = key.slice('chieftain_draft_log_'.length);
+      const split = splitLegacyProfileKey(rest, knownIds);
+      if (!split.profileId || !split.sub) { result.invalid++; return; }
+      const incoming = readLegacyJson(key, null);
+      if (!incoming || typeof incoming !== 'object') { result.invalid++; return; }
+      const sub = split.profileId + ':' + split.sub;
+      if (scopedGetJSON('draft', sub, null)) { result.skipped++; return; }
+      scopedSetJSON('draft', sub, incoming);
+      result.imported++;
+    });
+  }
+
+  // ---- custom exercises ----------------------------------------------------
+  if (include.customExercises) {
+    const incoming = readLegacyJson('chieftain_custom_exercises', null);
+    if (Array.isArray(incoming)) {
+      const seen = new Set(customExercises.map(e => e && e.id).filter(Boolean));
+      let added = 0;
+      incoming.forEach(e => {
+        if (!e || !e.id) { result.invalid++; return; }
+        if (seen.has(e.id)) { result.skipped++; return; }
+        customExercises.push(e); seen.add(e.id); added++; result.imported++;
+      });
+      if (added) scopedSetJSON('custom_exercises', null, customExercises);
+    } else if (incoming !== null) {
+      result.invalid++;
+    }
+  }
+
+  // ---- master overrides ----------------------------------------------------
+  if (include.masterOverrides) {
+    const incoming = readLegacyJson('chieftain_master_overrides', null);
+    if (incoming && typeof incoming === 'object' && !Array.isArray(incoming)) {
+      const current = (masterExerciseOverrides && typeof masterExerciseOverrides === 'object') ? masterExerciseOverrides : {};
+      let added = 0;
+      Object.keys(incoming).forEach(k => {
+        if (Object.prototype.hasOwnProperty.call(current, k)) { result.skipped++; return; }
+        current[k] = incoming[k]; added++; result.imported++;
+      });
+      if (added) { masterExerciseOverrides = current; scopedSetJSON('master_overrides', null, current); }
+    } else if (incoming !== null) {
+      result.invalid++;
+    }
+  }
+
+  // ---- bookkeeping (per scope only; never cross-scope) ---------------------
+  const marker = scopedGetJSON(LEGACY_IMPORT_MARKER, null, null) || {};
+  const runs = Array.isArray(marker.runs) ? marker.runs : [];
+  runs.push({
+    at: Date.now(),
+    scope: result.scope,
+    fingerprint: legacyDataFingerprint(preview.keys),
+    imported: result.imported,
+    skipped: result.skipped,
+    invalid: result.invalid
+  });
+  marker.runs = runs.slice(-10);
+  marker.lastRun = runs[runs.length - 1];
+  scopedSetJSON(LEGACY_IMPORT_MARKER, null, marker);
+
+  // Local data changed: refresh the view and queue nothing implicitly.
+  if (typeof renderApp === 'function') { try { renderApp(true); } catch (e) {} }
+  return result;
+}
+
+function openLegacyImportModal() {
+  const modal = document.getElementById('legacyImportModal');
+  if (!modal) return;
+  const box = document.getElementById('legacyImportPreview');
+  const resultBox = document.getElementById('legacyImportResult');
+  if (resultBox) { resultBox.style.display = 'none'; resultBox.textContent = ''; }
+
+  const preview = discoverLegacyData();
+  const isEn = (typeof currentLang !== 'undefined' && currentLang === 'en');
+  const c = preview.counts;
+
+  if (box) {
+    if (!preview.keys.length) {
+      box.innerHTML = isEn
+        ? '<div style="color:#94a3b8;">No legacy local data was found on this device.</div>'
+        : '<div style="color:#94a3b8;">هیچ داده محلی قدیمی روی این دستگاه پیدا نشد.</div>';
+    } else {
+      const rows = [
+        ['profiles', c.profiles], ['logs', c.logs], ['metrics', c.metrics],
+        ['sets', c.sets], ['drafts', c.drafts],
+        ['customExercises', c.customExercises], ['masterOverrides', c.masterOverrides]
+      ].map(r => `<tr><td style="padding:2px 8px; color:#cbd5e1;">${r[0]}</td><td style="padding:2px 8px; font-weight:800; color:#38bdf8;">${r[1]}</td></tr>`).join('');
+      box.innerHTML =
+        `<div style="font-size:11.5px; color:#fbbf24; margin-bottom:6px;">${isEn ? 'Destination account scope' : 'حساب مقصد'}: <bdi>${getAccountScope()}</bdi></div>` +
+        `<table style="font-size:12px; margin-bottom:6px;">${rows}</table>` +
+        `<div style="font-size:11px; color:#94a3b8;">${isEn ? 'Legacy keys are read only and will remain untouched.' : 'کلیدهای قدیمی فقط خوانده می‌شوند و دست‌نخورده می‌مانند.'}</div>`;
+    }
+  }
+  modal.classList.add('open');
+}
+
+function closeLegacyImportModal() {
+  document.getElementById('legacyImportModal')?.classList.remove('open');
+}
+
+async function confirmLegacyImport() {
+  const resultBox = document.getElementById('legacyImportResult');
+  const isEn = (typeof currentLang !== 'undefined' && currentLang === 'en');
+  const preview = discoverLegacyData();
+  if (!preview.keys.length) return;
+
+  const ok = confirm(isEn
+    ? `Import ${preview.totalRecords} legacy record(s) into the account scope "${getAccountScope()}"?\n\nLegacy keys stay untouched. This never uploads anything.`
+    : `آیا ${preview.totalRecords} رکورد قدیمی به حساب «${getAccountScope()}» منتقل شود؟\n\nکلیدهای قدیمی دست‌نخورده می‌مانند و هیچ چیزی به سرور ارسال نمی‌شود.`);
+  if (!ok) return;
+
+  const result = await runLegacyImport({ confirmed: true });
+  if (resultBox) {
+    resultBox.style.display = '';
+    resultBox.textContent = isEn
+      ? `Imported ${result.imported}, skipped ${result.skipped}, invalid ${result.invalid}.`
+      : `${result.imported} وارد شد، ${result.skipped} رد شد، ${result.invalid} نامعتبر.`;
+  }
+  showToast(isEn
+    ? `✅ Legacy import finished (${result.imported} imported).`
+    : `✅ انتقال داده‌های قدیمی تمام شد (${result.imported} مورد).`);
+  openLegacyImportModal();
+}
+// <<< LEGACY_IMPORT_END
+
+// >>> PASSWORD_RECOVERY_BEGIN
+// ==============================================================================
+// 🔑 Password Recovery
+// ------------------------------------------------------------------------------
+// resetPasswordForEmail -> PASSWORD_RECOVERY event -> updateUser({ password })
+//
+// The redirect origin is the already-approved GitHub Pages origin, or the current
+// localhost origin during development. No other origin is invented.
+// Passwords and tokens are never logged, never rendered and never stored.
+//
+// NOTE: recovery cannot be confirmed working against Supabase until the redirect
+// origin is allowlisted in Auth settings. That verification is deferred to staging.
+// ==============================================================================
+
+const PASSWORD_RECOVERY_ORIGIN = 'https://chieftain20.github.io/Chieftain-s-Workout-Plan/';
+const MIN_PASSWORD_LENGTH = 6;
+
+let passwordRecoveryActive = false;
+
+function isLocalhostOrigin() {
+  try {
+    const host = (typeof window !== 'undefined' && window.location) ? window.location.hostname : '';
+    return host === 'localhost' || host === '127.0.0.1' || host === '[::1]';
+  } catch (e) { return false; }
+}
+
+function passwordRecoveryRedirectUrl() {
+  if (isLocalhostOrigin()) {
+    try { return window.location.origin + window.location.pathname; } catch (e) {}
+  }
+  return PASSWORD_RECOVERY_ORIGIN;
+}
+
+async function requestPasswordReset(email) {
+  const isEn = (typeof currentLang !== 'undefined' && currentLang === 'en');
+  if (!supabaseClient) return { ok: false, reason: 'no_client' };
+  const address = (email || '').trim();
+  if (!address || address.indexOf('@') < 0) return { ok: false, reason: 'invalid_email' };
+  try {
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(address, {
+      redirectTo: passwordRecoveryRedirectUrl()
+    });
+    if (error) return { ok: false, reason: 'request_failed', message: error.message };
+    return { ok: true, message: isEn ? 'Check your email for the reset link.' : 'لینک بازیابی به ایمیل شما ارسال شد.' };
+  } catch (e) {
+    return { ok: false, reason: 'request_failed' };
+  }
+}
+
+// Explicit recovery state. Never inferred from a password value.
+function setPasswordRecoveryActive(active) {
+  passwordRecoveryActive = active === true;
+  return passwordRecoveryActive;
+}
+
+function isPasswordRecoveryActive() {
+  return passwordRecoveryActive === true;
+}
+
+// Supabase reports a failed/expired recovery link in the URL fragment.
+function detectRecoveryUrlError() {
+  try {
+    const hash = (typeof window !== 'undefined' && window.location) ? (window.location.hash || '') : '';
+    if (!hash) return null;
+    if (hash.indexOf('error_code=') < 0 && hash.indexOf('error=') < 0) return null;
+    const params = {};
+    hash.replace(/^#/, '').split('&').forEach(pair => {
+      const i = pair.indexOf('=');
+      if (i > 0) params[pair.slice(0, i)] = decodeURIComponent(pair.slice(i + 1));
+    });
+    return { code: params.error_code || params.error || 'unknown' };
+  } catch (e) { return null; }
+}
+
+// Never renders or logs the password itself.
+function validateNewPassword(pw, confirmPw) {
+  const isEn = (typeof currentLang !== 'undefined' && currentLang === 'en');
+  if (!pw || !confirmPw) {
+    return { ok: false, message: isEn ? 'Please fill in both fields.' : 'لطفاً هر دو فیلد را پر کنید.' };
+  }
+  if (pw.length < MIN_PASSWORD_LENGTH) {
+    return { ok: false, message: isEn ? `Password must be at least ${MIN_PASSWORD_LENGTH} characters.` : `رمز عبور باید حداقل ${MIN_PASSWORD_LENGTH} کاراکتر باشد.` };
+  }
+  if (pw !== confirmPw) {
+    return { ok: false, message: isEn ? 'The two passwords do not match.' : 'دو رمز عبور یکسان نیستند.' };
+  }
+  return { ok: true };
+}
+
+async function submitNewPassword(newPassword, confirmPassword) {
+  if (!supabaseClient) return { ok: false, reason: 'no_client' };
+  const check = validateNewPassword(newPassword, confirmPassword);
+  if (!check.ok) return { ok: false, reason: 'invalid_input', message: check.message };
+  try {
+    const { error } = await supabaseClient.auth.updateUser({ password: newPassword });
+    if (error) return { ok: false, reason: 'update_failed', message: error.message };
+    setPasswordRecoveryActive(false);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, reason: 'update_failed' };
+  }
+}
+
+function openSetPasswordModal() {
+  const modal = document.getElementById('setPasswordModal');
+  if (!modal) return;
+  const msg = document.getElementById('setPasswordMessage');
+  if (msg) { msg.style.display = 'none'; msg.textContent = ''; }
+  ['newPasswordInput', 'confirmPasswordInput'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  modal.classList.add('open');
+}
+
+function closeSetPasswordModal() {
+  document.getElementById('setPasswordModal')?.classList.remove('open');
+}
+
+function showSetPasswordMessage(text, isError) {
+  const msg = document.getElementById('setPasswordMessage');
+  if (!msg) return;
+  msg.style.display = '';
+  msg.textContent = text;
+  msg.style.color = isError ? '#f87171' : '#34d399';
+}
+
+async function handleSetNewPassword() {
+  const isEn = (typeof currentLang !== 'undefined' && currentLang === 'en');
+  const pw = document.getElementById('newPasswordInput')?.value || '';
+  const confirmPw = document.getElementById('confirmPasswordInput')?.value || '';
+  const btn = document.getElementById('setPasswordSubmitBtn');
+  if (btn) { btn.disabled = true; btn.style.opacity = '0.6'; }
+  try {
+    const res = await submitNewPassword(pw, confirmPw);
+    if (res.ok) {
+      showSetPasswordMessage(isEn ? 'Password updated. You are signed in.' : 'رمز عبور به‌روزرسانی شد و وارد شدید.', false);
+      const pw1 = document.getElementById('newPasswordInput'); if (pw1) pw1.value = '';
+      const pw2 = document.getElementById('confirmPasswordInput'); if (pw2) pw2.value = '';
+      setTimeout(() => { closeSetPasswordModal(); }, 900);
+    } else {
+      showSetPasswordMessage(res.message || (isEn ? 'Could not update the password.' : 'به‌روزرسانی رمز عبور انجام نشد.'), true);
+    }
+  } finally {
+    if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+  }
+}
+
+async function handleForgotPasswordClick() {
+  const isEn = (typeof currentLang !== 'undefined' && currentLang === 'en');
+  const email = document.getElementById('loginEmail')?.value?.trim() || '';
+  if (!email) {
+    alert(isEn ? 'Enter your email address first.' : 'ابتدا ایمیل خود را وارد کنید.');
+    return;
+  }
+  const res = await requestPasswordReset(email);
+  if (res.ok) {
+    showToast(isEn ? '📧 Reset link sent. Check your inbox.' : '📧 لینک بازیابی ارسال شد؛ ایمیل خود را بررسی کنید.');
+  } else {
+    showToast(isEn ? '⚠️ Could not send the reset link.' : '⚠️ ارسال لینک بازیابی انجام نشد.');
+  }
+}
+// <<< PASSWORD_RECOVERY_END
+
+// >>> CLOUD_PULL_BEGIN
+// ==============================================================================
+// ⬇️ Cloud Pull / Read Sync
+// ------------------------------------------------------------------------------
+// Reads ONLY the authenticated account's own rows, and merges them into the
+// current scoped v10 store. Gated by CLOUD_SYNC_GATE, so it is unreachable while
+// the gate is closed.
+//
+// MERGE RULES
+//   * A row with an unresolved (pending or conflict) outbox operation is NEVER
+//     merged: unsynced local work and unresolved conflicts are protected.
+//   * A cloud tombstone (deleted_at) removes the local counterpart. It can never
+//     be resurrected by an older local record.
+//   * The cloud revision is remembered per row so later edits can CAS correctly.
+// ==============================================================================
+
+const CLOUD_OWNED_TABLES = [
+  'user_routines', 'workout_logs', 'body_metrics',
+  'user_custom_exercises', 'workout_set_states'
+];
+
+const CLOUD_REVISIONS_KIND = 'cloud_revisions';
+
+function knownRevisionFor(rowKey) {
+  const map = scopedGetJSON(CLOUD_REVISIONS_KIND, null, null);
+  if (!map || typeof map !== 'object') return null;
+  const v = map[rowKey];
+  return (typeof v === 'number') ? v : null;
+}
+
+function rememberRevision(rowKey, revision) {
+  if (!rowKey || typeof revision !== 'number') return;
+  const existing = scopedGetJSON(CLOUD_REVISIONS_KIND, null, null);
+  const map = (existing && typeof existing === 'object') ? existing : {};
+  map[rowKey] = revision;
+  scopedSetJSON(CLOUD_REVISIONS_KIND, null, map);
+}
+
+// True when the row still has unsynced local work or an unresolved conflict.
+function outboxHasUnresolvedFor(rowKey) {
+  if (!rowKey) return false;
+  return readOutbox().some(op =>
+    op && op.rowKey === rowKey && (op.status === 'pending' || op.status === 'conflict'));
+}
+
+async function selectOwnedRows(table, userId) {
+  const res = await supabaseClient.from(table).select('*').eq('user_id', userId);
+  if (res && res.error) throw new Error(res.error.message || 'select_failed');
+  return Array.isArray(res && res.data) ? res.data : [];
+}
+
+function mergeCloudRoutine(row, stats) {
+  const key = row && row.profile_key;
+  if (!key) return;
+  if (outboxHasUnresolvedFor(key)) { stats.deferred++; return; }
+
+  const idx = allProfiles.findIndex(p => p && p.id === key);
+
+  if (row.deleted_at) {
+    if (idx >= 0) { allProfiles.splice(idx, 1); stats.tombstones++; }
+    return;
+  }
+
+  const data = (row.profile_data && typeof row.profile_data === 'object') ? row.profile_data : null;
+  const days = (row.routine_data && Array.isArray(row.routine_data.days)) ? row.routine_data.days : null;
+
+  if (idx >= 0) {
+    const localPin = allProfiles[idx].pin;                 // B3: pin is device-local
+    if (data) allProfiles[idx] = Object.assign({}, allProfiles[idx], data);
+    if (days) allProfiles[idx].days = days;
+    if (localPin !== undefined) allProfiles[idx].pin = localPin;
+    else delete allProfiles[idx].pin;
+  } else {
+    const created = Object.assign({ id: key }, data || {});
+    delete created.pin;
+    if (days) created.days = days;
+    allProfiles.push(created);
+  }
+  if (typeof row.revision === 'number') rememberRevision(key, row.revision);
+  stats.routines++;
+}
+
+function mergeCloudLog(row, stats) {
+  const pid = row && row.profile_key;
+  const exId = row && row.exercise_id;
+  const clientId = row && row.client_record_id;
+  if (!pid || !exId || !clientId) return;
+  if (outboxHasUnresolvedFor(clientId)) { stats.deferred++; return; }
+
+  const entry = row.log_entry;
+  if (!entry || entry.timestamp === undefined) return;
+
+  const sub = pid + ':' + exId;
+  const local = scopedGetJSON('logs', sub, []);
+  const list = Array.isArray(local) ? local : [];
+  const at = list.findIndex(l => l && l.timestamp === entry.timestamp);
+
+  if (row.deleted_at) {
+    if (at >= 0) { list.splice(at, 1); scopedSetJSON('logs', sub, list); stats.tombstones++; }
+    return;
+  }
+  if (at < 0) {
+    list.push(entry);
+    list.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+    scopedSetJSON('logs', sub, list);
+    stats.logs++;
+  }
+  if (typeof row.revision === 'number') rememberRevision(clientId, row.revision);
+}
+
+function mergeCloudMetric(row, stats) {
+  const pid = row && row.profile_key;
+  const clientId = row && row.client_record_id;
+  const rec = row && row.metric_record;
+  if (!pid || !clientId || !rec) return;
+  if (outboxHasUnresolvedFor(clientId)) { stats.deferred++; return; }
+
+  const local = scopedGetJSON('metrics', pid, []);
+  const list = Array.isArray(local) ? local : [];
+  const at = list.findIndex(m => m && (m.id === rec.id || m.timestamp === rec.timestamp));
+
+  if (row.deleted_at) {
+    if (at >= 0) { list.splice(at, 1); scopedSetJSON('metrics', pid, list); stats.tombstones++; }
+    return;
+  }
+  if (at < 0) {
+    list.push(rec);
+    scopedSetJSON('metrics', pid, list);
+    stats.metrics++;
+  }
+  if (typeof row.revision === 'number') rememberRevision(clientId, row.revision);
+}
+
+function mergeCloudCustomExercise(row, stats) {
+  const clientId = row && row.client_record_id;
+  const data = row && row.exercise_data;
+  if (!clientId || !data || !data.id) return;
+  if (outboxHasUnresolvedFor(clientId)) { stats.deferred++; return; }
+
+  const at = customExercises.findIndex(e => e && e.id === data.id);
+  if (row.deleted_at) {
+    if (at >= 0) { customExercises.splice(at, 1); scopedSetJSON('custom_exercises', null, customExercises); stats.tombstones++; }
+    return;
+  }
+  if (at < 0) {
+    customExercises.push(data);
+    scopedSetJSON('custom_exercises', null, customExercises);
+    stats.customExercises++;
+  }
+  if (typeof row.revision === 'number') rememberRevision(clientId, row.revision);
+}
+
+function mergeCloudSetState(row, stats) {
+  const pid = row && row.profile_key;
+  const weekKey = row && row.week_key;
+  if (!pid || !weekKey) return;
+  const rowKey = pid + '|' + weekKey;
+  if (outboxHasUnresolvedFor(rowKey)) { stats.deferred++; return; }
+
+  if (row.deleted_at) {
+    if (scopedGetJSON('sets', pid, null)) { scopedRemove('sets', pid); stats.tombstones++; }
+    return;
+  }
+  const incoming = row.state_data;
+  if (!incoming || typeof incoming !== 'object') return;
+
+  const local = scopedGetJSON('sets', pid, null);
+  if (local && typeof local === 'object' && (local.weekKey === weekKey)) {
+    const localTime = local.updatedAt || 0;
+    const remoteTime = incoming.updatedAt || 0;
+    if (localTime > remoteTime) { stats.deferred++; return; }   // newer local wins
+  }
+  scopedSetJSON('sets', pid, incoming);
+  if (typeof row.revision === 'number') rememberRevision(rowKey, row.revision);
+  stats.setStates++;
+}
+
+async function pullFromCloudNow() {
+  if (!isCloudSyncEnabled()) return { skipped: true, reason: 'cloud_sync_disabled' };
+  if (typeof navigator !== 'undefined' && navigator && navigator.onLine === false) {
+    return { skipped: true, reason: 'offline' };
+  }
+  if (typeof getAuthenticatedSupabaseUserId !== 'function') return { skipped: true, reason: 'no_identity_helper' };
+  const userId = await getAuthenticatedSupabaseUserId();
+  if (!userId) return { skipped: true, reason: 'no_authenticated_session' };
+  if (!supabaseClient) return { skipped: true, reason: 'no_client' };
+
+  const stats = { routines: 0, logs: 0, metrics: 0, customExercises: 0, setStates: 0, deferred: 0, tombstones: 0 };
+
+  try {
+    // Every read is explicitly scoped to the authenticated account's own rows.
+    (await selectOwnedRows('user_routines', userId)).forEach(r => mergeCloudRoutine(r, stats));
+    (await selectOwnedRows('workout_logs', userId)).forEach(r => mergeCloudLog(r, stats));
+    (await selectOwnedRows('body_metrics', userId)).forEach(r => mergeCloudMetric(r, stats));
+    (await selectOwnedRows('user_custom_exercises', userId)).forEach(r => mergeCloudCustomExercise(r, stats));
+    (await selectOwnedRows('workout_set_states', userId)).forEach(r => mergeCloudSetState(r, stats));
+
+    scopedSetJSON('profiles', null, allProfiles);
+    if (typeof renderApp === 'function') { try { renderApp(true); } catch (e) {} }
+  } catch (e) {
+    return { skipped: false, error: (e && e.message) || 'pull_failed', stats: stats };
+  }
+  return { skipped: false, stats: stats };
+}
+// <<< CLOUD_PULL_END
+
+// >>> CONFLICT_UI_BEGIN
+// ==============================================================================
+// ⚖️ Conflict Resolver UI
+// ------------------------------------------------------------------------------
+// Surfaces resolveOutboxConflict(). A winner is NEVER chosen automatically.
+// Choices that would be unsafe for a given operation are HIDDEN rather than
+// implemented speculatively.
+// ==============================================================================
+
+// 'keep_cloud'  always safe: drops the local queued operation.
+// 'cancel'      always safe: leaves the conflict unresolved.
+// 'keep_local'  needs the current cloud revision -> only offered while the gate is open.
+// 'keep_both'   needs a client_record_id and must not be a tombstone.
+// (outboxConflictChoices() itself lives with the resolver, in the outbox block.)
+
+function describeOutboxConflict(op) {
+  if (!op) return '';
+  const p = op.payload || {};
+  const record = p.p_client_record_id || p.p_profile_key || op.rowKey || '';
+  const profile = p.p_profile_key || (p.p_week_key ? p.p_profile_key : '') || '';
+  return [op.kind, profile ? ('profile=' + profile) : '', record ? ('record=' + record) : '']
+    .filter(Boolean).join(' · ');
+}
+
+// Fetch the current cloud revision for a conflicted row, so "keep local" can be
+// issued as a correct compare-and-set. Gated: never runs while the gate is closed.
+async function fetchRowRevision(op) {
+  if (!isCloudSyncEnabled()) return { ok: false, reason: 'cloud_sync_disabled' };
+  const userId = await getAuthenticatedSupabaseUserId();
+  if (!userId || !supabaseClient) return { ok: false, reason: 'no_authenticated_session' };
+  const p = op.payload || {};
+  const tableByKind = {
+    upsert_routine: 'user_routines', tombstone_routine: 'user_routines',
+    upsert_workout_log: 'workout_logs', update_workout_log: 'workout_logs', tombstone_workout_log: 'workout_logs',
+    upsert_body_metric: 'body_metrics', update_body_metric: 'body_metrics', tombstone_body_metric: 'body_metrics',
+    upsert_custom_exercise: 'user_custom_exercises', tombstone_custom_exercise: 'user_custom_exercises',
+    upsert_set_state: 'workout_set_states', tombstone_set_state: 'workout_set_states'
+  };
+  const table = tableByKind[op.kind];
+  if (!table) return { ok: false, reason: 'unsupported_operation' };
+  try {
+    let query = supabaseClient.from(table).select('revision').eq('user_id', userId);
+    if (p.p_client_record_id) query = query.eq('client_record_id', p.p_client_record_id);
+    else if (p.p_profile_key && p.p_week_key) query = query.eq('profile_key', p.p_profile_key).eq('week_key', p.p_week_key);
+    else if (p.p_profile_key) query = query.eq('profile_key', p.p_profile_key);
+    else return { ok: false, reason: 'unsupported_operation' };
+    const res = await query.maybeSingle();
+    if (res && res.error) return { ok: false, reason: 'read_failed' };
+    if (!res || !res.data || typeof res.data.revision !== 'number') return { ok: false, reason: 'row_not_found' };
+    return { ok: true, revision: res.data.revision };
+  } catch (e) {
+    return { ok: false, reason: 'read_failed' };
+  }
+}
+
+function openConflictResolver() {
+  const modal = document.getElementById('conflictResolverModal');
+  if (!modal) return;
+  renderConflictList();
+  modal.classList.add('open');
+}
+
+function closeConflictResolver() {
+  document.getElementById('conflictResolverModal')?.classList.remove('open');
+}
+
+function renderConflictList() {
+  const box = document.getElementById('conflictListBox');
+  if (!box) return;
+  const isEn = (typeof currentLang !== 'undefined' && currentLang === 'en');
+  const conflicts = listOutboxConflicts();
+
+  if (!conflicts.length) {
+    box.innerHTML = isEn
+      ? '<div style="color:#94a3b8; font-size:12px;">No unresolved conflicts. 🎉</div>'
+      : '<div style="color:#94a3b8; font-size:12px;">هیچ تعارض حل‌نشده‌ای وجود ندارد. 🎉</div>';
+    return;
+  }
+
+  const labels = {
+    keep_cloud: isEn ? 'Keep cloud' : 'نسخه ابری',
+    keep_local: isEn ? 'Keep local / overwrite' : 'نسخه محلی (بازنویسی)',
+    keep_both: isEn ? 'Duplicate as new record' : 'ثبت به‌عنوان رکورد جدید',
+    cancel: isEn ? 'Leave unresolved' : 'بدون تغییر'
+  };
+
+  box.innerHTML = conflicts.map(op => {
+    const choices = outboxConflictChoices(op);
+    const buttons = choices.map(ch =>
+      `<button class="btn-header-action" style="padding:4px 8px; font-size:10.5px;" onclick="applyConflictChoice('${op.id}','${ch}')">${labels[ch]}</button>`
+    ).join(' ');
+    return `<div style="border:1px solid var(--border-light); border-radius:8px; padding:8px; margin-bottom:6px;">
+      <div style="font-size:11.5px; color:#fbbf24; font-weight:800;">⚠️ ${describeOutboxConflict(op)}</div>
+      <div style="font-size:10.5px; color:#94a3b8; margin:3px 0 6px;">${isEn ? 'Cloud and local revisions differ. Choose explicitly.' : 'نسخه ابری و محلی متفاوت‌اند. انتخاب شما لازم است.'}</div>
+      <div style="display:flex; gap:6px; flex-wrap:wrap;">${buttons}</div>
+    </div>`;
+  }).join('');
+}
+
+async function applyConflictChoice(opId, resolution) {
+  const isEn = (typeof currentLang !== 'undefined' && currentLang === 'en');
+  const res = await resolveOutboxConflict(opId, resolution);
+  if (res && res.ok) {
+    showToast(isEn ? '✅ Conflict updated.' : '✅ تعارض به‌روزرسانی شد.');
+  } else {
+    const reason = (res && res.reason) || 'unknown';
+    showToast(isEn ? `⚠️ Could not apply that choice (${reason}).` : `⚠️ اعمال این انتخاب ممکن نشد (${reason}).`);
+  }
+  renderConflictList();
+  updateConflictBadge();
+}
+// <<< CONFLICT_UI_END
+
 const WEEK_DAYS = ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'روز تمرینی ۱', 'روز تمرینی ۲', 'روز تمرینی ۳', 'روز تمرینی ۴'];
 
 // --- Multilingual Support (i18n: Persian / English) ---
@@ -7335,6 +8905,7 @@ function setLocalAuthSession(user, profile) {
   } catch(e) {}
   serverAdminVerified = false;
   updateAuthUI(null);
+  applyAccountScopeChange();
 }
 
 function loadStoredLocalAuthSession() {
@@ -7347,6 +8918,7 @@ function loadStoredLocalAuthSession() {
       currentUserProfile = rawProf ? JSON.parse(rawProf) : null;
       serverAdminVerified = false;
       updateAuthUI(null);
+      applyAccountScopeChange();
     }
   } catch(e) {}
 }
@@ -7439,9 +9011,12 @@ async function restoreEncryptedVaultForUser(userKey, password) {
       if (decrypted.logs && typeof decrypted.logs === 'object') {
         for (const [key, logList] of Object.entries(decrypted.logs)) {
           if (Array.isArray(logList)) {
-            const raw = localStorage.getItem(key);
-            const localList = raw ? JSON.parse(raw) : [];
-            const seen = new Set(localList.map(l => l.timestamp));
+            const parsedKey = parseScopedLogKey(key);
+            if (!parsedKey) continue;
+            const sub = parsedKey.profileId + ':' + parsedKey.exerciseId;
+            const existing = scopedGetJSON('logs', sub, []);
+            const localList = Array.isArray(existing) ? existing : [];
+            const seen = new Set(localList.map(l => l && l.timestamp));
             logList.forEach(item => {
               if (!seen.has(item.timestamp)) {
                 localList.push(item);
@@ -7449,7 +9024,7 @@ async function restoreEncryptedVaultForUser(userKey, password) {
               }
             });
             localList.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
-            localStorage.setItem(key, JSON.stringify(localList));
+            scopedSetJSON('logs', sub, localList);
           }
         }
       }
@@ -7576,21 +9151,11 @@ function submitAdminAccessPin() {
 try { initLanguage(); } catch(e) {}
 
 function loadAppData() {
-  try {
-    const rawCustEx = localStorage.getItem('chieftain_custom_exercises');
-    if (rawCustEx) customExercises = JSON.parse(rawCustEx);
-  } catch(e) { customExercises = []; }
+  customExercises = scopedGetJSON('custom_exercises', null, []);
+  if (!Array.isArray(customExercises)) customExercises = [];
 
-  try {
-    const rawProfiles = localStorage.getItem('chieftain_profiles_v9') || localStorage.getItem('chieftain_profiles_v8') || localStorage.getItem('chieftain_profiles_v7') || localStorage.getItem('chieftain_profiles_v6');
-    if (rawProfiles) {
-      allProfiles = JSON.parse(rawProfiles);
-    } else {
-      allProfiles = [];
-    }
-  } catch(e) {
-    allProfiles = [];
-  }
+  allProfiles = scopedGetJSON('profiles', null, []);
+  if (!Array.isArray(allProfiles)) allProfiles = [];
 
   // Preserve user profiles intact without destructive overwriting
   allProfiles = allProfiles.map(p => {
@@ -7632,9 +9197,14 @@ function loadAppData() {
     tFemale.pin = 'inci';
   }
 
+  masterExerciseOverrides = scopedGetJSON('master_overrides', null, {});
+  if (!masterExerciseOverrides || typeof masterExerciseOverrides !== 'object' || Array.isArray(masterExerciseOverrides)) {
+    masterExerciseOverrides = {};
+  }
+
   saveProfiles();
 
-  const savedActiveId = localStorage.getItem('chieftain_active_profile_id');
+  const savedActiveId = scopedGetRaw('active_profile_id', null);
   if (savedActiveId && allProfiles.some(p => p.id === savedActiveId)) {
     activeProfileId = savedActiveId;
   } else if (allProfiles.length > 0) {
@@ -7645,19 +9215,19 @@ function loadAppData() {
 }
 
 function saveProfiles() {
-  localStorage.setItem('chieftain_profiles_v9', JSON.stringify(allProfiles));
+  scopedSetJSON('profiles', null, allProfiles);
+  // Queue each profile as a registry row. Coalesced per profile key, so repeated
+  // saves collapse into a single pending operation.
+  if (typeof enqueueRoutineUpsert === 'function' && Array.isArray(allProfiles)) {
+    allProfiles.forEach(p => { if (p && p.id) enqueueRoutineUpsert(p); });
+  }
   if (typeof pushToCloudStorage === 'function' && isAutoCloudSyncEnabled()) {
     pushToCloudStorage(true);
   }
 }
 
-// Master Exercise Overrides & Admin State
+// Master Exercise Overrides & Admin State (loaded per account scope in loadAppData)
 let masterExerciseOverrides = {};
-try {
-  masterExerciseOverrides = JSON.parse(localStorage.getItem('chieftain_master_overrides') || '{}');
-} catch(e) {
-  masterExerciseOverrides = {};
-}
 
 function isAdminUnlocked() {
   // 1. Server-verified role from Supabase profiles table or JWT app_metadata
@@ -7764,14 +9334,14 @@ function updateAdminUI() {
 }
 
 function saveMasterOverrides() {
-  localStorage.setItem('chieftain_master_overrides', JSON.stringify(masterExerciseOverrides));
+  scopedSetJSON('master_overrides', null, masterExerciseOverrides);
   if (typeof pushToCloudStorage === 'function' && isAutoCloudSyncEnabled()) {
     pushToCloudStorage(true);
   }
 }
 
 function saveCustomExercises() {
-  localStorage.setItem('chieftain_custom_exercises', JSON.stringify(customExercises));
+  scopedSetJSON('custom_exercises', null, customExercises);
   if (typeof pushToCloudStorage === 'function' && isAutoCloudSyncEnabled()) {
     pushToCloudStorage(true);
   }
@@ -9679,7 +11249,7 @@ function updateProfilePin() {
 // --- Profile Switching & Creation ---
 function onProfileChange(newId) {
   activeProfileId = newId;
-  localStorage.setItem('chieftain_active_profile_id', newId);
+  scopedSetRaw('active_profile_id', null, newId);
   renderApp();
   if (activeMainTab === 'metrics') {
     renderBodyMetricsView();
@@ -9729,7 +11299,7 @@ function saveNewProfile() {
   allProfiles.push(newProf);
   saveProfiles();
   activeProfileId = newId;
-  localStorage.setItem('chieftain_active_profile_id', newId);
+  scopedSetRaw('active_profile_id', null, newId);
   closeNewProfileModal();
   renderApp();
   showToast(`✨ برنامه شخصی "${name}" با موفقیت ایجاد و ذخیره شد.`);
@@ -9744,9 +11314,12 @@ function deleteActiveProfile() {
 
   if (confirm(`آیا از حذف کامل برنامه "${prof.name}" اطمینان دارید؟`)) {
     allProfiles = allProfiles.filter(p => p.id !== prof.id);
+    if (typeof enqueueRoutineTombstone === 'function') {
+      enqueueRoutineTombstone(prof.id);
+    }
     saveProfiles();
     activeProfileId = allProfiles.length > 0 ? allProfiles[0].id : 'template_male';
-    localStorage.setItem('chieftain_active_profile_id', activeProfileId);
+    scopedSetRaw('active_profile_id', null, activeProfileId);
     closeEditPlanModal();
     renderApp();
     showToast('برنامه با موفقیت حذف شد.');
@@ -9771,7 +11344,7 @@ function factoryResetActiveProfile() {
 function resetCurrentSets() {
   const prof = getActiveProfile();
   if (confirm(`آیا می‌خواهید تمام تیک‌های ست‌های ثبت‌شده برای "${prof.name}" ریست شوند تا جلسه تمرینی جدید را شروع کنید؟`)) {
-    localStorage.removeItem('chieftain_sets_' + activeProfileId);
+    scopedRemove('sets', activeProfileId);
     document.querySelectorAll('.set-btn').forEach(btn => btn.classList.remove('done'));
     document.querySelectorAll('.exercise-card').forEach(card => card.classList.remove('completed'));
     updateAllProgressBars();
@@ -10489,14 +12062,12 @@ function confirmAddExerciseToDay() {
 
 // --- Workout Logger & Progressive Overload Tracking ---
 function getExerciseLogs(exId) {
-  try {
-    const raw = localStorage.getItem('chieftain_logs_' + activeProfileId + '_' + exId);
-    return raw ? JSON.parse(raw) : [];
-  } catch(e) { return []; }
+  const logs = scopedGetJSON('logs', activeProfileId + ':' + exId, []);
+  return Array.isArray(logs) ? logs : [];
 }
 
 function saveExerciseLogsList(exId, logs) {
-  localStorage.setItem('chieftain_logs_' + activeProfileId + '_' + exId, JSON.stringify(logs));
+  scopedSetJSON('logs', activeProfileId + ':' + exId, logs);
 }
 
 function isExerciseIsometric(ex) {
@@ -10520,13 +12091,13 @@ function autoDraftLogInput() {
     }
     const note = document.getElementById('logNoteInput')?.value || '';
     const draft = { timestamp: Date.now(), sets, note, isIso };
-    localStorage.setItem('chieftain_draft_log_' + activeProfileId + '_' + exId, JSON.stringify(draft));
+    scopedSetJSON('draft', activeProfileId + ':' + exId, draft);
   } catch(e) {}
 }
 
 function clearDraftLog(exId) {
   try {
-    localStorage.removeItem('chieftain_draft_log_' + activeProfileId + '_' + exId);
+    scopedRemove('draft', activeProfileId + ':' + exId);
   } catch(e) {}
 }
 
@@ -10543,7 +12114,7 @@ function openLogModal(exId, exFa, dayId, setsCount) {
   // Check for existing saved draft
   let draft = null;
   try {
-    const draftRaw = localStorage.getItem('chieftain_draft_log_' + activeProfileId + '_' + exId);
+    const draftRaw = scopedGetRaw('draft', activeProfileId + ':' + exId);
     if (draftRaw) draft = JSON.parse(draftRaw);
   } catch(e) {}
 
@@ -10670,6 +12241,9 @@ function saveExerciseLog() {
     });
 
     saveExerciseLogsList(exId, logs);
+    if (typeof enqueueLogUpsert === 'function') {
+      enqueueLogUpsert(activeProfileId, exId, logs[logs.length - 1]);
+    }
     clearDraftLog(exId);
     closeLogModal();
     showToast(isIso ? `✅ لاگ ایزومتریک "${exFa}" ثبت شد! (${totalVolume} ثانیه مجموع انقباض)` : `✅ لاگ تمرین برای "${exFa}" ثبت شد! (حجم کل: ${totalVolume} kg)`);
@@ -10677,9 +12251,6 @@ function saveExerciseLog() {
     // Auto-sync to cloud immediately so progress is never lost across devices
     if (typeof pushToCloudStorage === 'function') {
       pushToCloudStorage(true);
-    }
-    if (typeof pushLogToSupabase === 'function') {
-      pushLogToSupabase(exId, logs[logs.length - 1]);
     }
   } catch(err) {
     console.error('Error saving exercise log:', err);
@@ -11262,6 +12833,9 @@ function saveCustomExercise() {
   };
 
   customExercises.push(newEx);
+  if (typeof enqueueCustomExerciseUpsert === 'function') {
+    enqueueCustomExerciseUpsert(newEx);
+  }
   saveCustomExercises();
   closeCustomExerciseModal();
   applyLibraryFilters();
@@ -11306,7 +12880,6 @@ function getIranianWeekKey(date = new Date()) {
 }
 
 function saveSetsState() {
-  const stateKey = 'chieftain_sets_' + activeProfileId;
   const state = {};
   document.querySelectorAll('.exercise-card').forEach(card => {
     const exId = card.getAttribute('data-ex-id');
@@ -11320,7 +12893,10 @@ function saveSetsState() {
     updatedAt: Date.now(),
     sets: state
   };
-  localStorage.setItem(stateKey, JSON.stringify(payload));
+  scopedSetJSON('sets', activeProfileId, payload);
+  if (typeof enqueueSetStateUpsert === 'function') {
+    enqueueSetStateUpsert(activeProfileId, payload.weekKey, payload);
+  }
   if (typeof pushToCloudStorage === 'function' && isAutoCloudSyncEnabled()) {
     pushToCloudStorage(true);
   }
@@ -11328,8 +12904,7 @@ function saveSetsState() {
 
 function loadSavedSets() {
   try {
-    const stateKey = 'chieftain_sets_' + activeProfileId;
-    const raw = localStorage.getItem(stateKey);
+    const raw = scopedGetRaw('sets', activeProfileId);
     const currentWeek = getIranianWeekKey();
 
     // Reset card completed classes and button done states in DOM first
@@ -11359,11 +12934,11 @@ function loadSavedSets() {
     // If new Iranian week has arrived (or legacy data from previous week without weekKey):
     if (!savedWeek || savedWeek !== currentWeek) {
       console.log(`[Chieftain] New Iranian week detected (${currentWeek} vs saved ${savedWeek}). Resetting weekly checklist.`);
-      localStorage.setItem(stateKey, JSON.stringify({
+      scopedSetJSON('sets', activeProfileId, {
         weekKey: currentWeek,
         updatedAt: Date.now(),
         sets: {}
-      }));
+      });
       return;
     }
 
@@ -11639,6 +13214,26 @@ document.addEventListener('DOMContentLoaded', () => {
   try { loadStoredLocalAuthSession(); } catch(e) {}
   try { initSupabase(); } catch(e) {}
 
+  // Online-event flush: drain the account-scoped outbox when connectivity returns.
+  window.addEventListener('online', () => {
+    if (typeof scheduleOutboxFlush === 'function') scheduleOutboxFlush(0);
+  });
+  if (typeof updateConflictBadge === 'function') {
+    try { updateConflictBadge(); } catch(e) {}
+  }
+
+  // Password recovery: surface an invalid or expired recovery link explicitly.
+  if (typeof detectRecoveryUrlError === 'function') {
+    const recoveryError = detectRecoveryUrlError();
+    if (recoveryError) {
+      try {
+        showToast(currentLang === 'en'
+          ? '⚠️ This password reset link is invalid or has expired. Please request a new one.'
+          : '⚠️ لینک بازیابی رمز نامعتبر است یا منقضی شده است. لطفاً لینک جدیدی درخواست کنید.');
+      } catch(e) {}
+    }
+  }
+
   // Background Auto-Sync from Cloud on startup
   if (navigator.onLine && isAutoCloudSyncEnabled()) {
     pullFromCloudStorage(true);
@@ -11745,7 +13340,7 @@ function restoreProfilesMetricsMap(metricsMap) {
   if (metricsMap && typeof metricsMap === 'object') {
     Object.keys(metricsMap).forEach(pId => {
       if (Array.isArray(metricsMap[pId])) {
-        localStorage.setItem(`chieftain_metrics_${pId}`, JSON.stringify(metricsMap[pId]));
+        scopedSetJSON('metrics', pId, metricsMap[pId]);
       }
     });
     if (activeMainTab === 'metrics') {
@@ -11754,80 +13349,95 @@ function restoreProfilesMetricsMap(metricsMap) {
   }
 }
 
-function getAllProfilesLogsMap() {
-  const logsMap = {};
-  try {
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith('chieftain_logs_')) {
-        try {
-          logsMap[key] = JSON.parse(localStorage.getItem(key));
-        } catch(e) {}
-      }
+// --- Scoped backup map helpers ------------------------------------------------
+// Both maps cover the CURRENT account scope only. A key belonging to any other
+// scope can never appear here, because scopedSubKeys() filters on the current
+// scope prefix.
+//
+// Log keys are emitted as "<profileId>:<exerciseId>". The parsers also accept the
+// historical "chieftain_logs_<profileId>_<exerciseId>" shape so that backup files
+// produced by earlier versions still import correctly.
+
+function parseScopedLogKey(key) {
+  if (!key || typeof key !== 'string') return null;
+  if (key.indexOf(':') >= 0) {
+    const i = key.indexOf(':');
+    return { profileId: key.slice(0, i), exerciseId: key.slice(i + 1) };
+  }
+  const rest = key.replace(/^chieftain_logs_/, '');
+  if (Array.isArray(allProfiles)) {
+    const ids = allProfiles.map(p => p && p.id).filter(Boolean).sort((a, b) => b.length - a.length);
+    for (let i = 0; i < ids.length; i++) {
+      const id = ids[i];
+      if (rest.startsWith(id + '_')) return { profileId: id, exerciseId: rest.slice(id.length + 1) };
     }
-  } catch(e) {}
+  }
+  return null;
+}
+
+function parseScopedSetKey(key) {
+  if (!key || typeof key !== 'string') return null;
+  return key.replace(/^chieftain_sets_/, '');
+}
+
+function getScopedLogsMap() {
+  const logsMap = {};
+  scopedSubKeys('logs').forEach(sub => {
+    const parsed = parseScopedLogKey(sub);
+    if (!parsed) return;
+    logsMap[parsed.profileId + ':' + parsed.exerciseId] = scopedGetJSON('logs', sub, null);
+  });
   return logsMap;
 }
 
 function restoreProfilesLogsMap(logsMap) {
   if (!logsMap || typeof logsMap !== 'object') return;
   Object.keys(logsMap).forEach(key => {
-    if (key && key.startsWith('chieftain_logs_')) {
-      try {
-        const remoteLogs = logsMap[key];
-        if (Array.isArray(remoteLogs)) {
-          const localRaw = localStorage.getItem(key);
-          const localLogs = localRaw ? JSON.parse(localRaw) : [];
-          const seenTimestamps = new Set(localLogs.map(l => l.timestamp));
-          remoteLogs.forEach(r => {
-            if (r && r.timestamp && !seenTimestamps.has(r.timestamp)) {
-              localLogs.push(r);
-              seenTimestamps.add(r.timestamp);
-            }
-          });
-          localLogs.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
-          localStorage.setItem(key, JSON.stringify(localLogs));
-        }
-      } catch(e) {}
-    }
+    const parsed = parseScopedLogKey(key);
+    if (!parsed) return;
+    const remoteLogs = logsMap[key];
+    if (!Array.isArray(remoteLogs)) return;
+    const sub = parsed.profileId + ':' + parsed.exerciseId;
+    const localLogs = scopedGetJSON('logs', sub, []);
+    const safeLocal = Array.isArray(localLogs) ? localLogs : [];
+    const seenTimestamps = new Set(safeLocal.map(l => l && l.timestamp));
+    remoteLogs.forEach(r => {
+      if (r && r.timestamp && !seenTimestamps.has(r.timestamp)) {
+        safeLocal.push(r);
+        seenTimestamps.add(r.timestamp);
+      }
+    });
+    safeLocal.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+    scopedSetJSON('logs', sub, safeLocal);
   });
 }
 
-function getAllProfilesSetsMap() {
+function getScopedSetsMap() {
   const setsMap = {};
-  try {
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith('chieftain_sets_')) {
-        try {
-          setsMap[key] = JSON.parse(localStorage.getItem(key));
-        } catch(e) {}
-      }
-    }
-  } catch(e) {}
+  scopedSubKeys('sets').forEach(sub => {
+    const profileId = parseScopedSetKey(sub);
+    if (!profileId) return;
+    setsMap[profileId] = scopedGetJSON('sets', sub, null);
+  });
   return setsMap;
 }
 
 function restoreProfilesSetsMap(setsMap) {
   if (!setsMap || typeof setsMap !== 'object') return;
   Object.keys(setsMap).forEach(key => {
-    if (key && key.startsWith('chieftain_sets_')) {
-      try {
-        const remoteData = setsMap[key];
-        if (remoteData && typeof remoteData === 'object') {
-          const localRaw = localStorage.getItem(key);
-          if (!localRaw) {
-            localStorage.setItem(key, JSON.stringify(remoteData));
-          } else {
-            const localData = JSON.parse(localRaw);
-            const remoteTime = remoteData.updatedAt || 0;
-            const localTime = localData.updatedAt || 0;
-            if (remoteTime >= localTime) {
-              localStorage.setItem(key, JSON.stringify(remoteData));
-            }
-          }
-        }
-      } catch(e) {}
+    const profileId = parseScopedSetKey(key);
+    if (!profileId) return;
+    const remoteData = setsMap[key];
+    if (!remoteData || typeof remoteData !== 'object') return;
+    const localData = scopedGetJSON('sets', profileId, null);
+    if (!localData) {
+      scopedSetJSON('sets', profileId, remoteData);
+    } else {
+      const remoteTime = remoteData.updatedAt || 0;
+      const localTime = localData.updatedAt || 0;
+      if (remoteTime >= localTime) {
+        scopedSetJSON('sets', profileId, remoteData);
+      }
     }
   });
 }
@@ -11841,7 +13451,7 @@ async function pushToCloudStorage(silent = false) {
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(currentAuthUser.id || '');
     if (isUuid && typeof supabaseClient !== 'undefined' && supabaseClient && navigator.onLine) {
       try {
-        await syncCurrentDataWithSupabase();
+        scheduleOutboxFlush();
         return true;
       } catch(err) {
         if (!silent) console.error('Cloud push error:', err);
@@ -11869,7 +13479,7 @@ async function pullFromCloudStorage(silent = false) {
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(currentAuthUser.id || '');
     if (isUuid && typeof supabaseClient !== 'undefined' && supabaseClient && navigator.onLine) {
       try {
-        await syncCurrentDataWithSupabase();
+        scheduleOutboxFlush();
         return true;
       } catch(err) {
         if (!silent) console.error('Cloud pull error:', err);
@@ -11941,16 +13551,25 @@ async function quickCloudSyncAction(btn) {
     saveProfiles();
 
     if (isUuid && typeof supabaseClient !== 'undefined' && supabaseClient && navigator.onLine) {
-      showToast(isEn ? '☁️ Syncing data with Supabase...' : '☁️ در حال همگام‌سازی با سرور ابری Supabase...');
+      let result = { skipped: true, reason: 'unknown' };
       try {
-        await syncCurrentDataWithSupabase();
-        showToast(isEn ? `✅ Synchronized with cloud for ${userName}! 🟢` : `✅ تمام اطلاعات با موفقیت با فضای ابری برای ${userName} همگام شد! 🟢`);
+        result = await flushOutboxNow();
       } catch(e) {
-        console.warn('Supabase sync warning:', e);
-        showToast(isEn ? `✅ Data safely synchronized and saved locally for ${userName}! 🟢` : `✅ اطلاعات و تمرینات با امنیت کامل در دستگاه شما برای ${userName} همگام شد! 🟢`);
+        console.warn('Cloud sync warning:', e);
+      }
+      if (result.skipped && result.reason === 'cloud_sync_disabled') {
+        showToast(isEn
+          ? `✅ Saved on this device for ${userName}. Cloud sync is not enabled in this build yet.`
+          : `✅ اطلاعات برای ${userName} روی همین دستگاه ذخیره شد. همگام‌سازی ابری در این نسخه فعال نشده است.`);
+      } else if (!result.skipped) {
+        showToast(isEn
+          ? `☁️ ${result.flushed} sent, ${result.conflicted} conflict(s) for ${userName}.`
+          : `☁️ ${result.flushed} ارسال، ${result.conflicted} تعارض برای ${userName}.`);
+      } else {
+        showToast(isEn ? `✅ Saved on this device for ${userName}.` : `✅ اطلاعات برای ${userName} روی همین دستگاه ذخیره شد.`);
       }
     } else {
-      showToast(isEn ? `✅ Synchronized and saved locally for ${userName}! 🟢` : `✅ پرونده و تمام اطلاعات با موفقیت برای ${userName} همگام شد! 🟢`);
+      showToast(isEn ? `✅ Saved on this device for ${userName}.` : `✅ اطلاعات برای ${userName} روی همین دستگاه ذخیره شد.`);
     }
 
     if (btn) {
@@ -12074,6 +13693,11 @@ function initSupabase() {
 
       // Listen for auth state changes
       supabaseClient.auth.onAuthStateChange((event, session) => {
+        if (event === 'PASSWORD_RECOVERY') {
+          // Explicit recovery state. No password and no token is ever logged.
+          setPasswordRecoveryActive(true);
+          try { openSetPasswordModal(); } catch (e) {}
+        }
         if (session && session.user) {
           handleAuthSessionChanged(session.user);
         } else if (event === 'SIGNED_OUT') {
@@ -12243,13 +13867,16 @@ async function handleAuthSessionChanged(user) {
     localStorage.setItem('chieftain_last_auth_user_id', user.id);
     await fetchUserProfileAndRole(user);
   } else {
+    // No cloud identity: drop it explicitly so the account scope can never
+    // remain pinned to a signed-out user's workspace.
+    currentAuthUser = null;
     serverAdminVerified = false;
     currentUserProfile = null;
   }
   updateAuthUI(user);
-  if (user) {
-    await syncCurrentDataWithSupabase();
-  }
+  // The account scope may have changed (sign-in, restore, account switch or
+  // sign-out). Swap the workspace before anything else touches user data.
+  applyAccountScopeChange();
 }
 
 function openAuthModal() {
@@ -12383,140 +14010,55 @@ async function handleSupabaseLogout() {
     currentLocalUser = null;
     clearLocalUserData();
     updateAuthUI(null);
+    applyAccountScopeChange();
     renderApp(true);
     showToast(isEn ? 'Logged out successfully.' : 'از حساب کاربری خارج شدید.');
     closeAuthModal();
   }
 }
 
-async function pushLogToSupabase(exId, logEntry) {
-  const userId = await getAuthenticatedSupabaseUserId();
-  if (!userId) return;
-  try {
-    await supabaseClient.from('workout_logs').insert({
-      user_id: userId,
-      exercise_id: exId,
-      log_entry: logEntry,
-      created_at: new Date(logEntry.timestamp || Date.now()).toISOString()
-    });
-  } catch(e) {
-    console.error('pushLogToSupabase error:', e);
-  }
-}
-
-async function pushMetricToSupabase(metricRecord) {
-  const userId = await getAuthenticatedSupabaseUserId();
-  if (!userId) return;
-  try {
-    await supabaseClient.from('body_metrics').insert({
-      user_id: userId,
-      metric_record: metricRecord,
-      created_at: new Date(metricRecord.timestamp || Date.now()).toISOString()
-    });
-  } catch(e) {
-    console.error('pushMetricToSupabase error:', e);
-  }
-}
+// ==============================================================================
+// ☁️ Cloud sync for user data — TEMPORARILY DISABLED (STEP 2)
+// ------------------------------------------------------------------------------
+// STEP 2 replaced the unscoped local-storage model with an account-scoped one.
+// Cloud mutation/sync has NOT yet been rebuilt on top of it, so every cloud
+// read/write path for user data has been removed here. The scoped stores are
+// local-only until the outbox-based sync ships.
+//
+// REMOVED IN STEP 2 — DO NOT REINTRODUCE:
+//   * pushLogToSupabase()      direct insert of a log under the currently
+//                              authenticated UUID
+//   * pushMetricToSupabase()   the same pattern for body metrics
+//   * syncCurrentDataWithSupabase() step 1: the "first time login" routine
+//                              auto-upload
+//   * syncCurrentDataWithSupabase() step 3: enumerated EVERY chieftain_logs_*
+//                              key on the device and inserted it under whichever
+//                              account had just logged in (the cross-account leak)
+//
+// PRESERVED: fetchUserProfileAndRole(), the admin sign-in exchange, and every
+// other part of the admin authentication mechanism.
+// ==============================================================================
 
 async function syncCurrentDataWithSupabase() {
-  const userId = await getAuthenticatedSupabaseUserId();
-  if (!userId) return false;
+  // Manual / programmatic flush of the account-scoped outbox.
+  // Inert while CLOUD_SYNC_GATE.contractVerified is false.
+  const result = await flushOutboxNow();
+  const isEn = (typeof currentLang !== 'undefined' && currentLang === 'en');
 
-  try {
-    showToast('☁️ در حال همگام‌سازی با پایگاه داده اختصاصی Supabase...');
-
-    // 1. Check if user already has routines in Supabase
-    const { data: remoteRoutines } = await supabaseClient
-      .from('user_routines')
-      .select('*')
-      .eq('user_id', userId);
-
-    if (remoteRoutines && remoteRoutines.length > 0) {
-      remoteRoutines.forEach(row => {
-        if (row.profile_key && row.routine_data) {
-          const prof = allProfiles.find(p => p.id === row.profile_key);
-          if (prof) {
-            prof.days = row.routine_data.days || prof.days;
-          }
-        }
-      });
-      localStorage.setItem('chieftain_profiles_v9', JSON.stringify(allProfiles));
-    } else {
-      // First time login: auto-upload current profile routine to Supabase (Zero Data Loss)
-      const prof = getActiveProfile();
-      await supabaseClient.from('user_routines').upsert({
-        user_id: userId,
-        profile_key: prof.id,
-        routine_data: { days: prof.days },
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'user_id,profile_key' });
-    }
-
-    // 2. Fetch remote logs and merge with local logs
-    const { data: remoteLogs } = await supabaseClient
-      .from('workout_logs')
-      .select('*')
-      .eq('user_id', userId);
-
-    if (remoteLogs && remoteLogs.length > 0) {
-      remoteLogs.forEach(r => {
-        if (r.exercise_id && r.log_entry) {
-          const localLogs = getExerciseLogs(r.exercise_id);
-          const exists = localLogs.some(l => l.timestamp === r.log_entry.timestamp);
-          if (!exists) {
-            localLogs.push(r.log_entry);
-            localLogs.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
-            saveExerciseLogsList(r.exercise_id, localLogs);
-          }
-        }
-      });
-    }
-
-    // 3. Upload local logs not yet in Supabase
-    const logsMap = getAllProfilesLogsMap();
-    for (const [key, entries] of Object.entries(logsMap)) {
-      const exId = key.replace(/^chieftain_logs_[^_]+_/, '');
-      if (Array.isArray(entries)) {
-        for (const entry of entries) {
-          const remoteHas = remoteLogs && remoteLogs.some(r => r.exercise_id === exId && r.log_entry?.timestamp === entry.timestamp);
-          if (!remoteHas) {
-            await supabaseClient.from('workout_logs').insert({
-              user_id: userId,
-              exercise_id: exId,
-              log_entry: entry,
-              created_at: new Date(entry.timestamp || Date.now()).toISOString()
-            });
-          }
-        }
-      }
-    }
-
-    // 4. Remote & local body metrics sync
-    const { data: remoteMetrics } = await supabaseClient
-      .from('body_metrics')
-      .select('*')
-      .eq('user_id', userId);
-
-    if (remoteMetrics && remoteMetrics.length > 0) {
-      const localMetrics = getProfileBodyMetrics(activeProfileId);
-      remoteMetrics.forEach(r => {
-        if (r.metric_record) {
-          const exists = localMetrics.some(m => m.id === r.metric_record.id || m.timestamp === r.metric_record.timestamp);
-          if (!exists) {
-            localMetrics.push(r.metric_record);
-          }
-        }
-      });
-      saveProfileBodyMetrics(activeProfileId, localMetrics);
-    }
-
-    renderApp();
-    showToast('✅ اطلاعات و لاگ‌ها به صورت امن در دیتابیس Supabase ذخیره شدند! 🟢');
-    return true;
-  } catch(err) {
-    console.error('Supabase sync error:', err);
-    throw err;
+  if (result.skipped && result.reason === 'cloud_sync_disabled') {
+    showToast(isEn
+      ? '⚠️ Cloud sync is not enabled in this build yet. Everything is saved on this device.'
+      : '⚠️ همگام‌سازی ابری در این نسخه هنوز فعال نشده است. همه اطلاعات روی همین دستگاه ذخیره شده است.');
+  } else if (result.skipped && result.reason === 'no_authenticated_session') {
+    showToast(isEn ? 'ℹ️ Sign in to sync your data.' : 'ℹ️ برای همگام‌سازی وارد حساب خود شوید.');
+  } else if (result.skipped && result.reason === 'offline') {
+    showToast(isEn ? 'ℹ️ You are offline; changes stay queued.' : 'ℹ️ اتصال اینترنت نیست؛ تغییرات در صف می‌مانند.');
+  } else if (!result.skipped) {
+    showToast(isEn
+      ? `☁️ Sync finished — ${result.flushed} sent, ${result.conflicted} conflict(s).`
+      : `☁️ همگام‌سازی تمام شد — ${result.flushed} ارسال، ${result.conflicted} تعارض.`);
   }
+  return result;
 }
 
 
@@ -12771,7 +14313,7 @@ const BACKUP_PRELOADED_DATA = {
 function restoreBackedUpProfile(templateKey) {
   const targetId = (templateKey === 'morvarid' || templateKey === 'template_female') ? 'template_female' : 'template_male';
   activeProfileId = targetId;
-  localStorage.setItem('chieftain_active_profile_id', targetId);
+  scopedSetRaw('active_profile_id', null, targetId);
 
   let prof = allProfiles.find(p => p.id === targetId);
   if (!prof) {
@@ -12915,7 +14457,7 @@ function checkUrlSyncData() {
       if (payload && payload.profiles && Array.isArray(payload.profiles)) {
         allProfiles = payload.profiles;
         if (payload.custom) customExercises = payload.custom;
-        const localSavedActiveId = localStorage.getItem('chieftain_active_profile_id');
+        const localSavedActiveId = scopedGetRaw('active_profile_id', null);
         if (localSavedActiveId && allProfiles.some(p => p.id === localSavedActiveId)) {
           activeProfileId = localSavedActiveId;
         } else if (!allProfiles.some(p => p.id === activeProfileId)) {
@@ -12924,7 +14466,7 @@ function checkUrlSyncData() {
         if (payload.metrics) restoreProfilesMetricsMap(payload.metrics);
         if (payload.logs) restoreProfilesLogsMap(payload.logs);
         if (payload.sets) restoreProfilesSetsMap(payload.sets);
-        localStorage.setItem('chieftain_profiles_v9', JSON.stringify(allProfiles));
+        saveProfiles();
         saveCustomExercises();
         history.replaceState(null, document.title, window.location.pathname);
         showToast('🎉 برنامه‌ها، تغییرات، لاگ‌ها و ابعاد بدنی با موفقیت همگام‌سازی و ذخیره شدند!');
@@ -12945,8 +14487,8 @@ function downloadBackupJson() {
       profiles: allProfiles,
       customExercises: customExercises,
       metrics: getAllProfilesMetricsMap(),
-      logs: getAllProfilesLogsMap(),
-      sets: getAllProfilesSetsMap()
+      logs: getScopedLogsMap(),
+      sets: getScopedSetsMap()
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -13352,34 +14894,31 @@ if ('serviceWorker' in navigator) {
 // ==========================================================================
 
 function getProfileBodyMetrics(profId = activeProfileId) {
-  try {
-    let raw = localStorage.getItem(`chieftain_metrics_${profId}`);
-    if (!raw && (profId === 'template_female' || profId === 'morvarid' || profId === 'user_morvarid')) {
-      raw = localStorage.getItem('chieftain_metrics_template_female') || 
-            localStorage.getItem('chieftain_metrics_morvarid') ||
-            localStorage.getItem('chieftain_metrics_user_morvarid');
-    }
-    if (!raw && (profId === 'template_male' || profId === 'hossein_chieftain' || profId === 'admin_hossein')) {
-      raw = localStorage.getItem('chieftain_metrics_template_male') || 
-            localStorage.getItem('chieftain_metrics_hossein_chieftain') ||
-            localStorage.getItem('chieftain_metrics_admin_hossein');
-    }
-    if (raw) return JSON.parse(raw);
-  } catch(e) {}
-  return [];
+  let list = scopedGetJSON('metrics', profId, null);
+  if (!Array.isArray(list) && (profId === 'template_female' || profId === 'morvarid' || profId === 'user_morvarid')) {
+    list = scopedGetJSON('metrics', 'template_female', null) ||
+           scopedGetJSON('metrics', 'morvarid', null) ||
+           scopedGetJSON('metrics', 'user_morvarid', null);
+  }
+  if (!Array.isArray(list) && (profId === 'template_male' || profId === 'hossein_chieftain' || profId === 'admin_hossein')) {
+    list = scopedGetJSON('metrics', 'template_male', null) ||
+           scopedGetJSON('metrics', 'hossein_chieftain', null) ||
+           scopedGetJSON('metrics', 'admin_hossein', null);
+  }
+  return Array.isArray(list) ? list : [];
 }
 
 function saveProfileBodyMetrics(profId, metricsList) {
   try {
-    localStorage.setItem(`chieftain_metrics_${profId}`, JSON.stringify(metricsList));
+    scopedSetJSON('metrics', profId, metricsList);
     if (profId === 'template_female' || profId === 'morvarid') {
-      localStorage.setItem('chieftain_metrics_template_female', JSON.stringify(metricsList));
-      localStorage.setItem('chieftain_metrics_morvarid', JSON.stringify(metricsList));
-      localStorage.setItem('chieftain_metrics_user_morvarid', JSON.stringify(metricsList));
+      scopedSetJSON('metrics', 'template_female', metricsList);
+      scopedSetJSON('metrics', 'morvarid', metricsList);
+      scopedSetJSON('metrics', 'user_morvarid', metricsList);
     } else if (profId === 'template_male' || profId === 'hossein_chieftain') {
-      localStorage.setItem('chieftain_metrics_template_male', JSON.stringify(metricsList));
-      localStorage.setItem('chieftain_metrics_hossein_chieftain', JSON.stringify(metricsList));
-      localStorage.setItem('chieftain_metrics_admin_hossein', JSON.stringify(metricsList));
+      scopedSetJSON('metrics', 'template_male', metricsList);
+      scopedSetJSON('metrics', 'hossein_chieftain', metricsList);
+      scopedSetJSON('metrics', 'admin_hossein', metricsList);
     }
     if (typeof pushToCloudStorage === 'function') {
       pushToCloudStorage(true);
@@ -14971,8 +16510,8 @@ function saveBodyMetricRecord() {
   }
 
   saveProfileBodyMetrics(prof.id, list);
-  if (typeof pushMetricToSupabase === 'function') {
-    pushMetricToSupabase(record);
+  if (typeof enqueueMetricUpsert === 'function') {
+    enqueueMetricUpsert(prof.id, record);
   }
   closeAddBodyMetricModal();
   switchMainTab('metrics');

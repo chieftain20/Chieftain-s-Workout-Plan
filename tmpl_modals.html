@@ -795,6 +795,21 @@
         <span id="cloudStatusBadge" style="font-size:10.5px; padding:2px 8px; border-radius:10px; background:rgba(16,185,129,0.15); color:#34d399; font-weight:800;">🟢 آماده</span>
       </div>
 
+      <!-- Account-scoped outbox conflict indicator. Hidden unless unresolved conflicts exist. -->
+      <div id="cloudConflictRow" style="display:none; margin-bottom:8px;">
+        <span id="cloudConflictBadge" style="font-size:10.5px; padding:3px 9px; border-radius:10px; background:rgba(245,158,11,0.18); color:#fbbf24; font-weight:800;"></span>
+      </div>
+
+      <!-- Explicit legacy import + conflict resolver entry points -->
+      <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;">
+        <button class="btn-header-action" style="padding:4px 10px; font-size:10.5px;" onclick="openLegacyImportModal()">
+          <span id="legacyImportBtnText">📦 ایمپورت داده‌های قدیمی</span>
+        </button>
+        <button class="btn-header-action" style="padding:4px 10px; font-size:10.5px;" onclick="openConflictResolver()">
+          <span id="conflictResolverBtnText">⚖️ تعارض‌های همگام‌سازی</span>
+        </button>
+      </div>
+
       <!-- Cloud User Status View -->
       <div id="syncModalUserBox" style="margin-bottom:12px;"></div>
 
@@ -1139,6 +1154,9 @@
           <span>🚀</span>
           <span id="loginSubmitBtnText">ورود امن به حساب</span>
         </button>
+        <button id="forgotPasswordBtn" type="button" class="btn-header-action" style="width:100%; justify-content:center; padding:7px; font-size:11.5px;" onclick="handleForgotPasswordClick()">
+          <span id="forgotPasswordBtnText">🔑 رمز عبور را فراموش کرده‌اید؟</span>
+        </button>
       </div>
 
       <!-- Signup Form -->
@@ -1350,6 +1368,67 @@
         بستن ✕
       </button>
     </div>
+  </div>
+</div>
+
+<!-- Legacy Local Data Import (explicit, read-only discovery, never automatic) -->
+<div id="legacyImportModal" class="modal-overlay">
+  <div class="modal-content" style="max-width:460px;">
+    <h3 id="legacyImportTitle" style="margin:0 0 6px;">📦 ایمپورت داده‌های محلی قدیمی</h3>
+    <p id="legacyImportDesc" style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">
+      داده‌های ذخیره‌شده با نسخه‌های قبلی برنامه می‌توانند به این حساب منتقل شوند. کلیدهای قدیمی خوانده می‌شوند و دست‌نخورده می‌مانند؛ هیچ چیزی به سرور ارسال نمی‌شود.
+    </p>
+    <div id="legacyImportPreview" style="background:rgba(255,255,255,0.03); border:1px solid var(--border-light); border-radius:10px; padding:10px; margin-bottom:10px;"></div>
+    <div id="legacyImportResult" style="display:none; font-size:12px; font-weight:800; color:#34d399; margin-bottom:10px;"></div>
+    <div style="display:flex; gap:8px;">
+      <button id="legacyImportConfirmBtn" class="btn-header-action btn-action-primary" style="flex:1; justify-content:center; padding:9px; font-weight:800;" onclick="confirmLegacyImport()">
+        <span id="legacyImportConfirmBtnText">✅ تأیید و انتقال</span>
+      </button>
+      <button class="btn-header-action" style="flex:1; justify-content:center; padding:9px;" onclick="closeLegacyImportModal()">
+        <span id="legacyImportCancelBtnText">انصراف</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Password Recovery: set a new password after PASSWORD_RECOVERY -->
+<div id="setPasswordModal" class="modal-overlay">
+  <div class="modal-content" style="max-width:420px;">
+    <h3 id="setPasswordTitle" style="margin:0 0 6px;">🔑 تعیین رمز عبور جدید</h3>
+    <p id="setPasswordDesc" style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">
+      رمز عبور جدید خود را وارد کنید. رمز عبور هرگز ذخیره یا نمایش داده نمی‌شود.
+    </p>
+    <div style="margin-bottom:10px;">
+      <label id="newPasswordLabel" class="form-label">🔒 رمز عبور جدید:</label>
+      <input type="password" id="newPasswordInput" class="form-input" placeholder="••••••••" autocomplete="new-password" style="direction:ltr; text-align:left;">
+    </div>
+    <div style="margin-bottom:10px;">
+      <label id="confirmPasswordLabel" class="form-label">🔒 تکرار رمز عبور جدید:</label>
+      <input type="password" id="confirmPasswordInput" class="form-input" placeholder="••••••••" autocomplete="new-password" style="direction:ltr; text-align:left;">
+    </div>
+    <div id="setPasswordMessage" style="display:none; font-size:12px; font-weight:800; margin-bottom:10px;"></div>
+    <div style="display:flex; gap:8px;">
+      <button id="setPasswordSubmitBtn" class="btn-header-action btn-action-primary" style="flex:1; justify-content:center; padding:9px; font-weight:800;" onclick="handleSetNewPassword()">
+        <span id="setPasswordSubmitBtnText">💾 ذخیره رمز عبور</span>
+      </button>
+      <button class="btn-header-action" style="flex:1; justify-content:center; padding:9px;" onclick="closeSetPasswordModal()">
+        <span id="setPasswordCancelBtnText">انصراف</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Conflict Resolver: an explicit choice is always required -->
+<div id="conflictResolverModal" class="modal-overlay">
+  <div class="modal-content" style="max-width:480px;">
+    <h3 id="conflictResolverTitle" style="margin:0 0 6px;">⚖️ تعارض‌های همگام‌سازی</h3>
+    <p id="conflictResolverDesc" style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">
+      برای هر مورد، نسخه ابری و نسخه محلی با هم متفاوت‌اند. هیچ انتخابی به‌صورت خودکار انجام نمی‌شود.
+    </p>
+    <div id="conflictListBox" style="max-height:320px; overflow-y:auto; margin-bottom:10px;"></div>
+    <button class="btn-header-action" style="width:100%; justify-content:center; padding:9px;" onclick="closeConflictResolver()">
+      <span id="conflictResolverCloseBtnText">بستن</span>
+    </button>
   </div>
 </div>
 

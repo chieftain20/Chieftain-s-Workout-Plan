@@ -1,4 +1,11 @@
-"""Local regression checks ensuring local identities never become Supabase user IDs."""
+"""Local regression checks ensuring local identities never become Supabase user IDs.
+
+The guard under test is getAuthenticatedSupabaseUserId(), the single place that
+decides whether a cloud identity may be used. It is exercised directly rather
+than through a write path, because STEP 2 removed the direct cloud write helpers
+(pushLogToSupabase / pushMetricToSupabase) in favour of the account-scoped local
+storage layer. The guard itself is unchanged and is now covered more thoroughly.
+"""
 import subprocess
 from pathlib import Path
 import shutil
@@ -9,33 +16,51 @@ NODE = shutil.which("node")
 assert NODE, "Node.js is required for cloud-auth guard checks."
 
 auth_helpers = JS[JS.index("function isUuid(value)"):JS.index("function initSupabase()")]
-push_log = JS[JS.index("async function pushLogToSupabase"):JS.index("async function pushMetricToSupabase")]
+assert "async function getAuthenticatedSupabaseUserId()" in auth_helpers, \
+    "getAuthenticatedSupabaseUserId() must live between isUuid() and initSupabase()"
 source = """
 let currentAuthUser = null;
 let supabaseClient = null;
-""" + auth_helpers + push_log + r"""
+""" + auth_helpers + r"""
 (async () => {
-  const writes = [];
   supabaseClient = {
-    auth: { getSession: async () => ({ data: { session: null }, error: null }) },
-    from: (table) => ({ insert: (row) => writes.push({ table, row }) })
+    auth: { getSession: async () => ({ data: { session: null }, error: null }) }
   };
 
   // Existing local login IDs are never accepted as Supabase Auth users.
   currentAuthUser = { id: 'admin_hossein', email: 'hossein@chieftain.pro' };
-  await pushLogToSupabase('leg_curl', { timestamp: 1 });
-  if (writes.length) throw Error('Non-UUID local ID reached a Supabase insert');
+  if (await getAuthenticatedSupabaseUserId() !== null) {
+    throw Error('Non-UUID local ID was accepted as a Supabase identity');
+  }
 
+  // A UUID without a live Supabase session is not enough.
   const realId = '752b816b-40a2-4c41-a3e0-5f8ab8094397';
   currentAuthUser = { id: realId };
-  await pushLogToSupabase('leg_curl', { timestamp: 2 });
-  if (writes.length) throw Error('User ID without a live Supabase session reached an insert');
+  if (await getAuthenticatedSupabaseUserId() !== null) {
+    throw Error('User ID without a live Supabase session was accepted');
+  }
 
+  // Only the live session UUID is accepted.
   supabaseClient.auth.getSession = async () => ({ data: { session: { user: { id: realId } } }, error: null });
-  await pushLogToSupabase('leg_curl', { timestamp: 3 });
-  if (writes.length !== 1 || writes[0].row.user_id !== realId) throw Error('Cloud insert did not use the live Auth session UUID');
+  if (await getAuthenticatedSupabaseUserId() !== realId) {
+    throw Error('Live Auth session UUID was not returned');
+  }
 
-  console.log('PASS: local and sessionless IDs are blocked; live Auth session UUID is used.');
+  // A session belonging to a different user than currentAuthUser is rejected.
+  supabaseClient.auth.getSession = async () => ({
+    data: { session: { user: { id: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee' } } }, error: null
+  });
+  if (await getAuthenticatedSupabaseUserId() !== null) {
+    throw Error('A session for a different user was accepted');
+  }
+
+  // A failed session read is rejected.
+  supabaseClient.auth.getSession = async () => ({ data: { session: null }, error: new Error('session unavailable') });
+  if (await getAuthenticatedSupabaseUserId() !== null) {
+    throw Error('A failed session read was accepted');
+  }
+
+  console.log('PASS: local, sessionless and mismatched IDs are blocked; only the live Auth session UUID is accepted.');
 })().catch((error) => { console.error(error); process.exitCode = 1; });
 """
 result = subprocess.run([NODE, "-e", source], capture_output=True, text=True, encoding="utf-8")
