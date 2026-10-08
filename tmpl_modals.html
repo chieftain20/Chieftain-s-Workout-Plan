@@ -1418,6 +1418,34 @@
   </div>
 </div>
 
+<!-- Signup email confirmation (TokenHash flow). The token is consumed ONLY by the
+     explicit button below, so an email security scanner that merely fetches this
+     page cannot burn it. The token itself is never rendered. -->
+<div id="confirmEmailModal" class="modal-overlay">
+  <div class="modal-content" style="max-width:420px;">
+    <h3 id="confirmEmailTitle" style="margin:0 0 6px;">📧 تأیید ایمیل</h3>
+    <p id="confirmEmailDesc" style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">
+      برای فعال‌سازی حساب، روی دکمه زیر بزنید. تا زمانی که این دکمه را نزنید، لینک مصرف نمی‌شود.
+    </p>
+    <div id="confirmEmailMessage" style="display:none; font-size:12px; font-weight:800; margin-bottom:10px;"></div>
+    <div id="confirmEmailPromptBox">
+      <button id="confirmEmailSubmitBtn" class="btn-header-action btn-action-primary" style="width:100%; justify-content:center; padding:9px; font-weight:800;" onclick="handleConfirmEmailClick()">
+        <span id="confirmEmailSubmitBtnText">✅ تأیید ایمیل من</span>
+      </button>
+    </div>
+    <div id="confirmEmailResendBox" style="display:none; margin-top:10px;">
+      <label class="form-label" for="confirmEmailResendInput">ارسال لینک تأیید جدید به:</label>
+      <input type="email" id="confirmEmailResendInput" class="form-input" placeholder="you@example.com" autocomplete="email" style="direction:ltr; text-align:left; margin-bottom:8px;">
+      <button id="confirmEmailResendBtn" class="btn-header-action" style="width:100%; justify-content:center; padding:9px;" onclick="handleResendConfirmationEmail()">
+        <span>📨 ارسال لینک تأیید جدید</span>
+      </button>
+    </div>
+    <button class="btn-header-action" style="width:100%; justify-content:center; padding:9px; margin-top:10px;" onclick="closeConfirmEmailModal()">
+      <span>بستن</span>
+    </button>
+  </div>
+</div>
+
 <!-- Conflict Resolver: an explicit choice is always required -->
 <div id="conflictResolverModal" class="modal-overlay">
   <div class="modal-content" style="max-width:480px;">

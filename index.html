@@ -4004,6 +4004,34 @@ body[dir="ltr"],
   </div>
 </div>
 
+<!-- Signup email confirmation (TokenHash flow). The token is consumed ONLY by the
+     explicit button below, so an email security scanner that merely fetches this
+     page cannot burn it. The token itself is never rendered. -->
+<div id="confirmEmailModal" class="modal-overlay">
+  <div class="modal-content" style="max-width:420px;">
+    <h3 id="confirmEmailTitle" style="margin:0 0 6px;">📧 تأیید ایمیل</h3>
+    <p id="confirmEmailDesc" style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">
+      برای فعال‌سازی حساب، روی دکمه زیر بزنید. تا زمانی که این دکمه را نزنید، لینک مصرف نمی‌شود.
+    </p>
+    <div id="confirmEmailMessage" style="display:none; font-size:12px; font-weight:800; margin-bottom:10px;"></div>
+    <div id="confirmEmailPromptBox">
+      <button id="confirmEmailSubmitBtn" class="btn-header-action btn-action-primary" style="width:100%; justify-content:center; padding:9px; font-weight:800;" onclick="handleConfirmEmailClick()">
+        <span id="confirmEmailSubmitBtnText">✅ تأیید ایمیل من</span>
+      </button>
+    </div>
+    <div id="confirmEmailResendBox" style="display:none; margin-top:10px;">
+      <label class="form-label" for="confirmEmailResendInput">ارسال لینک تأیید جدید به:</label>
+      <input type="email" id="confirmEmailResendInput" class="form-input" placeholder="you@example.com" autocomplete="email" style="direction:ltr; text-align:left; margin-bottom:8px;">
+      <button id="confirmEmailResendBtn" class="btn-header-action" style="width:100%; justify-content:center; padding:9px;" onclick="handleResendConfirmationEmail()">
+        <span>📨 ارسال لینک تأیید جدید</span>
+      </button>
+    </div>
+    <button class="btn-header-action" style="width:100%; justify-content:center; padding:9px; margin-top:10px;" onclick="closeConfirmEmailModal()">
+      <span>بستن</span>
+    </button>
+  </div>
+</div>
+
 <!-- Conflict Resolver: an explicit choice is always required -->
 <div id="conflictResolverModal" class="modal-overlay">
   <div class="modal-content" style="max-width:480px;">
@@ -7542,6 +7570,205 @@ async function handleForgotPasswordClick() {
   }
 }
 // <<< PASSWORD_RECOVERY_END
+
+// >>> EMAIL_CONFIRM_BEGIN
+// ==============================================================================
+// ⬇️ Signup email confirmation — TokenHash flow
+// ------------------------------------------------------------------------------
+// Supabase's default signup confirmation uses {{ .ConfirmationURL }}, whose
+// redirect_to is reduced to the bare origin for GitHub Pages PROJECT sites
+// (open upstream bug supabase/auth#2634), so users land on a 404.
+//
+// The documented workaround (Supabase docs -> Email Templates -> Limitations ->
+// "Email prefetching", and "Redirecting the user to a server-side endpoint") is
+// to build our own link from {{ .TokenHash }} and verify it in the browser with
+// verifyOtp(). That bypasses redirect_to entirely — and because consuming the
+// token needs the POST that verifyOtp makes, an email scanner that merely
+// fetches this page cannot burn the token.
+//
+// The token is consumed ONLY by an explicit user action (the confirm button).
+// The token_hash is never rendered, never logged and never stored.
+//
+// This block is deliberately separate from PASSWORD_RECOVERY: it reads the QUERY
+// string, recovery uses the URL HASH, and 'recovery' is excluded from the
+// accepted types below, so the two flows cannot interfere.
+// ==============================================================================
+
+const EMAIL_CONFIRM_ORIGIN = 'https://chieftain20.github.io/Chieftain-s-Workout-Plan/';
+
+// Only these types are treated as an email-confirmation link. 'recovery' is
+// deliberately excluded so this flow can never interfere with password recovery.
+const EMAIL_CONFIRM_TYPES = ['email', 'signup'];
+const EMAIL_CONFIRM_DEFAULT_TYPE = 'email';
+
+// Extracts token_hash/type from a query string. Returns null when the URL is not
+// an email-confirmation link.
+function parseEmailConfirmParams(search) {
+  try {
+    let qs = search;
+    if (qs === undefined) {
+      qs = (typeof window !== 'undefined' && window.location) ? window.location.search : '';
+    }
+    if (!qs) return null;
+    const params = {};
+    String(qs).replace(/^\?/, '').split('&').forEach(pair => {
+      const i = pair.indexOf('=');
+      if (i > 0) {
+        const k = pair.slice(0, i);
+        try { params[decodeURIComponent(k)] = decodeURIComponent(pair.slice(i + 1)); }
+        catch (e) { params[k] = pair.slice(i + 1); }
+      }
+    });
+    const tokenHash = params.token_hash || '';
+    if (!tokenHash) return null;
+    const rawType = String(params.type || '').toLowerCase();
+    if (!rawType) return { tokenHash: tokenHash, type: EMAIL_CONFIRM_DEFAULT_TYPE };
+    if (EMAIL_CONFIRM_TYPES.indexOf(rawType) < 0) return null;
+    return { tokenHash: tokenHash, type: rawType };
+  } catch (e) { return null; }
+}
+
+function isEmailConfirmLink() {
+  return parseEmailConfirmParams() !== null;
+}
+
+function openConfirmEmailModal() {
+  const modal = document.getElementById('confirmEmailModal');
+  if (!modal) return;
+  setConfirmEmailState('prompt');
+  modal.classList.add('open');
+}
+
+function closeConfirmEmailModal() {
+  const el = document.getElementById('confirmEmailModal');
+  if (el) el.classList.remove('open');
+}
+
+// Never renders the token itself.
+function showConfirmEmailMessage(text, isError) {
+  const msg = document.getElementById('confirmEmailMessage');
+  if (!msg) return;
+  msg.style.display = text ? '' : 'none';
+  msg.textContent = text || '';
+  msg.style.color = isError ? '#f87171' : '#34d399';
+}
+
+// 'prompt' | 'working' | 'done' | 'error'
+function setConfirmEmailState(state) {
+  const isEn = (typeof currentLang !== 'undefined' && currentLang === 'en');
+  const promptBox = document.getElementById('confirmEmailPromptBox');
+  const resendBox = document.getElementById('confirmEmailResendBox');
+  const btn = document.getElementById('confirmEmailSubmitBtn');
+  const btnText = document.getElementById('confirmEmailSubmitBtnText');
+  if (promptBox) promptBox.style.display = (state === 'prompt' || state === 'working') ? '' : 'none';
+  if (resendBox) resendBox.style.display = (state === 'error') ? '' : 'none';
+  if (btn) {
+    btn.disabled = (state === 'working');
+    btn.style.opacity = (state === 'working') ? '0.6' : '1';
+  }
+  if (btnText) {
+    btnText.textContent = (state === 'working')
+      ? (isEn ? 'Confirming…' : 'در حال تأیید…')
+      : (isEn ? '✅ Confirm my email' : '✅ تأیید ایمیل من');
+  }
+  if (state === 'prompt') {
+    showConfirmEmailMessage('', false);
+  } else if (state === 'done') {
+    showConfirmEmailMessage(isEn ? 'Email confirmed. You are signed in.' : 'ایمیل شما تأیید شد و وارد حساب شدید.', false);
+  } else if (state === 'error') {
+    showConfirmEmailMessage(isEn
+      ? '⚠️ This confirmation link is invalid or has expired. Request a new one below.'
+      : '⚠️ لینک تأیید نامعتبر است یا منقضی شده است. لطفاً از کادر زیر لینک جدید درخواست کنید.', true);
+  }
+}
+
+// Removes ONLY token_hash/type, preserving any other query parameter and the hash.
+function cleanEmailConfirmUrl() {
+  try {
+    const search = (typeof window !== 'undefined' && window.location) ? (window.location.search || '') : '';
+    if (!search) return;
+    const kept = String(search).replace(/^\?/, '').split('&').filter(pair => {
+      if (!pair) return false;
+      const k = pair.split('=')[0];
+      return k !== 'token_hash' && k !== 'type';
+    });
+    const next = window.location.pathname + (kept.length ? '?' + kept.join('&') : '') + (window.location.hash || '');
+    history.replaceState(null, null, next);
+  } catch (e) {}
+}
+
+// The ONLY place the token is consumed. Reached only from an explicit user click.
+async function handleConfirmEmailClick() {
+  const isEn = (typeof currentLang !== 'undefined' && currentLang === 'en');
+  if (!supabaseClient) {
+    setConfirmEmailState('error');
+    return { ok: false, reason: 'no_client' };
+  }
+  const params = parseEmailConfirmParams();
+  if (!params) {
+    setConfirmEmailState('error');
+    return { ok: false, reason: 'no_token' };
+  }
+  setConfirmEmailState('working');
+  try {
+    const { data, error } = await supabaseClient.auth.verifyOtp({
+      token_hash: params.tokenHash,
+      type: params.type
+    });
+    if (error) throw error;
+    cleanEmailConfirmUrl();
+    setConfirmEmailState('done');
+    const user = (data && data.session) ? data.session.user : null;
+    if (user && typeof handleAuthSessionChanged === 'function') {
+      try { handleAuthSessionChanged(user); } catch (e) {}
+    }
+    if (typeof showToast === 'function') {
+      showToast(isEn ? '✅ Email confirmed. Welcome!' : '✅ ایمیل شما تأیید شد. خوش آمدید!');
+    }
+    return { ok: true };
+  } catch (err) {
+    setConfirmEmailState('error');
+    return { ok: false, reason: 'verify_failed' };
+  }
+}
+
+async function requestNewConfirmationEmail(email) {
+  if (!supabaseClient) return { ok: false, reason: 'no_client' };
+  const address = String(email || '').trim();
+  if (!address || address.indexOf('@') < 0) return { ok: false, reason: 'invalid_email' };
+  try {
+    const { error } = await supabaseClient.auth.resend({
+      type: 'signup',
+      email: address,
+      options: { emailRedirectTo: EMAIL_CONFIRM_ORIGIN }
+    });
+    if (error) return { ok: false, reason: 'request_failed' };
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, reason: 'request_failed' };
+  }
+}
+
+async function handleResendConfirmationEmail() {
+  const isEn = (typeof currentLang !== 'undefined' && currentLang === 'en');
+  const input = document.getElementById('confirmEmailResendInput');
+  const res = await requestNewConfirmationEmail(input ? input.value : '');
+  if (res.ok) {
+    if (input) input.value = '';
+    showConfirmEmailMessage(isEn ? '📧 A new confirmation link was sent.' : '📧 لینک تأیید جدید ارسال شد؛ ایمیل خود را بررسی کنید.', false);
+  } else {
+    showConfirmEmailMessage(isEn ? '⚠️ Could not send a new link.' : '⚠️ ارسال لینک جدید انجام نشد.', true);
+  }
+}
+
+// Opens the prompt when the page was reached from a confirmation email. It never
+// verifies by itself: the user must press the button.
+function initEmailConfirmationFlow() {
+  if (!isEmailConfirmLink()) return false;
+  try { openConfirmEmailModal(); } catch (e) {}
+  return true;
+}
+// <<< EMAIL_CONFIRM_END
 
 // >>> CLOUD_PULL_BEGIN
 // ==============================================================================
@@ -13229,6 +13456,11 @@ document.addEventListener('DOMContentLoaded', () => {
   try { applyUiMode(); } catch(e) {}
   try { loadStoredLocalAuthSession(); } catch(e) {}
   try { initSupabase(); } catch(e) {}
+
+  // Signup email confirmation (TokenHash flow). This only OPENS a prompt — the
+  // token is consumed solely by the explicit confirm button, so a link
+  // prefetcher cannot burn it.
+  try { initEmailConfirmationFlow(); } catch(e) {}
 
   // Online-event flush: drain the account-scoped outbox when connectivity returns.
   window.addEventListener('online', () => {

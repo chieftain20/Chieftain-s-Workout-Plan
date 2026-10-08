@@ -109,12 +109,15 @@ CLOUD_PULL_BLOCK_BEGIN = "// >>> CLOUD_PULL_BEGIN"
 CLOUD_PULL_BLOCK_END = "// <<< CLOUD_PULL_END"
 CONFLICT_UI_BLOCK_BEGIN = "// >>> CONFLICT_UI_BEGIN"
 CONFLICT_UI_BLOCK_END = "// <<< CONFLICT_UI_END"
+EMAIL_CONFIRM_BLOCK_BEGIN = "// >>> EMAIL_CONFIRM_BEGIN"
+EMAIL_CONFIRM_BLOCK_END = "// <<< EMAIL_CONFIRM_END"
 
 BLOCK_MARKERS = {
     "legacy_import": (LEGACY_IMPORT_BLOCK_BEGIN, LEGACY_IMPORT_BLOCK_END),
     "password_recovery": (PASSWORD_RECOVERY_BLOCK_BEGIN, PASSWORD_RECOVERY_BLOCK_END),
     "cloud_pull": (CLOUD_PULL_BLOCK_BEGIN, CLOUD_PULL_BLOCK_END),
     "conflict_ui": (CONFLICT_UI_BLOCK_BEGIN, CONFLICT_UI_BLOCK_END),
+    "email_confirm": (EMAIL_CONFIRM_BLOCK_BEGIN, EMAIL_CONFIRM_BLOCK_END),
 }
 
 
@@ -132,6 +135,11 @@ def cloud_pull_block() -> str:
 
 def conflict_ui_block() -> str:
     return _extract(CONFLICT_UI_BLOCK_BEGIN, CONFLICT_UI_BLOCK_END)
+
+
+def email_confirm_block() -> str:
+    """Return the signup email-confirmation (TokenHash) layer."""
+    return _extract(EMAIL_CONFIRM_BLOCK_BEGIN, EMAIL_CONFIRM_BLOCK_END)
 
 
 def js_outside(*block_names: str) -> str:
