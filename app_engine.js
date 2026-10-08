@@ -313,15 +313,31 @@ function enqueueOutboxOp(spec) {
   const now = Date.now();
   const ops = readOutbox();
 
-  // Coalescing / superseding. An unresolved conflict is NEVER clobbered.
+  // Coalescing / superseding.
+  //
+  // An unresolved conflict is never silently resolved - but it must also never be
+  // DUPLICATED. Every operation for a row shares one id (outboxOpId(rowKey)), and
+  // a conflicting op used to be skipped by this loop, so each later edit appended
+  // ANOTHER operation for the same row and produced ANOTHER conflict. A single
+  // logical edit could therefore multiply into several conflicts for one row.
+  //
+  // A newer UPSERT for a row now supersedes a CONFLICTING operation for that same
+  // row, in place. The current local state is strictly newer information than the
+  // rejected snapshot, so nothing is lost, and CAS safety is unchanged: the
+  // superseded operation is re-armed against the currently known cloud revision
+  // and conflicts again if that revision is stale. Tombstones still append, so a
+  // delete-after-conflict is never silently swallowed.
   for (let i = 0; i < ops.length; i++) {
     const existing = ops[i];
-    if (existing.id !== id || existing.status !== 'pending') continue;
+    if (existing.id !== id) continue;
 
     const existingIsUpsert = existing.kind.indexOf('upsert_') === 0;
     const incomingIsUpsert = spec.kind.indexOf('upsert_') === 0;
+    const supersedesConflict = (existing.status === 'conflict' && incomingIsUpsert);
 
-    if (existingIsUpsert && incomingIsUpsert) {
+    if (existing.status !== 'pending' && !supersedesConflict) continue;
+
+    if (incomingIsUpsert && (existingIsUpsert || supersedesConflict)) {
       // Latest local state wins for the payload, but the CANONICAL expected
       // revision must survive that wholesale replacement. Re-derive it from the
       // row's currently known cloud revision so a coalesced edit still CAS-es
@@ -332,6 +348,14 @@ function enqueueOutboxOp(spec) {
       if (knownForRow !== null) existing.expectedRevision = knownForRow;
       if (existing.payload && Object.prototype.hasOwnProperty.call(existing.payload, 'p_expected_revision')) {
         existing.payload.p_expected_revision = existing.expectedRevision;
+      }
+      if (supersedesConflict) {
+        // Re-arm the superseded operation: retry it against the currently known
+        // revision, and stop reporting it as a duplicate conflict.
+        existing.kind = spec.kind;
+        existing.attempts = 0;
+        existing.lastError = null;
+        existing.status = 'pending';
       }
       existing.updatedAt = now;
       writeOutbox(ops);

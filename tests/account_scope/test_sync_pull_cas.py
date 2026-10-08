@@ -470,6 +470,90 @@ HARNESS = r"""
     check('CONTROL: a forced pending op still DEFERS the merge (old behaviour reproduced)',
       control.stats && control.stats.deferred >= 1 && allProfiles[0].days.length === 1);
 
+    // ======================================================================
+    // REGRESSION: one logical edit must never multiply into duplicate conflicts
+    //
+    // Every op for a row shares one id, and the coalescing loop used to skip
+    // CONFLICTING ops, so each later edit appended ANOTHER op for the same row and
+    // produced ANOTHER conflict ("0 sent, 3 conflicts for one edit"). A newer
+    // upsert must supersede a conflicting op for the same row, in place.
+    // ======================================================================
+    resetServer(); writeOutbox([]);
+    setScope('00000000-0000-4000-c000-0000000000aa');
+    scopedSetJSON('profiles', null, []);
+    scopedSetJSON(CLOUD_REVISIONS_KIND, null, {});
+    scopedSetJSON('routine_fingerprints', null, {});
+    allProfiles = [{ id: P, name: 'تست', days: [{ id: 'd1' }] }];
+    server.user_routines.push({ user_id: AUTH_UID, profile_key: P, revision: 12, deleted_at: null,
+                                profile_data: { id: P, name: 'تست' },
+                                routine_data: { days: [{ id: 'd1' }, { id: 'd2' }] } });
+    rememberRevision(P, 11);                       // A is stale ON PURPOSE
+
+    // A makes ONE logical edit
+    allProfiles[0].days = [{ id: 'd1' }, { id: 'd9' }];
+    saveProfiles();
+    check('one logical edit queues exactly ONE operation',
+      readOutbox().filter(function (o) { return o.rowKey === P; }).length === 1);
+    check('the queued operation carries the stale revision 11', readOutbox()[0].expectedRevision === 11);
+
+    await flushOutboxNow();
+    check('a stale edit becomes a REAL conflict (case 3 preserved)',
+      readOutbox().filter(function (o) { return o.rowKey === P && o.status === 'conflict'; }).length === 1);
+
+    // Further edits + syncs must NOT multiply that conflict
+    for (let k = 0; k < 3; k++) {
+      allProfiles[0].days = [{ id: 'd1' }, { id: 'd' + (k + 10) }];
+      saveProfiles();
+      await flushOutboxNow();
+      await pullFromCloudNow();
+    }
+    check('repeated edits do NOT multiply conflicts for one row',
+      readOutbox().filter(function (o) { return o.rowKey === P; }).length === 1 &&
+      readOutbox().filter(function (o) { return o.rowKey === P && o.status === 'conflict'; }).length === 1);
+    check('the superseded operation stays a real conflict (never auto-resolved)',
+      readOutbox().filter(function (o) { return o.status === 'conflict'; }).length === 1);
+
+    // keep_cloud removes only that one logical conflict
+    const kc = await resolveOutboxConflict(outboxOpId(P), 'keep_cloud');
+    check('keep_cloud removes the single logical conflict',
+      kc.ok === true && kc.reason === 'kept_cloud' && !readOutbox().some(function (o) { return o.rowKey === P; }));
+
+    // and A can now pull the newer revision
+    allProfiles = [{ id: P, name: 'تست', days: [{ id: 'd1' }] }];
+    await pullFromCloudNow();
+    check('after keep_cloud A adopts revision 12', knownRevisionFor(P) === 12);
+    check('after keep_cloud A adopts the cloud routine data',
+      allProfiles[0].days.length === 2 && allProfiles[0].days[1].id === 'd2');
+
+    // the next edit succeeds first time
+    allProfiles[0].days = [{ id: 'd1' }, { id: 'd2' }, { id: 'd3' }];
+    saveProfiles();
+    check('the post-recovery edit carries the fresh revision 12',
+      readOutbox().length === 1 && readOutbox()[0].expectedRevision === 12);
+    await flushOutboxNow();
+    check('the post-recovery edit succeeds to revision 13',
+      server.user_routines[0].revision === 13 &&
+      readOutbox().filter(function (o) { return o.rowKey === P; }).length === 0);
+
+    // the unrelated template conflicts must still be untouched by all of the above
+    resetServer(); writeOutbox([]);
+    const tpl = [];
+    for (let i = 0; i < 32; i++) {
+      tpl.push({ id: outboxOpId(templateKeys[i % 2]), kind: 'upsert_routine',
+                 rowKey: templateKeys[i % 2], ownerScope: getAccountScope(),
+                 payload: { p_profile_key: templateKeys[i % 2], p_expected_revision: null },
+                 expectedRevision: null, attempts: 1, lastError: null,
+                 status: 'conflict', createdAt: 1, updatedAt: 1 });
+    }
+    writeOutbox(tpl);
+    allProfiles = [{ id: P, name: 'تست', days: [{ id: 'd1' }] }];
+    scopedSetJSON('routine_fingerprints', null, {});
+    allProfiles[0].days = [{ id: 'd1' }, { id: 'dN' }];
+    saveProfiles();
+    await flushOutboxNow();
+    check('a routine edit leaves the 32 template conflicts untouched',
+      readOutbox().filter(function (o) { return templateKeys.indexOf(o.rowKey) >= 0; }).length === 32);
+
     // ============ guard rails =============================================
     resetServer(); writeOutbox([]);
     check('an offline sync is skipped', true);
@@ -563,6 +647,14 @@ def run() -> c.Contract:
 
     t.require_present(live, "stableStringify", "a key-order-independent fingerprint exists")
     t.require_present(live, "ROUTINE_FINGERPRINTS_KIND", "the fingerprint store is account-scoped")
+
+    # --- FIX 4: a conflicting op must never be duplicated --------------------
+    t.require_present(live, "supersedesConflict",
+                      "a newer upsert supersedes a conflicting op for the SAME row")
+    t.require_absent(live, "existing.id !== id || existing.status !== 'pending'",
+                     "conflicting ops are no longer skipped by the coalescing guard")
+    t.require_present(live, "existing.status !== 'pending' && !supersedesConflict",
+                      "the guard still protects every other status")
 
     # --- invariants --------------------------------------------------------
     t.require_absent(live, ".from('user_routines').insert", "no direct table write for routines")

@@ -212,7 +212,11 @@ HARNESS = r"""
     check('tombstone is queued once the create was transmitted',
       afterSend.length === 1 && afterSend[0].kind === 'tombstone_workout_log');
 
-    // ---- 10. an unresolved conflict is never clobbered -------------------
+    // ---- 10. a conflicting op is superseded in place, never duplicated -----
+    // A newer write for the SAME row replaces the rejected snapshot instead of
+    // being appended beside it, so one logical row can never accumulate duplicate
+    // conflicts. It is re-armed for a CAS retry and is NEVER auto-resolved: if the
+    // revision is still stale it becomes a real conflict again - exactly once.
     asCloud(USER_A); reset();
     rpcHandler = () => ({ data: null, error: null });
     enqueueLogUpsert('prof_a', 'a', { timestamp: 1 });
@@ -221,8 +225,15 @@ HARNESS = r"""
     rpcHandler = () => ({ data: 5, error: null });
     enqueueLogUpsert('prof_a', 'a', { timestamp: 1 });
     const mixed = readOutbox();
-    check('conflict survives a later enqueue', mixed.filter(o => o.status === 'conflict').length === 1);
-    check('the later write is appended, not merged', mixed.length === 2);
+    check('a later write for the same row does NOT append a duplicate', mixed.length === 1);
+    check('the superseded operation is re-armed for a CAS retry', mixed[0].status === 'pending');
+
+    // a stale retry is a REAL conflict again - exactly one, never multiplied
+    rpcHandler = () => ({ data: null, error: null });
+    enqueueLogUpsert('prof_a', 'a', { timestamp: 1 });
+    await flushOutboxNow();
+    check('a stale superseded operation conflicts exactly once',
+      readOutbox().length === 1 && outboxStatusSummary().conflict === 1);
 
     // ---- 11. explicit conflict resolution --------------------------------
     asCloud(USER_A); reset();
