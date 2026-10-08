@@ -26,17 +26,25 @@ def run() -> c.Contract:
         "outbox is read and written through the scoped layer",
     )
 
-    # --- the safety gate exists and defaults to closed ----------------------
+    # --- the safety gate is a single, explicit, reviewed switch -------------
+    # The gate was opened ONLY after the migration, the postflight and the
+    # two-account E2E were verified. Its protection is therefore no longer
+    # "it is closed" but "there is exactly ONE declaration, and nothing toggles
+    # it at runtime".
     t.require_present(js, "CLOUD_SYNC_GATE", "cloud-sync gate exists")
-    t.require_match(js, r"CLOUD_SYNC_GATE\s*=\s*\{\s*contractVerified:\s*false\s*\}",
-                    "gate defaults to closed")
+    t.require_match(js, r"CLOUD_SYNC_GATE\s*=\s*\{\s*contractVerified:\s*true\s*\}",
+                    "the gate is explicitly OPENED by the reviewed activation")
     t.require_present(js, "isCloudSyncEnabled", "gate predicate exists")
 
     # Checked against comment-stripped source so documentation prose cannot
     # accidentally satisfy (or break) the assertion.
     live = c.strip_js_comments(js)
-    t.require_absent(live, "contractVerified: true", "the gate is never opened in the source")
-    t.require_absent(live, "contractVerified = true", "the gate is never opened at runtime")
+    t.require(live.count("contractVerified: true") == 1,
+              "exactly ONE live `contractVerified: true` declaration exists")
+    t.require_absent(live, "contractVerified = true",
+                     "the gate is never mutated at runtime (it changes only by that declaration)")
+    t.require_absent(live, "contractVerified = false",
+                     "the gate is never mutated at runtime in either direction")
 
     # --- conflicts are represented, persisted and visible -------------------
     t.require_present(js, "'conflict'", "operations can be marked as conflicts")

@@ -6505,11 +6505,13 @@ function applyAccountScopeChange() {
 // 📤 Account-Scoped Outbox & Cloud Sync (RPC-only)
 // ------------------------------------------------------------------------------
 // SAFETY GATE
-//   The STEP 1 database migration has NOT been applied to any project. Until the
-//   contract is verified on the target database, every cloud call below is
-//   INERT: operations still queue locally, but nothing is transmitted.
-//   Setting CLOUD_SYNC_GATE.contractVerified = true is a deliberate, reviewed
-//   action that must follow the STEP 1 safety gates (G0-G8).
+//   The STEP 1 migration HAS been applied to production and the contract IS
+//   verified (G0 preflight -> migration -> postflight -> two-account E2E, plus a
+//   manual end-to-end auth cycle). Cloud sync is therefore ACTIVE: operations
+//   queue locally AND are transmitted through the RPCs below.
+//   Setting CLOUD_SYNC_GATE.contractVerified back to false returns this client to
+//   local-only mode without losing queued work. That is the only switch; nothing
+//   else in this file toggles the gate at runtime.
 //
 // CONTRACT
 //   * Cloud writes go exclusively through the STEP 1 RPCs. There is no direct
@@ -6520,7 +6522,7 @@ function applyAccountScopeChange() {
 //     treated as success and is NEVER auto-resolved.
 // ==============================================================================
 
-const CLOUD_SYNC_GATE = { contractVerified: false };
+const CLOUD_SYNC_GATE = { contractVerified: true };
 
 function isCloudSyncEnabled() {
   return CLOUD_SYNC_GATE.contractVerified === true;
