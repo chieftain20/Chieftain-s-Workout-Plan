@@ -35,6 +35,7 @@ EXPECTED = {
     "test_conflict_ui.py": True,
     "test_password_recovery.py": True,
     "test_email_confirmation.py": True,
+    "test_sync_pull_cas.py": True,
     "test_e2e_staging_safety.py": True,
 }
 

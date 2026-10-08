@@ -6541,6 +6541,40 @@ function isAllowedOutboxKind(kind) {
   return OUTBOX_ALLOWED_KINDS.indexOf(kind) >= 0;
 }
 
+// RPCs that take a compare-and-set revision. Every allowlisted RPC does today;
+// the list is kept explicit so a future non-CAS RPC cannot silently receive a
+// CAS argument it does not declare.
+const CAS_KINDS = [
+  'upsert_routine', 'tombstone_routine',
+  'upsert_workout_log', 'update_workout_log', 'tombstone_workout_log',
+  'upsert_body_metric', 'update_body_metric', 'tombstone_body_metric',
+  'upsert_custom_exercise', 'tombstone_custom_exercise',
+  'upsert_set_state', 'tombstone_set_state'
+];
+
+function outboxKindSupportsCas(kind) {
+  return CAS_KINDS.indexOf(kind) >= 0;
+}
+
+// Builds the exact RPC payload for an operation.
+//
+// op.expectedRevision is the CANONICAL client-side CAS value. The stored
+// payload's own p_expected_revision is deliberately NOT trusted: the coalescing
+// path replaces the payload wholesale, so that field can carry a stale or null
+// revision even when the operation knows better. Re-deriving it here means the
+// revision can never be silently lost.
+//
+// A null expectedRevision is transmitted as null on purpose: the server then
+// returns NULL (a real CAS conflict) instead of the client inventing a revision
+// and overwriting the cloud row.
+function outboxRpcPayload(op) {
+  const payload = Object.assign({}, (op && op.payload) || {});
+  if (op && outboxKindSupportsCas(op.kind)) {
+    payload.p_expected_revision = (typeof op.expectedRevision === 'number') ? op.expectedRevision : null;
+  }
+  return payload;
+}
+
 // --- Deterministic identity ---------------------------------------------------
 // A compact synchronous SHA-1, used ONLY to derive stable idempotency keys.
 // It is not used for security. The tests verify it against the standard
@@ -6663,8 +6697,17 @@ function enqueueOutboxOp(spec) {
     const incomingIsUpsert = spec.kind.indexOf('upsert_') === 0;
 
     if (existingIsUpsert && incomingIsUpsert) {
-      // Latest local state wins; position and expected revision are preserved.
+      // Latest local state wins for the payload, but the CANONICAL expected
+      // revision must survive that wholesale replacement. Re-derive it from the
+      // row's currently known cloud revision so a coalesced edit still CAS-es
+      // correctly; if nothing is known, keep whatever the operation already had
+      // (never invent a revision).
+      const knownForRow = (typeof knownRevisionFor === 'function') ? knownRevisionFor(rowKey) : null;
       existing.payload = spec.payload || {};
+      if (knownForRow !== null) existing.expectedRevision = knownForRow;
+      if (existing.payload && Object.prototype.hasOwnProperty.call(existing.payload, 'p_expected_revision')) {
+        existing.payload.p_expected_revision = existing.expectedRevision;
+      }
       existing.updatedAt = now;
       writeOutbox(ops);
       scheduleOutboxFlush();
@@ -6874,9 +6917,11 @@ async function flushOutboxNow() {
 
       let res;
       try {
-        // The RPC name is the operation kind, and the payload already uses the
-        // exact STEP 1 parameter names.
-        res = await supabaseClient.rpc(op.kind, op.payload);
+        // The RPC name is the operation kind. The payload is rebuilt here so the
+        // CAS argument always comes from op.expectedRevision (the canonical
+        // value) rather than from the stored payload, which coalescing may have
+        // replaced.
+        res = await supabaseClient.rpc(op.kind, outboxRpcPayload(op));
       } catch (err) {
         res = { error: { message: (err && err.message) || 'transport error' } };
       }
@@ -7976,6 +8021,61 @@ async function pullFromCloudNow() {
   }
   return { skipped: false, stats: stats };
 }
+// The account the last automatic sync ran for. Guards against re-syncing on every
+// TOKEN_REFRESHED event while still syncing immediately on a new sign-in or an
+// account switch.
+let cloudSyncLastUserId = null;
+
+// One bounded, BIDIRECTIONAL sync pass: pull -> flush -> pull.
+//
+// The second pull is what makes a sync truthful: the first pull brings remote
+// state down, the flush transmits local writes, and the second pull reflects the
+// revisions those writes produced. It is deliberately NOT a loop - exactly two
+// pulls and one flush per call, so it can never recurse.
+//
+// Account-scoped by construction: every read and write inside goes through the
+// authenticated UUID from the live session, and pullFromCloudNow merges into the
+// current scope only. Legacy unscoped keys are never read.
+async function syncFromCloudNow() {
+  if (!isCloudSyncEnabled()) return { skipped: true, reason: 'cloud_sync_disabled' };
+  if (typeof navigator !== 'undefined' && navigator && navigator.onLine === false) {
+    return { skipped: true, reason: 'offline' };
+  }
+  if (typeof supabaseClient === 'undefined' || !supabaseClient) {
+    return { skipped: true, reason: 'no_client' };
+  }
+  if (typeof getAuthenticatedSupabaseUserId !== 'function') {
+    return { skipped: true, reason: 'no_identity_helper' };
+  }
+  const userId = await getAuthenticatedSupabaseUserId();
+  if (!userId) return { skipped: true, reason: 'no_authenticated_session' };
+
+  const firstPull = await pullFromCloudNow();
+
+  let flush = { flushed: 0, conflicted: 0, stopped: false, skipped: true };
+  try {
+    flush = await flushOutboxNow();
+  } catch (e) {
+    flush = { flushed: 0, conflicted: 0, stopped: false, skipped: true, reason: 'flush_failed' };
+  }
+
+  const secondPull = await pullFromCloudNow();
+
+  const stats = (secondPull && secondPull.stats)
+    ? secondPull.stats
+    : ((firstPull && firstPull.stats) || {});
+
+  return {
+    skipped: false,
+    flushed: flush.flushed || 0,
+    conflicted: flush.conflicted || 0,
+    stopped: flush.stopped === true,
+    flushSkipped: flush.skipped === true,
+    stats: stats,
+    pullError: (firstPull && firstPull.error) || (secondPull && secondPull.error) || null
+  };
+}
+
 // <<< CLOUD_PULL_END
 
 // >>> CONFLICT_UI_BEGIN
@@ -13484,9 +13584,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Background Auto-Sync from Cloud on startup
+  // Background auto-sync on startup: a REAL pull followed by an outbox flush.
+  // pullFromCloudStorage() is only a push/outbox scheduler and must never be
+  // used as a pull.
   if (navigator.onLine && isAutoCloudSyncEnabled()) {
-    pullFromCloudStorage(true);
+    syncFromCloudNow().catch(() => {});
   }
 
   const todaySecId = getTodaySectionId();
@@ -13720,19 +13822,25 @@ async function pushToCloudStorage(silent = false) {
   return false;
 }
 
+// DEPRECATED — do not wire this anywhere new.
+//
+// Despite its name this function never pulled anything: it only scheduled an
+// outbox flush (a PUSH). It was the wired "pull" at startup, which is exactly why
+// a fresh device could never reconstruct cloud state. It now delegates to the
+// real bidirectional sync, so any stale caller still behaves correctly instead of
+// silently pushing and reporting success.
 async function pullFromCloudStorage(silent = false) {
   if (!currentAuthUser) {
     try { loadStoredLocalAuthSession(); } catch(e) {}
   }
 
   if (currentAuthUser) {
-    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(currentAuthUser.id || '');
-    if (isUuid && typeof supabaseClient !== 'undefined' && supabaseClient && navigator.onLine) {
+    if (typeof syncFromCloudNow === 'function') {
       try {
-        scheduleOutboxFlush();
+        await syncFromCloudNow();
         return true;
       } catch(err) {
-        if (!silent) console.error('Cloud pull error:', err);
+        if (!silent) console.error('Cloud sync error:', err);
       }
     }
     return true;
@@ -13803,7 +13911,9 @@ async function quickCloudSyncAction(btn) {
     if (isUuid && typeof supabaseClient !== 'undefined' && supabaseClient && navigator.onLine) {
       let result = { skipped: true, reason: 'unknown' };
       try {
-        result = await flushOutboxNow();
+        // Bidirectional: pull -> flush -> pull. Deliberately NOT a bare outbox
+        // flush, so pressing sync also reconstructs cloud state on this device.
+        result = await syncFromCloudNow();
       } catch(e) {
         console.warn('Cloud sync warning:', e);
       }
@@ -14127,6 +14237,22 @@ async function handleAuthSessionChanged(user) {
   // The account scope may have changed (sign-in, restore, account switch or
   // sign-out). Swap the workspace before anything else touches user data.
   applyAccountScopeChange();
+
+  if (user && user.id) {
+    // A cloud session has just been established or restored. Pull the account's
+    // cloud state down and then drain local writes. Guarded by the last-synced
+    // account so repeated auth events for the SAME account (e.g.
+    // TOKEN_REFRESHED) do not re-sync, while a new account always does.
+    if (cloudSyncLastUserId !== user.id) {
+      cloudSyncLastUserId = user.id;
+      if (typeof syncFromCloudNow === 'function') {
+        try { await syncFromCloudNow(); } catch (e) {}
+      }
+    }
+  } else {
+    // Signed out: let the next sign-in sync immediately.
+    cloudSyncLastUserId = null;
+  }
 }
 
 function openAuthModal() {
