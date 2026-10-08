@@ -551,7 +551,10 @@ let outboxFlushCompletedSeq = 0;
 // This re-reads the live queue and merges the processed operations back into it.
 // (id, createdAt) identifies an operation for its whole lifetime - coalescing and
 // superseding only touch updatedAt, never createdAt.
-function persistFlushedOps(processed) {
+function persistFlushedOps(processed, scope) {
+  // An optional expected scope: a pass that spans network awaits must never
+  // publish one account's operations into another account's outbox.
+  if (scope !== undefined && getAccountScope() !== scope) return;
   const current = readOutbox();
   processed.forEach(function (op) {
     const i = current.findIndex(function (o) {
@@ -602,10 +605,16 @@ async function flushOutboxNow() {
   let conflicted = 0;
   let stopped = false;
 
+  // The pass spans one await per operation. If the workspace changes underneath
+  // it, the queue it is draining is no longer the active one: abort instead of
+  // writing those operations into the new account's outbox.
+  const scopeAtStart = getAccountScope();
+
   try {
     const ops = readOutbox();
     for (let i = 0; i < ops.length; i++) {
       const op = ops[i];
+      if (getAccountScope() !== scopeAtStart) { stopped = true; break; }
       if (op.status !== 'pending') continue;   // conflicts and failures wait for the user
 
       // Defensive: an operation may only ever be transmitted under the account
@@ -614,7 +623,7 @@ async function flushOutboxNow() {
         op.status = 'failed';
         op.lastError = 'owner_scope_mismatch';
         op.updatedAt = Date.now();
-        persistFlushedOps(ops);
+        persistFlushedOps(ops, scopeAtStart);
         continue;
       }
 
@@ -622,7 +631,7 @@ async function flushOutboxNow() {
         op.status = 'failed';
         op.lastError = 'unknown_rpc_kind';
         op.updatedAt = Date.now();
-        persistFlushedOps(ops);
+        persistFlushedOps(ops, scopeAtStart);
         continue;
       }
 
@@ -644,7 +653,7 @@ async function flushOutboxNow() {
         op.lastError = (res.error && res.error.message) || 'rpc_error';
         op.status = 'pending';
         op.updatedAt = Date.now();
-        persistFlushedOps(ops);
+        persistFlushedOps(ops, scopeAtStart);
         stopped = true;
         break;
       }
@@ -666,13 +675,16 @@ async function flushOutboxNow() {
         if (typeof rememberRevision === 'function') rememberRevision(op.rowKey, revision);
         flushed++;
       }
-      persistFlushedOps(ops);
+      persistFlushedOps(ops, scopeAtStart);
     }
 
     // Completed operations leave the queue. Conflicts stay until the user
-    // resolves them; nothing is discarded automatically.
-    const remaining = readOutbox().filter(o => o.status !== 'done');
-    writeOutbox(remaining);
+    // resolves them; nothing is discarded automatically. Only touch the queue
+    // when the workspace it belongs to is still the active one.
+    if (getAccountScope() === scopeAtStart) {
+      const remaining = readOutbox().filter(o => o.status !== 'done');
+      writeOutbox(remaining);
+    }
   } finally {
     outboxFlushInFlight = false;
     updateConflictBadge();
@@ -1780,13 +1792,30 @@ async function pullFromCloudNow() {
 
   const stats = { routines: 0, logs: 0, metrics: 0, customExercises: 0, setStates: 0, deferred: 0, tombstones: 0 };
 
+  // A pull spans several awaits. Capture the workspace it is reading for, and
+  // refuse to publish into a different one: if the account changes while the
+  // reads are in flight (sign-out, account switch, offline identity) the rows
+  // belong to a workspace that is no longer active, and merging them would
+  // publish one account's data into another account's scope.
+  const scopeAtStart = getAccountScope();
+
   try {
     // Every read is explicitly scoped to the authenticated account's own rows.
-    (await selectOwnedRows('user_routines', userId)).forEach(r => mergeCloudRoutine(r, stats));
-    (await selectOwnedRows('workout_logs', userId)).forEach(r => mergeCloudLog(r, stats));
-    (await selectOwnedRows('body_metrics', userId)).forEach(r => mergeCloudMetric(r, stats));
-    (await selectOwnedRows('user_custom_exercises', userId)).forEach(r => mergeCloudCustomExercise(r, stats));
-    (await selectOwnedRows('workout_set_states', userId)).forEach(r => mergeCloudSetState(r, stats));
+    const routineRows = await selectOwnedRows('user_routines', userId);
+    const logRows = await selectOwnedRows('workout_logs', userId);
+    const metricRows = await selectOwnedRows('body_metrics', userId);
+    const customExerciseRows = await selectOwnedRows('user_custom_exercises', userId);
+    const setStateRows = await selectOwnedRows('workout_set_states', userId);
+
+    if (getAccountScope() !== scopeAtStart) {
+      return { skipped: true, reason: 'scope_changed', stats: stats };
+    }
+
+    routineRows.forEach(r => mergeCloudRoutine(r, stats));
+    logRows.forEach(r => mergeCloudLog(r, stats));
+    metricRows.forEach(r => mergeCloudMetric(r, stats));
+    customExerciseRows.forEach(r => mergeCloudCustomExercise(r, stats));
+    setStateRows.forEach(r => mergeCloudSetState(r, stats));
 
     scopedSetJSON('profiles', null, allProfiles);
     if (typeof renderApp === 'function') { try { renderApp(true); } catch (e) {} }
@@ -1869,10 +1898,18 @@ async function syncFromCloudNow() {
     ? secondPull.stats
     : ((firstPull && firstPull.stats) || {});
 
+  // Conflicts that were ALREADY unresolved before this sync are skipped by the
+  // flush (they wait for the user) and are therefore not counted by it. Reporting
+  // only the newly-created ones made a sync with outstanding conflicts look like a
+  // clean "0 sent, 0 conflicts" while its rows were still being deferred.
+  const conflictsOutstanding = (typeof listOutboxConflicts === 'function')
+    ? listOutboxConflicts().length : 0;
+
   return {
     skipped: false,
     flushed: flush.flushed || 0,
     conflicted: flush.conflicted || 0,
+    conflictsOutstanding: conflictsOutstanding,
     stopped: flush.stopped === true,
     flushSkipped: flush.skipped === true,
     stats: stats,
@@ -3343,7 +3380,21 @@ function loadAppData() {
     masterExerciseOverrides = {};
   }
 
-  saveProfiles();
+  // Hydration is a READ, never an edit.
+  //
+  // loadAppData() used to call saveProfiles(), which persists AND queues a cloud
+  // upsert for every profile. At startup that ran BEFORE the cloud pull, so the
+  // pre-pull snapshot was re-armed as a pending local edit on every single load.
+  // A pending operation DEFERS the cloud merge for its row (outboxHasUnresolvedFor),
+  // so the device could never adopt a newer cloud revision: the merge was skipped,
+  // the stale snapshot survived, and a later startup repeated the cycle forever.
+  // Because a pending op is transmitted (and conflicts) rather than counted, the
+  // sync also reported "0 sent, 0 conflicts" while nothing had been adopted.
+  //
+  // Hydrating therefore persists the scoped store and records the loaded content
+  // as the known baseline, and does NOT queue and does NOT push. Only a real user
+  // edit (an explicit saveProfiles()) may create cloud work.
+  adoptLoadedProfiles();
 
   const savedActiveId = scopedGetRaw('active_profile_id', null);
   if (savedActiveId && allProfiles.some(p => p.id === savedActiveId)) {
@@ -3353,6 +3404,18 @@ function loadAppData() {
   } else {
     activeProfileId = 'template_male';
   }
+}
+
+// Hydration helper: persist the scoped store and remember each profile's content
+// as the "already known" baseline. Deliberately queues nothing and pushes nothing,
+// so loading existing data can never be mistaken for an unsynced local edit.
+function adoptLoadedProfiles() {
+  scopedSetJSON('profiles', null, allProfiles);
+  if (typeof rememberRoutineFingerprint !== 'function' || typeof routineFingerprint !== 'function') return;
+  if (!Array.isArray(allProfiles)) return;
+  allProfiles.forEach(p => {
+    if (p && p.id) rememberRoutineFingerprint(p.id, routineFingerprint(p));
+  });
 }
 
 function saveProfiles() {
@@ -7726,9 +7789,12 @@ async function quickCloudSyncAction(btn) {
           ? `✅ Saved on this device for ${userName}. Cloud sync is not enabled in this build yet.`
           : `✅ اطلاعات برای ${userName} روی همین دستگاه ذخیره شد. همگام‌سازی ابری در این نسخه فعال نشده است.`);
       } else if (!result.skipped) {
+        // Report the conflicts that REMAIN unresolved, not just the ones this pass
+        // created: a pre-existing conflict also defers its row and must be visible.
+        const conflictCount = Math.max(result.conflicted || 0, result.conflictsOutstanding || 0);
         showToast(isEn
-          ? `☁️ ${result.flushed} sent, ${result.conflicted} conflict(s) for ${userName}.`
-          : `☁️ ${result.flushed} ارسال، ${result.conflicted} تعارض برای ${userName}.`);
+          ? `☁️ ${result.flushed} sent, ${conflictCount} conflict(s) for ${userName}.`
+          : `☁️ ${result.flushed} ارسال، ${conflictCount} تعارض برای ${userName}.`);
       } else {
         showToast(isEn ? `✅ Saved on this device for ${userName}.` : `✅ اطلاعات برای ${userName} روی همین دستگاه ذخیره شد.`);
       }
