@@ -37,6 +37,7 @@ EXPECTED = {
     "test_email_confirmation.py": True,
     "test_sync_pull_cas.py": True,
     "test_startup_hydration.py": True,
+    "test_custom_exercise_pull.py": True,
     "test_e2e_staging_safety.py": True,
 }
 

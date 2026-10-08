@@ -1736,6 +1736,15 @@ function mergeCloudMetric(row, stats) {
   if (typeof row.revision === 'number') rememberRevision(clientId, row.revision);
 }
 
+// The identity a locally-created custom exercise is stamped with. Used for the
+// catalogue's ownership check and for stamping merged rows - never read from a
+// cloud payload.
+function currentAccountExerciseOwner() {
+  if (typeof currentAuthUser !== 'undefined' && currentAuthUser && currentAuthUser.id) return currentAuthUser.id;
+  if (typeof currentLocalUser !== 'undefined' && currentLocalUser && currentLocalUser.id) return currentLocalUser.id;
+  return (typeof activeProfileId !== 'undefined' && activeProfileId) ? activeProfileId : 'local';
+}
+
 function mergeCloudCustomExercise(row, stats) {
   const clientId = row && row.client_record_id;
   const data = row && row.exercise_data;
@@ -1747,12 +1756,57 @@ function mergeCloudCustomExercise(row, stats) {
     if (at >= 0) { customExercises.splice(at, 1); scopedSetJSON('custom_exercises', null, customExercises); stats.tombstones++; }
     return;
   }
-  if (at < 0) {
-    customExercises.push(data);
-    scopedSetJSON('custom_exercises', null, customExercises);
+
+  // The cloud copy is authoritative for CONTENT but never for OWNERSHIP.
+  //
+  // enqueueCustomExerciseUpsert() strips ownerId (and upsert_custom_exercise()
+  // strips it again server-side), so a pulled definition arrives with no ownerId.
+  // Ownership is not taken from the payload either: the read above is already
+  // filtered to user_id = auth.uid() server-side, so a row that came back is this
+  // account's by construction. Stamping the LOCAL identity is what keeps the
+  // merged definition visible in the catalogue - without it the routine fell back
+  // to rendering the raw "cust_..." id.
+  const merged = Object.assign({}, data);
+  delete merged.ownerId;
+  merged.id = data.id;                             // the original custom id, verbatim
+  merged.ownerId = currentAccountExerciseOwner();  // derived locally, never from the row
+
+  if (at >= 0) {
+    // Same account, same custom id: merge the fields in place. Unrelated entries
+    // are never touched and a duplicate is never created.
+    customExercises[at] = Object.assign({}, customExercises[at], merged);
+  } else {
+    customExercises.push(merged);
     stats.customExercises++;
   }
+  scopedSetJSON('custom_exercises', null, customExercises);
   if (typeof row.revision === 'number') rememberRevision(clientId, row.revision);
+}
+
+// Backfill: a custom exercise that exists for THIS account locally but has no
+// cloud row was never uploaded (the account-scoped table started empty and
+// pre-migration exercises were not backfilled). The read that produced cloudRows
+// is the complete set of this account's rows, so "absent" is known exactly.
+//
+// Safe by construction: rows are matched by the logical exercise id, so a row that
+// already exists - including a TOMBSTONE - is skipped rather than overwritten, and
+// the RPC is keyed on the deterministic client_record_id, so it can never insert a
+// duplicate. Once uploaded the row is present and the backfill stops queueing it.
+function backfillMissingCustomExercises(cloudRows, stats) {
+  if (typeof customExercises === 'undefined' || !Array.isArray(customExercises) || !customExercises.length) return;
+
+  const knownIds = {};
+  (cloudRows || []).forEach(r => {
+    const id = r && r.exercise_data && r.exercise_data.id;
+    if (id) knownIds[id] = true;
+  });
+
+  customExercises.forEach(e => {
+    if (!e || !e.id || knownIds[e.id]) return;              // present in the cloud (or tombstoned)
+    const clientId = deterministicUuid('custom_exercise', e.id);
+    if (outboxHasUnresolvedFor(clientId)) return;           // an unsynced edit is already queued
+    if (enqueueCustomExerciseUpsert(e)) stats.backfilled = (stats.backfilled || 0) + 1;
+  });
 }
 
 function mergeCloudSetState(row, stats) {
@@ -1816,6 +1870,10 @@ async function pullFromCloudNow() {
     metricRows.forEach(r => mergeCloudMetric(r, stats));
     customExerciseRows.forEach(r => mergeCloudCustomExercise(r, stats));
     setStateRows.forEach(r => mergeCloudSetState(r, stats));
+
+    // Any custom exercise this account owns locally but that has no cloud row is
+    // queued for upload, so the OTHER device can resolve its id to a name.
+    backfillMissingCustomExercises(customExerciseRows, stats);
 
     scopedSetJSON('profiles', null, allProfiles);
     if (typeof renderApp === 'function') { try { renderApp(true); } catch (e) {} }
@@ -3559,11 +3617,17 @@ function getAllExercises() {
     return m;
   });
 
-  const currentUserId = currentAuthUser?.id || currentLocalUser?.id || activeProfileId || 'local';
+  // `customExercises` is already account-scoped: the local store is namespaced by
+  // account and the cloud read is filtered to user_id = auth.uid() server-side. So
+  // an entry with NO ownerId can only have come from this account, and it must stay
+  // visible. It used to be hidden here - the upload strips ownerId - which made a
+  // routine that referenced a pulled custom exercise render its raw "cust_..." id.
+  const currentUserId = currentAccountExerciseOwner();
   const visibleCustom = (customExercises || []).filter(e => {
     if (isAdminUnlocked()) return true;
     if (e.isApproved) return true;
-    return e.ownerId === currentUserId || (!e.ownerId && isAdminUnlocked());
+    if (!e.ownerId) return true;
+    return e.ownerId === currentUserId;
   });
 
   // Deduplicate by ID and by normalized title to prevent any duplicate exercise from ever appearing
