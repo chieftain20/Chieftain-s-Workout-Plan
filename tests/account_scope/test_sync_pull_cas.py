@@ -89,16 +89,26 @@ HARNESS = r"""
     if (kind === 'upsert_set_state' || kind === 'tombstone_set_state') return p.p_profile_key;
     return p.p_client_record_id;
   }
+  // Chainable + awaitable query stub, matching how the code uses it:
+  //   await client.from(t).select('*').eq('user_id', id)
+  //   await client.from(t).select('revision').eq('user_id', id).eq('profile_key', k).maybeSingle()
+  function makeQuery(table, filters) {
+    function rows() {
+      let r = server[table].slice();
+      filters.forEach(function (f) { r = r.filter(function (x) { return x[f[0]] === f[1]; }); });
+      return r;
+    }
+    return {
+      eq: function (col, val) { return makeQuery(table, filters.concat([[col, val]])); },
+      maybeSingle: function () { return Promise.resolve({ data: rows()[0] || null, error: null }); },
+      then: function (resolve, reject) { return Promise.resolve({ data: rows(), error: null }).then(resolve, reject); }
+    };
+  }
+
   function makeClient() {
     return {
       from: function (table) {
-        return { select: function () { return { eq: function (col, val) {
-          selectCalls.push(table);
-          return Promise.resolve({
-            data: server[table].filter(function (r) { return r[col] === val; }),
-            error: null
-          });
-        } }; } };
+        return { select: function () { selectCalls.push(table); return makeQuery(table, []); } };
       },
       rpc: async function (kind, payload) {
         rpcCalls.push({ kind: kind, payload: JSON.parse(JSON.stringify(payload || {})) });
@@ -143,6 +153,10 @@ HARNESS = r"""
   }
 
 /*__BLOCKS__*/
+
+  // The harness drives flushes explicitly, so disable the debounce: it would
+  // otherwise fire at an unpredictable moment and make the assertions flaky.
+  scheduleOutboxFlush = function () {};
 
   let failures = 0;
   function check(label, cond) { if (!cond) { failures++; console.log('  FAIL: ' + label); } }
@@ -554,6 +568,125 @@ HARNESS = r"""
     check('a routine edit leaves the 32 template conflicts untouched',
       readOutbox().filter(function (o) { return templateKeys.indexOf(o.rowKey) >= 0; }).length === 32);
 
+    // ======================================================================
+    // REGRESSION: an operation queued while an RPC is in flight must survive
+    //
+    // flushOutboxNow() snapshots the queue and then awaits one RPC per operation.
+    // Writing that snapshot back wholesale erased anything enqueued during those
+    // awaits, so a genuine user edit could be queued and then silently destroyed
+    // before transmission - and the sync reported "0 sent, 0 conflicts" while
+    // nothing reached the cloud.
+    // ======================================================================
+    resetServer(); writeOutbox([]);
+    setScope('00000000-0000-4000-c000-0000000000aa');
+    scopedSetJSON(CLOUD_REVISIONS_KIND, null, {});
+    scopedSetJSON('routine_fingerprints', null, {});
+    allProfiles = [{ id: 'p_a', name: 'A', days: [{ id: 'd1' }] }];
+    rememberRevision('p_a', 1);
+    server.user_routines.push({ user_id: AUTH_UID, profile_key: 'p_a', revision: 1, deleted_at: null,
+                                profile_data: { id: 'p_a', name: 'A' }, routine_data: { days: [{ id: 'd1' }] } });
+
+    allProfiles[0].days = [{ id: 'd1' }, { id: 'd2' }];
+    saveProfiles();
+    check('the first edit is queued', readOutbox().filter(function (o) { return o.rowKey === 'p_a'; }).length === 1);
+
+    const origRpcA = supabaseClient.rpc;
+    let injected = false;
+    supabaseClient.rpc = async function (kind, payload) {
+      if (!injected) {
+        injected = true;
+        // A real render/save during a slow request: another profile is added and
+        // its routine is queued WHILE the first RPC is still awaiting.
+        allProfiles.push({ id: 'p_b', name: 'B', days: [] });
+        saveProfiles();
+      }
+      return origRpcA(kind, payload);
+    };
+    await flushOutboxNow();
+    supabaseClient.rpc = origRpcA;
+
+    check('an operation queued during an in-flight flush is NOT lost',
+      readOutbox().some(function (o) { return o.rowKey === 'p_b'; }));
+    check('the in-flight operation itself completed',
+      !readOutbox().some(function (o) { return o.rowKey === 'p_a' && o.status === 'pending'; }));
+
+    // ======================================================================
+    // REGRESSION: a manual sync must not report a bare "0 sent, 0 conflicts"
+    // merely because a debounced flush was already in flight
+    // ======================================================================
+    resetServer(); writeOutbox([]);
+    scopedSetJSON(CLOUD_REVISIONS_KIND, null, {});
+    scopedSetJSON('routine_fingerprints', null, {});
+    allProfiles = [{ id: 'p_c', name: 'C', days: [] }];
+    rememberRevision('p_c', 1);
+    server.user_routines.push({ user_id: AUTH_UID, profile_key: 'p_c', revision: 1, deleted_at: null,
+                                profile_data: { id: 'p_c', name: 'C' }, routine_data: { days: [] } });
+    allProfiles[0].days = [{ id: 'dX' }];
+    saveProfiles();
+
+    const origRpcB = supabaseClient.rpc;
+    const gate = new Promise(function (r) { setTimeout(r, 150); });
+    let held = false;
+    supabaseClient.rpc = async function (kind, payload) {
+      if (!held) { held = true; await gate; }
+      return origRpcB(kind, payload);
+    };
+    const running = flushOutboxNow();                  // in flight, blocked ~150ms
+    await new Promise(function (r) { setTimeout(r, 20); });
+    const syncRes2 = await syncFromCloudNow();          // must not give up
+    await running;
+    supabaseClient.rpc = origRpcB;
+
+    check('the concurrent edit reached the cloud',
+      server.user_routines.some(function (r) { return r.profile_key === 'p_c' && r.revision === 2; }));
+    check('a manual sync does not report the bare in-flight skip',
+      syncRes2.skipped === false && syncRes2.flushSkipped === false);
+    check('a manual sync reports the transmission that happened while it waited',
+      syncRes2.flushed === 1);
+    check('no pending operation remains after a manual sync',
+      !readOutbox().some(function (o) { return o.status === 'pending'; }));
+
+    // ======================================================================
+    // REGRESSION: keep_cloud during an in-flight await must not discard a
+    // concurrently queued operation
+    // ======================================================================
+    resetServer(); writeOutbox([]);
+    scopedSetJSON(CLOUD_REVISIONS_KIND, null, {});
+    scopedSetJSON('routine_fingerprints', null, {});
+    allProfiles = [{ id: 'p_d', name: 'D', days: [] }];
+    server.user_routines.push({ user_id: AUTH_UID, profile_key: 'p_d', revision: 5, deleted_at: null,
+                                profile_data: { id: 'p_d', name: 'D' }, routine_data: { days: [] } });
+    enqueueOutboxOp({ kind: 'upsert_routine', rowKey: 'p_d',
+                      payload: { p_profile_key: 'p_d', p_routine_data: { days: [] },
+                                 p_profile_data: {}, p_expected_revision: null },
+                      expectedRevision: null });
+    await flushOutboxNow();                             // -> conflict
+    check('a conflict exists for p_d', readOutbox().some(function (o) { return o.status === 'conflict'; }));
+
+    // keep_local awaits a network read (fetchRowRevision). Writing the pre-await
+    // snapshot back would discard anything queued during that read.
+    const origFrom = supabaseClient.from;
+    let injected2 = false;
+    supabaseClient.from = function (table) {
+      return { select: function () {
+        selectCalls.push(table);
+        const q = makeQuery(table, []);
+        if (!injected2 && table === 'user_routines') {
+          injected2 = true;
+          allProfiles.push({ id: 'p_e', name: 'E', days: [] });
+          saveProfiles();                 // queued WHILE the resolution is awaiting
+        }
+        return q;
+      } };
+    };
+    const kcRes = await resolveOutboxConflict(outboxOpId('p_d'), 'keep_local');
+    supabaseClient.from = origFrom;
+    check('keep_local succeeds (fetches the live revision)', kcRes.ok === true && kcRes.reason === 'kept_local');
+    check('keep_local re-armed the operation with the live revision',
+      readOutbox().some(function (o) { return o.rowKey === 'p_d' && o.expectedRevision === 5; }));
+    check('an operation queued during the resolution is NOT lost',
+      readOutbox().some(function (o) { return o.rowKey === 'p_e'; }));
+
     // ============ guard rails =============================================
     resetServer(); writeOutbox([]);
     check('an offline sync is skipped', true);
@@ -568,8 +701,10 @@ HARNESS = r"""
 def run() -> c.Contract:
     t = c.Contract("sync_pull_cas")
 
-    blocks = c.storage_outbox_and_pull()
-    if not t.require(bool(blocks.strip()), "storage + outbox + pull blocks found"):
+    # resolveOutboxConflict (outbox block) calls fetchRowRevision (conflict UI
+    # block), so both are needed to exercise keep_local behaviourally.
+    blocks = c.storage_outbox_pull_conflict()
+    if not t.require(bool(blocks.strip()), "storage + outbox + pull + conflict UI blocks found"):
         return t
 
     js = c.read_text(c.APP_JS_PATH) or ""
@@ -579,7 +714,8 @@ def run() -> c.Contract:
     sync_fn = c.function_body(live, "syncFromCloudNow")
     if t.require(bool(sync_fn), "syncFromCloudNow is defined"):
         t.require_present(sync_fn, "pullFromCloudNow", "the sync performs a real pull")
-        t.require_present(sync_fn, "flushOutboxNow", "the sync drains the outbox")
+        t.require_present(sync_fn, "drainOutboxForSync",
+                          "the sync drains the outbox (waiting out a concurrent flush)")
         t.require(
             sync_fn.count("pullFromCloudNow") == 2,
             "the sync pulls TWICE (before and after the flush) - bounded, never a loop",

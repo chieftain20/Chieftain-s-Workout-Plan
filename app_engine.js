@@ -531,6 +531,50 @@ function enqueueCustomExerciseUpsert(exercise) {
 
 let outboxFlushInFlight = false;
 let outboxFlushTimer = null;
+// The result of the most recent completed flush, so a manual sync that arrived
+// while a debounced flush was already running can report what actually happened
+// instead of a misleading "0 sent, 0 conflicts".
+let outboxLastFlushResult = null;
+// Incremented every time a flush completes. Lets a waiting caller tell whether a
+// concurrent flush finished during its wait (rather than trusting a stale result).
+let outboxFlushCompletedSeq = 0;
+
+// Persist the state changes made to the operations a flush has just processed,
+// WITHOUT discarding operations that were queued while an RPC was in flight.
+//
+// flushOutboxNow() takes a SNAPSHOT of the queue and then awaits one RPC per
+// operation. Writing that snapshot back wholesale erased anything enqueued during
+// those awaits: a genuine user edit could be queued and then silently destroyed
+// before it was ever transmitted, so a sync would report "0 sent, 0 conflicts"
+// while the change never reached the cloud.
+//
+// This re-reads the live queue and merges the processed operations back into it.
+// (id, createdAt) identifies an operation for its whole lifetime - coalescing and
+// superseding only touch updatedAt, never createdAt.
+function persistFlushedOps(processed) {
+  const current = readOutbox();
+  processed.forEach(function (op) {
+    const i = current.findIndex(function (o) {
+      return o && o.id === op.id && o.createdAt === op.createdAt;
+    });
+    if (i >= 0) current[i] = op;
+  });
+  writeOutbox(current);
+}
+
+// Re-locate an operation in the LIVE queue and mutate it there. Used by the
+// conflict resolver, whose keep_local branch awaits a network read - writing the
+// snapshot taken before that await would discard anything queued meanwhile.
+function mutateOutboxOp(op, mutator) {
+  const current = readOutbox();
+  const i = current.findIndex(function (o) {
+    return o && o.id === op.id && o.createdAt === op.createdAt;
+  });
+  if (i < 0) return false;
+  mutator(current, i);
+  writeOutbox(current);
+  return true;
+}
 
 async function flushOutboxNow() {
   if (!isCloudSyncEnabled()) {
@@ -570,7 +614,7 @@ async function flushOutboxNow() {
         op.status = 'failed';
         op.lastError = 'owner_scope_mismatch';
         op.updatedAt = Date.now();
-        writeOutbox(ops);
+        persistFlushedOps(ops);
         continue;
       }
 
@@ -578,7 +622,7 @@ async function flushOutboxNow() {
         op.status = 'failed';
         op.lastError = 'unknown_rpc_kind';
         op.updatedAt = Date.now();
-        writeOutbox(ops);
+        persistFlushedOps(ops);
         continue;
       }
 
@@ -600,7 +644,7 @@ async function flushOutboxNow() {
         op.lastError = (res.error && res.error.message) || 'rpc_error';
         op.status = 'pending';
         op.updatedAt = Date.now();
-        writeOutbox(ops);
+        persistFlushedOps(ops);
         stopped = true;
         break;
       }
@@ -622,7 +666,7 @@ async function flushOutboxNow() {
         if (typeof rememberRevision === 'function') rememberRevision(op.rowKey, revision);
         flushed++;
       }
-      writeOutbox(ops);
+      persistFlushedOps(ops);
     }
 
     // Completed operations leave the queue. Conflicts stay until the user
@@ -634,7 +678,9 @@ async function flushOutboxNow() {
     updateConflictBadge();
   }
 
-  return { flushed: flushed, conflicted: conflicted, stopped: stopped, skipped: false };
+  outboxLastFlushResult = { flushed: flushed, conflicted: conflicted, stopped: stopped, skipped: false };
+  outboxFlushCompletedSeq++;
+  return outboxLastFlushResult;
 }
 
 function scheduleOutboxFlush(delayMs) {
@@ -690,8 +736,8 @@ async function resolveOutboxConflict(opId, resolution) {
   }
 
   if (resolution === 'keep_cloud') {
-    ops.splice(idx, 1);
-    writeOutbox(ops);
+    // Remove ONLY this operation, from the LIVE queue (never a stale snapshot).
+    mutateOutboxOp(op, function (arr, i) { arr.splice(i, 1); });
     updateConflictBadge();
     return { ok: true, reason: 'kept_cloud' };
   }
@@ -706,8 +752,7 @@ async function resolveOutboxConflict(opId, resolution) {
     updated.attempts = 0;
     updated.lastError = null;
     updated.updatedAt = Date.now();
-    ops.splice(idx, 1, updated);
-    writeOutbox(ops);
+    mutateOutboxOp(op, function (arr, i) { arr.splice(i, 1, updated); });
     updateConflictBadge();
     scheduleOutboxFlush();
     return { ok: true, reason: 'kept_local' };
@@ -724,8 +769,7 @@ async function resolveOutboxConflict(opId, resolution) {
     fresh.lastError = null;
     fresh.status = 'pending';
     fresh.updatedAt = Date.now();
-    ops.splice(idx, 1, fresh);
-    writeOutbox(ops);
+    mutateOutboxOp(op, function (arr, i) { arr.splice(i, 1, fresh); });
     updateConflictBadge();
     scheduleOutboxFlush();
     return { ok: true, reason: 'kept_both' };
@@ -1756,6 +1800,36 @@ async function pullFromCloudNow() {
 // account switch.
 let cloudSyncLastUserId = null;
 
+// A debounced flush may already be draining the queue when a manual sync starts.
+// flushOutboxNow() returns immediately with reason 'in_flight' in that case, which
+// made a manual sync report a misleading "0 sent, 0 conflicts" even though the
+// queue had work. Waiting (bounded) both reports the truth and guarantees the
+// queue is really drained before the closing pull.
+async function drainOutboxForSync() {
+  let concurrent = null;
+  for (let attempt = 0; attempt < 5; attempt++) {
+    if (outboxFlushInFlight) {
+      // A debounced flush is running. Wait it out and remember ITS result, so a
+      // manual sync that waited for the transmission does not report a misleading
+      // "0 sent, 0 conflicts".
+      const seqBefore = outboxFlushCompletedSeq;
+      if (typeof setTimeout !== 'function') break;
+      await new Promise(function (resolve) { setTimeout(resolve, 200); });
+      if (outboxFlushCompletedSeq !== seqBefore) concurrent = outboxLastFlushResult;
+      continue;
+    }
+    const res = await flushOutboxNow();
+    if (concurrent && (res.flushed || 0) === 0 && (res.conflicted || 0) === 0) {
+      // Our pass found nothing to do because the concurrent flush already
+      // transmitted while we waited - report that work.
+      return concurrent;
+    }
+    return res;
+  }
+  if (concurrent) return concurrent;
+  return { flushed: 0, conflicted: 0, stopped: false, skipped: true, reason: 'in_flight' };
+}
+
 // One bounded, BIDIRECTIONAL sync pass: pull -> flush -> pull.
 //
 // The second pull is what makes a sync truthful: the first pull brings remote
@@ -1784,7 +1858,7 @@ async function syncFromCloudNow() {
 
   let flush = { flushed: 0, conflicted: 0, stopped: false, skipped: true };
   try {
-    flush = await flushOutboxNow();
+    flush = await drainOutboxForSync();
   } catch (e) {
     flush = { flushed: 0, conflicted: 0, stopped: false, skipped: true, reason: 'flush_failed' };
   }
