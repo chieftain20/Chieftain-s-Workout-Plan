@@ -60,6 +60,15 @@ HARNESS = r"""
   let renderCount = 0;
   async function getAuthenticatedSupabaseUserId() { return AUTH_UID; }
 
+  // Mirrors the real saveProfiles(): persist, then queue EVERY profile. This is
+  // the call that used to manufacture a pending op right before a sync.
+  function saveProfiles() {
+    scopedSetJSON('profiles', null, allProfiles);
+    if (typeof enqueueRoutineUpsert === 'function' && Array.isArray(allProfiles)) {
+      allProfiles.forEach(function (p) { if (p && p.id) enqueueRoutineUpsert(p); });
+    }
+  }
+
   // ---- fake Supabase -------------------------------------------------------
   const TABLES = ['user_routines', 'workout_logs', 'body_metrics',
                   'user_custom_exercises', 'workout_set_states'];
@@ -333,6 +342,134 @@ HARNESS = r"""
       readOutbox()[0] && readOutbox()[0].status === 'conflict');
     check('the tombstone is still set on the server', server.user_routines[0].deleted_at !== null);
 
+    // ======================================================================
+    // REGRESSION: the "Browser A never adopts the newer cloud revision" deadlock
+    //
+    // saveProfiles() queues EVERY profile on EVERY call. A pending op defers the
+    // cloud merge for its row, so the row's revision is never learned, so the CAS
+    // can never succeed, so the op stays unresolved and keeps deferring the merge.
+    // A no-op save must therefore queue nothing.
+    // ======================================================================
+    resetServer(); writeOutbox([]);
+    setScope('00000000-0000-4000-c000-0000000000aa');
+    scopedSetJSON('profiles', null, []);
+    scopedSetJSON(CLOUD_REVISIONS_KIND, null, {});
+    scopedSetJSON('routine_fingerprints', null, {});
+    allProfiles = [];
+    const P = 'prof_1791469956745';
+    server.user_routines.push({
+      user_id: AUTH_UID, profile_key: P, revision: 11, deleted_at: null,
+      profile_data: { id: P, name: 'تست' },
+      routine_data: { days: [{ id: 'd1' }] }
+    });
+
+    // A pulls once: adopts revision 11 and remembers the content
+    await pullFromCloudNow();
+    check('A adopts the cloud routine at revision 11',
+      allProfiles.some(function (p) { return p.id === P; }) && knownRevisionFor(P) === 11);
+
+    // Browser B advances the cloud row to revision 12
+    server.user_routines[0].revision = 12;
+    server.user_routines[0].routine_data = { days: [{ id: 'd1' }, { id: 'd2' }] };
+
+    // A presses manual sync: saveProfiles() runs first, then the sync
+    saveProfiles();
+    check('a no-op saveProfiles() queues NOTHING for the unchanged row',
+      !readOutbox().some(function (o) { return o.rowKey === P; }));
+
+    await syncFromCloudNow();
+    const adopted = allProfiles.find(function (p) { return p.id === P; });
+    check('A ADOPTS the newer cloud revision 12', knownRevisionFor(P) === 12);
+    check('A ADOPTS the newer routine data',
+      !!adopted && Array.isArray(adopted.days) && adopted.days.length === 2 &&
+      adopted.days[1].id === 'd2');
+    check('no conflict is created by a no-op sync',
+      !readOutbox().some(function (o) { return o.rowKey === P && o.status === 'conflict'; }));
+
+    // a REAL local edit must still be queued, still defer, and still push
+    server.user_routines[0].revision = 12;
+    allProfiles.find(function (p) { return p.id === P; }).days = [{ id: 'd1' }, { id: 'd2' }, { id: 'd3' }];
+    saveProfiles();
+    const editOp = readOutbox().find(function (o) { return o.rowKey === P; });
+    check('a REAL edit IS queued', !!editOp && editOp.status === 'pending');
+    check('a REAL edit carries the known revision 12', !!editOp && editOp.expectedRevision === 12);
+    const deferredStats = await pullFromCloudNow();
+    check('an unresolved local edit still DEFERS its own row',
+      deferredStats.stats && deferredStats.stats.deferred >= 1);
+    await flushOutboxNow();
+    check('the real edit pushes and the cloud advances to 13',
+      server.user_routines[0].revision === 13 &&
+      server.user_routines[0].routine_data.days.length === 3);
+
+    // ---- keep_cloud must touch ONLY the selected operations -----------------
+    resetServer(); writeOutbox([]);
+    scopedSetJSON(CLOUD_REVISIONS_KIND, null, {});
+    scopedSetJSON('routine_fingerprints', null, {});
+    const templateKeys = ['template_male', 'template_female'];
+    const seeded = [];
+    for (let i = 0; i < 32; i++) {
+      seeded.push({ id: outboxOpId(templateKeys[i % 2]), kind: 'upsert_routine',
+                    rowKey: templateKeys[i % 2], ownerScope: getAccountScope(),
+                    payload: { p_profile_key: templateKeys[i % 2], p_expected_revision: null },
+                    expectedRevision: null, attempts: 1, lastError: null,
+                    status: 'conflict', createdAt: 1, updatedAt: 1 });
+    }
+    for (let i = 0; i < 5; i++) {
+      seeded.push({ id: outboxOpId(P), kind: 'upsert_routine', rowKey: P,
+                    ownerScope: getAccountScope(),
+                    payload: { p_profile_key: P, p_expected_revision: 11 },
+                    expectedRevision: 11, attempts: 1, lastError: null,
+                    status: 'conflict', createdAt: 1, updatedAt: 1 });
+    }
+    writeOutbox(seeded);
+    rememberRevision(P, 11);
+    server.user_routines.push({ user_id: AUTH_UID, profile_key: P, revision: 12, deleted_at: null,
+                                profile_data: { id: P, name: 'تست' },
+                                routine_data: { days: [{ id: 'd1' }, { id: 'd2' }] } });
+
+    for (let i = 0; i < 5; i++) {
+      const r = await resolveOutboxConflict(outboxOpId(P), 'keep_cloud');
+      check('keep_cloud succeeds for the "تست" conflict #' + (i + 1), r.ok === true && r.reason === 'kept_cloud');
+    }
+    const left = readOutbox();
+    check('keep_cloud removed ALL 5 "تست" conflicts',
+      left.filter(function (o) { return o.rowKey === P; }).length === 0);
+    check('the 32 unrelated template conflicts are UNTOUCHED',
+      left.filter(function (o) { return templateKeys.indexOf(o.rowKey) >= 0; }).length === 32);
+    check('keep_cloud does not destroy cloud_revisions', knownRevisionFor(P) === 11);
+    check('keep_cloud does not touch the cloud row', server.user_routines.length === 1 &&
+      server.user_routines[0].revision === 12);
+
+    // and now A can finally adopt the newer cloud revision
+    allProfiles = [{ id: P, name: 'تست', days: [{ id: 'd1' }] }];
+    await pullFromCloudNow();
+    const afterKeepCloud = allProfiles.find(function (p) { return p.id === P; });
+    check('after keep_cloud, A adopts revision 12',
+      knownRevisionFor(P) === 12);
+    check('after keep_cloud, A adopts the newer routine data',
+      !!afterKeepCloud && afterKeepCloud.days.length === 2);
+    check('an unrelated conflict still defers only its OWN row',
+      readOutbox().filter(function (o) { return o.rowKey === P; }).length === 0);
+
+    // CONTROL: the deferral mechanism itself is still intact. Forcing a queue
+    // (bypassing the fingerprint guard) must reproduce the OLD behaviour - the
+    // merge is deferred and A does NOT adopt. This is what the fix prevents
+    // saveProfiles() from triggering by accident.
+    resetServer(); writeOutbox([]);
+    scopedSetJSON(CLOUD_REVISIONS_KIND, null, {});
+    scopedSetJSON('routine_fingerprints', null, {});
+    allProfiles = [{ id: P, name: 'تست', days: [{ id: 'd1' }] }];
+    server.user_routines.push({ user_id: AUTH_UID, profile_key: P, revision: 20, deleted_at: null,
+                                profile_data: { id: P, name: 'تست' },
+                                routine_data: { days: [{ id: 'dX' }] } });
+    enqueueOutboxOp({ kind: 'upsert_routine', rowKey: P,
+                      payload: { p_profile_key: P, p_routine_data: { days: [] },
+                                 p_profile_data: {}, p_expected_revision: null },
+                      expectedRevision: null });
+    const control = await pullFromCloudNow();
+    check('CONTROL: a forced pending op still DEFERS the merge (old behaviour reproduced)',
+      control.stats && control.stats.deferred >= 1 && allProfiles[0].days.length === 1);
+
     // ============ guard rails =============================================
     resetServer(); writeOutbox([]);
     check('an offline sync is skipped', true);
@@ -403,6 +540,29 @@ def run() -> c.Contract:
         cas_kinds = sorted(_re.findall(r"'([a-z_]+)'", cas_m.group(1)))
         t.require(allow_kinds == cas_kinds, f"CAS_KINDS matches the allowlist exactly ({len(cas_kinds)} RPCs)")
         t.require(len(cas_kinds) == 12, "exactly 12 CAS RPCs")
+
+    # --- FIX 3: a no-op save must not defer the merge (the deadlock) --------
+    save_fn = c.function_body(live, "saveProfiles")
+    if t.require(bool(save_fn), "saveProfiles is defined"):
+        t.require_present(save_fn, "enqueueRoutineUpsert",
+                          "saveProfiles queues profiles - the behaviour the fix must neutralise")
+
+    enq_fn = c.function_body(live, "enqueueRoutineUpsert")
+    if t.require(bool(enq_fn), "enqueueRoutineUpsert is defined"):
+        t.require_present(enq_fn, "knownRoutineFingerprint",
+                          "an unchanged routine is NOT queued again")
+        t.require_present(enq_fn, "rememberRoutineFingerprint",
+                          "the queued content is remembered")
+
+    merge_fn = c.function_body(live, "mergeCloudRoutine")
+    if t.require(bool(merge_fn), "mergeCloudRoutine is defined"):
+        t.require_present(merge_fn, "outboxHasUnresolvedFor",
+                          "unresolved rows are still deferred (conflict safety kept)")
+        t.require_present(merge_fn, "rememberRoutineFingerprint",
+                          "an adopted routine records its content so the next save is a no-op")
+
+    t.require_present(live, "stableStringify", "a key-order-independent fingerprint exists")
+    t.require_present(live, "ROUTINE_FINGERPRINTS_KIND", "the fingerprint store is account-scoped")
 
     # --- invariants --------------------------------------------------------
     t.require_absent(live, ".from('user_routines').insert", "no direct table write for routines")

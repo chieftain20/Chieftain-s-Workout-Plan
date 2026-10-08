@@ -389,7 +389,18 @@ function enqueueRoutineUpsert(profile) {
   // B3: the device-local lock PIN is never persisted to the cloud.
   const profileData = Object.assign({}, profile);
   delete profileData.pin;
-  return enqueueOutboxOp({
+
+  // Skip a no-op queue. saveProfiles() calls this for EVERY profile on EVERY
+  // save, and a pending operation defers the cloud merge for its row - which,
+  // once the CAS can no longer succeed, deadlocks the sync. Only an actual
+  // content change is worth queueing.
+  const fingerprint = (typeof stableStringify === 'function') ? stableStringify(profileData) : null;
+  if (fingerprint && typeof knownRoutineFingerprint === 'function' &&
+      knownRoutineFingerprint(profile.id) === fingerprint) {
+    return null;
+  }
+
+  const op = enqueueOutboxOp({
     kind: 'upsert_routine',
     rowKey: profile.id,
     payload: {
@@ -400,6 +411,13 @@ function enqueueRoutineUpsert(profile) {
     },
     expectedRevision: null
   });
+
+  // Only remember the content once it really is queued, so a rejected enqueue
+  // (wrong scope, full outbox) is retried next time instead of being swallowed.
+  if (op && fingerprint && typeof rememberRoutineFingerprint === 'function') {
+    rememberRoutineFingerprint(profile.id, fingerprint);
+  }
+  return op;
 }
 
 function enqueueRoutineTombstone(profileKey) {
@@ -1480,6 +1498,60 @@ function rememberRevision(rowKey, revision) {
   scopedSetJSON(CLOUD_REVISIONS_KIND, null, map);
 }
 
+// ------------------------------------------------------------------------------
+// Routine content memory
+//
+// saveProfiles() queues EVERY profile on EVERY call. A pending operation DEFERS
+// the cloud merge for its row (outboxHasUnresolvedFor), and that combination
+// deadlocks the sync:
+//
+//   saveProfiles() queues a pending op for row P
+//     -> pull sees P as unresolved and DEFERS the merge
+//       -> the cloud revision for P is never learned (rememberRevision only runs
+//          on a merge or a successful flush)
+//         -> the queued op cannot CAS, so it conflicts
+//           -> P stays unresolved, so the merge keeps being deferred  (loop)
+//
+// Recording the content we last queued or adopted lets a no-op save be skipped
+// entirely, which breaks the cycle. Conflict safety is untouched: a real local
+// edit changes the fingerprint, is still queued, and still defers its own row.
+// ------------------------------------------------------------------------------
+
+const ROUTINE_FINGERPRINTS_KIND = 'routine_fingerprints';
+
+// Key-order-independent serialisation, so an equivalent object always yields the
+// same fingerprint regardless of how it was built.
+function stableStringify(value) {
+  if (value === null || typeof value !== 'object') return JSON.stringify(value);
+  if (Array.isArray(value)) return '[' + value.map(stableStringify).join(',') + ']';
+  return '{' + Object.keys(value).sort()
+    .map(k => JSON.stringify(k) + ':' + stableStringify(value[k])).join(',') + '}';
+}
+
+// The device-local PIN is never synced, so it must not affect the fingerprint.
+function routineFingerprint(profile) {
+  if (!profile || !profile.id) return null;
+  const copy = Object.assign({}, profile);
+  delete copy.pin;
+  return stableStringify(copy);
+}
+
+function knownRoutineFingerprint(rowKey) {
+  if (!rowKey) return null;
+  const map = scopedGetJSON(ROUTINE_FINGERPRINTS_KIND, null, null);
+  if (!map || typeof map !== 'object') return null;
+  const v = map[rowKey];
+  return (typeof v === 'string') ? v : null;
+}
+
+function rememberRoutineFingerprint(rowKey, fingerprint) {
+  if (!rowKey || typeof fingerprint !== 'string') return;
+  const existing = scopedGetJSON(ROUTINE_FINGERPRINTS_KIND, null, null);
+  const map = (existing && typeof existing === 'object') ? existing : {};
+  map[rowKey] = fingerprint;
+  scopedSetJSON(ROUTINE_FINGERPRINTS_KIND, null, map);
+}
+
 // True when the row still has unsynced local work or an unresolved conflict.
 function outboxHasUnresolvedFor(rowKey) {
   if (!rowKey) return false;
@@ -1521,6 +1593,15 @@ function mergeCloudRoutine(row, stats) {
     allProfiles.push(created);
   }
   if (typeof row.revision === 'number') rememberRevision(key, row.revision);
+
+  // The local content now equals the cloud content, so a later saveProfiles()
+  // must NOT re-queue this row: a fresh pending operation would defer the next
+  // merge and re-open the deadlock this fingerprint memory exists to prevent.
+  const mergedIdx = allProfiles.findIndex(p => p && p.id === key);
+  if (mergedIdx >= 0 && typeof rememberRoutineFingerprint === 'function') {
+    rememberRoutineFingerprint(key, routineFingerprint(allProfiles[mergedIdx]));
+  }
+
   stats.routines++;
 }
 
