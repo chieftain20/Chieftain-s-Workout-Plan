@@ -808,6 +808,10 @@
         <button class="btn-header-action" style="padding:4px 10px; font-size:10.5px;" onclick="openConflictResolver()">
           <span id="conflictResolverBtnText">⚖️ تعارض‌های همگام‌سازی</span>
         </button>
+        <!-- One-time explicit migration of the old offline Morvarid account -->
+        <button class="btn-header-action" style="padding:4px 10px; font-size:10.5px;" onclick="openMorvaridMigrationModal()">
+          <span id="morvaridMigrationBtnText">📦 انتقال اطلاعات قدیمی مروارید از این دستگاه</span>
+        </button>
       </div>
 
       <!-- Cloud User Status View -->
@@ -1386,6 +1390,27 @@
       </button>
       <button class="btn-header-action" style="flex:1; justify-content:center; padding:9px;" onclick="closeLegacyImportModal()">
         <span id="legacyImportCancelBtnText">انصراف</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- One-time migration of the old offline Morvarid account (explicit, read-only
+     discovery, never automatic, source data is never deleted) -->
+<div id="morvaridMigrationModal" class="modal-overlay">
+  <div class="modal-content" style="max-width:470px;">
+    <h3 id="morvaridMigrationTitle" style="margin:0 0 6px;">📦 انتقال اطلاعات قدیمی مروارید از این دستگاه</h3>
+    <p id="morvaridMigrationDesc" style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">
+      اطلاعات حساب قدیمی (ورود با کد «inci») روی همین دستگاه به حساب ابری فعلی منتقل می‌شود. اطلاعات قدیمی خوانده می‌شوند، روی دستگاه باقی می‌مانند و هرگز حذف نمی‌شوند.
+    </p>
+    <div id="morvaridMigrationPreview" style="background:rgba(255,255,255,0.03); border:1px solid var(--border-light); border-radius:10px; padding:10px; margin-bottom:10px;"></div>
+    <div id="morvaridMigrationResult" style="display:none; font-size:12px; font-weight:800; color:#34d399; margin-bottom:10px;"></div>
+    <div style="display:flex; gap:8px;">
+      <button id="morvaridMigrationConfirmBtn" class="btn-header-action btn-action-primary" style="flex:1; justify-content:center; padding:9px; font-weight:800;" onclick="confirmMorvaridMigration()">
+        <span id="morvaridMigrationConfirmBtnText">✅ تأیید و انتقال</span>
+      </button>
+      <button class="btn-header-action" style="flex:1; justify-content:center; padding:9px;" onclick="closeMorvaridMigrationModal()">
+        <span id="morvaridMigrationCancelBtnText">انصراف</span>
       </button>
     </div>
   </div>

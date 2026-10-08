@@ -111,6 +111,8 @@ CONFLICT_UI_BLOCK_BEGIN = "// >>> CONFLICT_UI_BEGIN"
 CONFLICT_UI_BLOCK_END = "// <<< CONFLICT_UI_END"
 EMAIL_CONFIRM_BLOCK_BEGIN = "// >>> EMAIL_CONFIRM_BEGIN"
 EMAIL_CONFIRM_BLOCK_END = "// <<< EMAIL_CONFIRM_END"
+MORVARID_MIGRATION_BLOCK_BEGIN = "// >>> MORVARID_MIGRATION_BEGIN"
+MORVARID_MIGRATION_BLOCK_END = "// <<< MORVARID_MIGRATION_END"
 
 BLOCK_MARKERS = {
     "legacy_import": (LEGACY_IMPORT_BLOCK_BEGIN, LEGACY_IMPORT_BLOCK_END),
@@ -118,6 +120,7 @@ BLOCK_MARKERS = {
     "cloud_pull": (CLOUD_PULL_BLOCK_BEGIN, CLOUD_PULL_BLOCK_END),
     "conflict_ui": (CONFLICT_UI_BLOCK_BEGIN, CONFLICT_UI_BLOCK_END),
     "email_confirm": (EMAIL_CONFIRM_BLOCK_BEGIN, EMAIL_CONFIRM_BLOCK_END),
+    "morvarid_migration": (MORVARID_MIGRATION_BLOCK_BEGIN, MORVARID_MIGRATION_BLOCK_END),
 }
 
 
@@ -140,6 +143,17 @@ def conflict_ui_block() -> str:
 def email_confirm_block() -> str:
     """Return the signup email-confirmation (TokenHash) layer."""
     return _extract(EMAIL_CONFIRM_BLOCK_BEGIN, EMAIL_CONFIRM_BLOCK_END)
+
+
+def morvarid_migration_block() -> str:
+    """Return the one-time Morvarid legacy-account migration layer."""
+    return _extract(MORVARID_MIGRATION_BLOCK_BEGIN, MORVARID_MIGRATION_BLOCK_END)
+
+
+def storage_outbox_pull_legacy_morvarid() -> str:
+    """Everything the Morvarid migration depends on, in dependency order."""
+    return (scope_block() + "\n" + outbox_block() + "\n" + cloud_pull_block() + "\n"
+            + legacy_import_block() + "\n" + morvarid_migration_block())
 
 
 def js_outside(*block_names: str) -> str:

@@ -3394,6 +3394,10 @@ body[dir="ltr"],
         <button class="btn-header-action" style="padding:4px 10px; font-size:10.5px;" onclick="openConflictResolver()">
           <span id="conflictResolverBtnText">⚖️ تعارض‌های همگام‌سازی</span>
         </button>
+        <!-- One-time explicit migration of the old offline Morvarid account -->
+        <button class="btn-header-action" style="padding:4px 10px; font-size:10.5px;" onclick="openMorvaridMigrationModal()">
+          <span id="morvaridMigrationBtnText">📦 انتقال اطلاعات قدیمی مروارید از این دستگاه</span>
+        </button>
       </div>
 
       <!-- Cloud User Status View -->
@@ -3972,6 +3976,27 @@ body[dir="ltr"],
       </button>
       <button class="btn-header-action" style="flex:1; justify-content:center; padding:9px;" onclick="closeLegacyImportModal()">
         <span id="legacyImportCancelBtnText">انصراف</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- One-time migration of the old offline Morvarid account (explicit, read-only
+     discovery, never automatic, source data is never deleted) -->
+<div id="morvaridMigrationModal" class="modal-overlay">
+  <div class="modal-content" style="max-width:470px;">
+    <h3 id="morvaridMigrationTitle" style="margin:0 0 6px;">📦 انتقال اطلاعات قدیمی مروارید از این دستگاه</h3>
+    <p id="morvaridMigrationDesc" style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">
+      اطلاعات حساب قدیمی (ورود با کد «inci») روی همین دستگاه به حساب ابری فعلی منتقل می‌شود. اطلاعات قدیمی خوانده می‌شوند، روی دستگاه باقی می‌مانند و هرگز حذف نمی‌شوند.
+    </p>
+    <div id="morvaridMigrationPreview" style="background:rgba(255,255,255,0.03); border:1px solid var(--border-light); border-radius:10px; padding:10px; margin-bottom:10px;"></div>
+    <div id="morvaridMigrationResult" style="display:none; font-size:12px; font-weight:800; color:#34d399; margin-bottom:10px;"></div>
+    <div style="display:flex; gap:8px;">
+      <button id="morvaridMigrationConfirmBtn" class="btn-header-action btn-action-primary" style="flex:1; justify-content:center; padding:9px; font-weight:800;" onclick="confirmMorvaridMigration()">
+        <span id="morvaridMigrationConfirmBtnText">✅ تأیید و انتقال</span>
+      </button>
+      <button class="btn-header-action" style="flex:1; justify-content:center; padding:9px;" onclick="closeMorvaridMigrationModal()">
+        <span id="morvaridMigrationCancelBtnText">انصراف</span>
       </button>
     </div>
   </div>
@@ -7543,6 +7568,577 @@ async function confirmLegacyImport() {
   openLegacyImportModal();
 }
 // <<< LEGACY_IMPORT_END
+
+// >>> MORVARID_MIGRATION_BEGIN
+// ==============================================================================
+// 📦 One-time explicit migration of Morvarid's old offline account
+// ------------------------------------------------------------------------------
+// Moves the data of the OLD offline identity (scope 'local:user_morvarid', the
+// "inci" login) into the CURRENT authenticated Supabase account.
+//
+// SAFETY
+//   * Discovery is READ ONLY. The source scope is a CONSTANT, never a parameter,
+//     so no caller can point this reader at another account: there is no generic
+//     cross-scope accessor here.
+//   * Selection is a WHITELIST of Morvarid's own profile ids. Every other local
+//     identity (admin_hossein / hossein_chieftain / template_male / anything else)
+//     is excluded by construction, never by a blacklist.
+//   * Ownership is never inferred from ownerId alone: a custom exercise is picked
+//     up when her routine references it, or when its ownerId is one of HER ids,
+//     and it is never picked up when its ownerId names a different identity.
+//   * Requires a REAL authenticated Supabase session (a uuid: scope). Nothing is
+//     read into the account, and nothing is uploaded, without an explicit user
+//     confirmation.
+//   * Uploads go exclusively through the existing outbox -> allowlisted RPC path.
+//     No new transport, no direct table write, no invented RPC.
+//   * The legacy source is never written, never removed and never cleared.
+//   * Re-running is idempotent: records already present (locally or in the cloud)
+//     are reported as skipped / conflict and are NEVER overwritten.
+// ==============================================================================
+
+const MORVARID_SOURCE_SCOPE = 'local:user_morvarid';
+const MORVARID_DESTINATION_PROFILE_KEY = 'morvarid';
+// Her own profile-id family. 'template_female' is included because the "inci"
+// login activates it and her body metrics are written under both keys.
+const MORVARID_PROFILE_IDS = ['morvarid', 'user_morvarid', 'template_female'];
+const MORVARID_MIGRATION_MARKER = 'morvarid_migration';
+
+function isMorvaridProfileId(id) {
+  if (!id) return false;
+  return MORVARID_PROFILE_IDS.indexOf(String(id)) >= 0;
+}
+
+// --- read-only access to the ONE fixed source scope ---------------------------
+function morvaridSourceKey(name, sub) {
+  return SCOPE_STORAGE_PREFIX + MORVARID_SOURCE_SCOPE + ':' + name +
+    (sub === undefined || sub === null ? '' : ':' + String(sub));
+}
+
+function morvaridSourceGetJSON(name, sub, fallback) {
+  try {
+    const raw = localStorage.getItem(morvaridSourceKey(name, sub));
+    if (raw === null || raw === undefined) return fallback;
+    const parsed = JSON.parse(raw);
+    return (parsed === null || parsed === undefined) ? fallback : parsed;
+  } catch (e) { return fallback; }
+}
+
+function morvaridSourceSubKeys(name) {
+  const prefix = SCOPE_STORAGE_PREFIX + MORVARID_SOURCE_SCOPE + ':' + name + ':';
+  const out = [];
+  try {
+    Object.keys(localStorage).forEach(key => {
+      if (key.indexOf(prefix) === 0) out.push(key.slice(prefix.length));
+    });
+  } catch (e) {}
+  return out.sort();
+}
+
+function morvaridSourceHasAnyKey() {
+  const prefix = SCOPE_STORAGE_PREFIX + MORVARID_SOURCE_SCOPE + ':';
+  try { return Object.keys(localStorage).some(key => key.indexOf(prefix) === 0); }
+  catch (e) { return false; }
+}
+
+function splitSourceSubKey(sub) {
+  const s = String(sub);
+  const i = s.indexOf(':');
+  if (i < 0) return { profileId: s, sub: '' };
+  return { profileId: s.slice(0, i), sub: s.slice(i + 1) };
+}
+
+// Pre-v10 unscoped keys use '_' as the profile/exercise separator
+// (chieftain_logs_<profileId>_<exId>), so they resolve against the whitelist with
+// the same longest-match helper the legacy importer uses. The whitelist means
+// admin_hossein / hossein_chieftain / template_male keys can never be selected.
+function splitMorvaridLegacyKey(rest) {
+  return splitLegacyProfileKey(rest, MORVARID_PROFILE_IDS);
+}
+
+function isMorvaridLegacyUnscopedKey(key) {
+  if (!key || key.indexOf(SCOPE_STORAGE_PREFIX) === 0) return false;
+  if (key.indexOf('chieftain_logs_') === 0) {
+    const split = splitMorvaridLegacyKey(key.slice('chieftain_logs_'.length));
+    return isMorvaridProfileId(split.profileId) && !!split.sub;
+  }
+  if (key.indexOf('chieftain_metrics_') === 0) {
+    return isMorvaridProfileId(key.slice('chieftain_metrics_'.length));
+  }
+  if (key.indexOf('chieftain_sets_') === 0) {
+    return isMorvaridProfileId(key.slice('chieftain_sets_'.length));
+  }
+  if (key.indexOf('chieftain_draft_log_') === 0) {
+    const split = splitMorvaridLegacyKey(key.slice('chieftain_draft_log_'.length));
+    return isMorvaridProfileId(split.profileId) && !!split.sub;
+  }
+  return false;
+}
+
+// Read-only inventory of everything that WOULD be migrated. Never writes.
+function collectMorvaridSourceData() {
+  const data = {
+    sourceScope: MORVARID_SOURCE_SCOPE,
+    sourcePresent: morvaridSourceHasAnyKey(),
+    profileCandidates: [], plan: null, sourceProfileId: null, detectedProfileName: null,
+    logs: [], metrics: [], sets: [], drafts: [], customExercises: [],
+    invalid: 0
+  };
+
+  // ---- profiles: her family only ------------------------------------------
+  const candidates = [];
+  const scopedProfiles = morvaridSourceGetJSON('profiles', null, null);
+  if (Array.isArray(scopedProfiles)) scopedProfiles.forEach(p => candidates.push(p));
+  listLegacyKeys().forEach(key => {
+    if (key.indexOf('chieftain_profiles_v') !== 0) return;
+    const parsed = readLegacyJson(key, null);
+    if (Array.isArray(parsed)) parsed.forEach(p => candidates.push(p));
+  });
+  candidates.forEach(p => {
+    if (!p || !p.id) { data.invalid++; return; }
+    if (!isMorvaridProfileId(p.id)) return;              // excludes every other identity
+    if (data.profileCandidates.some(x => x.id === p.id)) return;
+    data.profileCandidates.push(JSON.parse(JSON.stringify(p)));
+  });
+
+  // Her routine: a dedicated profile beats the shared template; the source's own
+  // active_profile_id breaks the remaining tie.
+  const sourceActive = morvaridSourceGetJSON('active_profile_id', null, null) ||
+                       readLegacyJson('chieftain_active_profile_id', null);
+  let chosen = data.profileCandidates.find(p => p.id === 'morvarid') ||
+               data.profileCandidates.find(p => p.id === 'user_morvarid');
+  if (!chosen && isMorvaridProfileId(sourceActive)) {
+    chosen = data.profileCandidates.find(p => p.id === sourceActive);
+  }
+  if (!chosen) chosen = data.profileCandidates.find(p => p.id === 'template_female');
+  if (!chosen && data.profileCandidates.length) chosen = data.profileCandidates[0];
+  if (chosen) {
+    data.sourceProfileId = chosen.id;
+    data.detectedProfileName = chosen.name || chosen.id;
+    data.plan = JSON.parse(JSON.stringify(chosen));
+  }
+
+  // ---- logs ----------------------------------------------------------------
+  const logSeen = {};
+  const pushLog = (profileId, exerciseId, entry) => {
+    if (!isMorvaridProfileId(profileId) || !exerciseId) { data.invalid++; return; }
+    if (!entry || entry.timestamp === undefined) { data.invalid++; return; }
+    const k = exerciseId + '@' + entry.timestamp;
+    if (logSeen[k]) return;
+    logSeen[k] = true;
+    data.logs.push({ exerciseId: exerciseId, entry: entry });
+  };
+  morvaridSourceSubKeys('logs').forEach(sub => {
+    const split = splitSourceSubKey(sub);
+    const list = morvaridSourceGetJSON('logs', sub, null);
+    if (!Array.isArray(list)) { if (list !== null) data.invalid++; return; }
+    list.forEach(item => pushLog(split.profileId, split.sub, item));
+  });
+  listLegacyKeys().filter(isMorvaridLegacyUnscopedKey).forEach(key => {
+    if (key.indexOf('chieftain_logs_') !== 0) return;
+    const split = splitMorvaridLegacyKey(key.slice('chieftain_logs_'.length));
+    const list = readLegacyJson(key, null);
+    if (!Array.isArray(list)) { data.invalid++; return; }
+    list.forEach(item => pushLog(split.profileId, split.sub, item));
+  });
+
+  // ---- body metrics --------------------------------------------------------
+  const metricSeen = {};
+  const pushMetric = (profileId, rec) => {
+    if (!isMorvaridProfileId(profileId)) return;
+    if (!rec) { data.invalid++; return; }
+    const k = String(rec.id || rec.timestamp);
+    if (metricSeen[k]) return;
+    metricSeen[k] = true;
+    const copy = JSON.parse(JSON.stringify(rec));
+    // A stable identity is required for an idempotent cloud upsert. Records that
+    // only carry a timestamp get a deterministic id derived from it.
+    if (!copy.id && copy.timestamp !== undefined) copy.id = 'mig_' + String(copy.timestamp);
+    if (!copy.id) { data.invalid++; return; }
+    data.metrics.push(copy);
+  };
+  morvaridSourceSubKeys('metrics').forEach(profileId => {
+    const list = morvaridSourceGetJSON('metrics', profileId, null);
+    if (!Array.isArray(list)) { if (list !== null) data.invalid++; return; }
+    list.forEach(rec => pushMetric(profileId, rec));
+  });
+  listLegacyKeys().filter(isMorvaridLegacyUnscopedKey).forEach(key => {
+    if (key.indexOf('chieftain_metrics_') !== 0) return;
+    const list = readLegacyJson(key, null);
+    if (!Array.isArray(list)) { data.invalid++; return; }
+    list.forEach(rec => pushMetric(key.slice('chieftain_metrics_'.length), rec));
+  });
+
+  // ---- weekly set states ---------------------------------------------------
+  const setSeen = {};
+  const pushSet = (profileId, state) => {
+    if (!isMorvaridProfileId(profileId)) return;
+    if (!state || typeof state !== 'object' || !state.weekKey) { data.invalid++; return; }
+    const existing = setSeen[state.weekKey];
+    if (existing) {
+      if ((state.updatedAt || 0) > (existing.updatedAt || 0)) setSeen[state.weekKey] = state;
+      return;
+    }
+    setSeen[state.weekKey] = state;
+  };
+  morvaridSourceSubKeys('sets').forEach(profileId => {
+    const state = morvaridSourceGetJSON('sets', profileId, null);
+    if (state && typeof state === 'object') pushSet(profileId, state);
+  });
+  listLegacyKeys().filter(isMorvaridLegacyUnscopedKey).forEach(key => {
+    if (key.indexOf('chieftain_sets_') !== 0) return;
+    const state = readLegacyJson(key, null);
+    if (state && typeof state === 'object') pushSet(key.slice('chieftain_sets_'.length), state);
+  });
+  Object.keys(setSeen).forEach(weekKey => data.sets.push(setSeen[weekKey]));
+
+  // ---- drafts (local-only: the cloud schema has no draft table) ------------
+  morvaridSourceSubKeys('draft').forEach(sub => {
+    const split = splitSourceSubKey(sub);
+    if (!isMorvaridProfileId(split.profileId) || !split.sub) return;
+    const draft = morvaridSourceGetJSON('draft', sub, null);
+    if (!draft || typeof draft !== 'object') return;
+    data.drafts.push({ exerciseId: split.sub, draft: draft });
+  });
+  listLegacyKeys().filter(isMorvaridLegacyUnscopedKey).forEach(key => {
+    if (key.indexOf('chieftain_draft_log_') !== 0) return;
+    const split = splitMorvaridLegacyKey(key.slice('chieftain_draft_log_'.length));
+    const draft = readLegacyJson(key, null);
+    if (draft && typeof draft === 'object') data.drafts.push({ exerciseId: split.sub, draft: draft });
+  });
+
+  // ---- custom exercises ----------------------------------------------------
+  // Referenced by her routine is the primary evidence; her own ownerId is the
+  // secondary. An ownerId naming a DIFFERENT identity always excludes the record.
+  const referencedIds = {};
+  const markReferenced = (plan) => {
+    ((plan && plan.days) || []).forEach(day => {
+      ((day && day.singles) || []).forEach(it => { if (it && it.exId) referencedIds[it.exId] = true; });
+      ((day && day.supersets) || []).forEach(ss => {
+        ((ss && ss.exercises) || []).forEach(it => { if (it && it.exId) referencedIds[it.exId] = true; });
+      });
+    });
+  };
+  markReferenced(data.plan);
+  const customCandidates = [];
+  const scopedCustom = morvaridSourceGetJSON('custom_exercises', null, null);
+  if (Array.isArray(scopedCustom)) scopedCustom.forEach(e => customCandidates.push(e));
+  const unscopedCustom = readLegacyJson('chieftain_custom_exercises', null);
+  if (Array.isArray(unscopedCustom)) unscopedCustom.forEach(e => customCandidates.push(e));
+  const customSeen = {};
+  customCandidates.forEach(e => {
+    if (!e || !e.id) { data.invalid++; return; }
+    if (customSeen[e.id]) return;
+    const owner = e.ownerId === undefined || e.ownerId === null ? '' : String(e.ownerId);
+    const ownerIsHers = owner === '' || isMorvaridProfileId(owner);
+    if (!ownerIsHers) return;                              // a different identity owns it
+    if (!owner && !referencedIds[e.id]) return;            // no owner AND unused: not evidence enough
+    customSeen[e.id] = true;
+    data.customExercises.push(JSON.parse(JSON.stringify(e)));
+  });
+
+  return data;
+}
+
+// Read-only preview shown BEFORE anything is imported.
+function planMorvaridMigration() {
+  const source = collectMorvaridSourceData();
+  return {
+    source: source,
+    destinationProfileKey: MORVARID_DESTINATION_PROFILE_KEY,
+    destinationEmail: (typeof currentAuthUser !== 'undefined' && currentAuthUser && currentAuthUser.email) || '',
+    destinationScope: getAccountScope(),
+    authenticated: getAccountScope().indexOf('uuid:') === 0,
+    counts: {
+      routine: source.plan ? 1 : 0,
+      logs: source.logs.length,
+      metrics: source.metrics.length,
+      sets: source.sets.length,
+      drafts: source.drafts.length,
+      customExercises: source.customExercises.length
+    },
+    invalid: source.invalid
+  };
+}
+
+// Explicit, confirmed, one-time migration. Idempotent and non-destructive.
+async function runMorvaridMigration(options) {
+  const opts = options || {};
+  const result = {
+    ok: false, reason: null, status: 'not_started',
+    destinationEmail: '', destinationScope: getAccountScope(), destinationProfileKey: MORVARID_DESTINATION_PROFILE_KEY,
+    detectedProfileName: '', sourceProfileId: '',
+    imported: 0, skipped: 0, conflict: 0, failed: 0, invalid: 0,
+    counts: { routine: 0, logs: 0, metrics: 0, sets: 0, drafts: 0, customExercises: 0 },
+    queued: 0, pendingLeft: 0, conflictsLeft: 0, verified: false
+  };
+
+  if (!opts.confirmed) { result.reason = 'not_confirmed'; return result; }
+
+  // 1. a REAL authenticated Supabase session is required
+  if (getAccountScope().indexOf('uuid:') !== 0) { result.reason = 'not_authenticated'; return result; }
+  if (typeof getAuthenticatedSupabaseUserId !== 'function') { result.reason = 'not_authenticated'; return result; }
+  const userId = await getAuthenticatedSupabaseUserId();
+  if (!userId) { result.reason = 'not_authenticated'; return result; }
+  result.destinationEmail = (currentAuthUser && currentAuthUser.email) || '';
+  result.destinationScope = getAccountScope();
+
+  // 2. read-only discovery of HER data only
+  const source = collectMorvaridSourceData();
+  result.detectedProfileName = source.detectedProfileName || '';
+  result.sourceProfileId = source.sourceProfileId || '';
+  result.invalid = source.invalid;
+  const nothingToDo = !source.plan && !source.logs.length && !source.metrics.length &&
+                      !source.sets.length && !source.customExercises.length;
+  if (nothingToDo) { result.reason = 'no_source_data'; return result; }
+
+  // 3. learn the destination's current cloud state (and the CAS revisions) so an
+  //    existing record is reported as a conflict instead of being overwritten.
+  try { await syncFromCloudNow(); } catch (e) {}
+
+  const destKey = MORVARID_DESTINATION_PROFILE_KEY;
+  const queuedRowKeys = [];
+
+  const importOne = (rowKey, isPresentLocally, applyLocal, enqueue) => {
+    if (isPresentLocally) { result.skipped++; return; }
+    if (typeof knownRevisionFor === 'function' && knownRevisionFor(rowKey) !== null) {
+      result.conflict++;                    // already in the cloud: never overwrite
+      return;
+    }
+    applyLocal();
+    if (enqueue()) { result.imported++; queuedRowKeys.push(rowKey); }
+    else { result.failed++; }
+  };
+
+  // ---- routine -------------------------------------------------------------
+  if (source.plan) {
+    const dest = source.plan;
+    dest.id = destKey;                        // mapped to an account-owned profile key
+    delete dest.pin;                          // device-local, never synced
+    delete dest.ownerId;                      // no legacy identity is ever carried
+    importOne(
+      destKey,
+      allProfiles.some(p => p && p.id === destKey),
+      () => {
+        const at = allProfiles.findIndex(p => p && p.id === destKey);
+        if (at >= 0) allProfiles[at] = dest; else allProfiles.push(dest);
+        if (!scopedGetRaw('active_profile_id', null)) scopedSetRaw('active_profile_id', null, destKey);
+        scopedSetJSON('profiles', null, allProfiles);
+        result.counts.routine = 1;
+      },
+      () => enqueueRoutineUpsert(dest)
+    );
+  }
+
+  // ---- logs ----------------------------------------------------------------
+  source.logs.forEach(item => {
+    const rowKey = deterministicUuid('log', destKey, item.exerciseId, item.entry.timestamp);
+    const sub = destKey + ':' + item.exerciseId;
+    const local = scopedGetJSON('logs', sub, []);
+    const list = Array.isArray(local) ? local : [];
+    const present = list.some(l => l && l.timestamp === item.entry.timestamp);
+    importOne(
+      rowKey, present,
+      () => {
+        list.push(item.entry);
+        list.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+        scopedSetJSON('logs', sub, list);
+        result.counts.logs++;
+      },
+      () => enqueueLogUpsert(destKey, item.exerciseId, item.entry)
+    );
+  });
+
+  // ---- body metrics --------------------------------------------------------
+  source.metrics.forEach(rec => {
+    const rowKey = deterministicUuid('metric', destKey, rec.id);
+    const local = scopedGetJSON('metrics', destKey, []);
+    const list = Array.isArray(local) ? local : [];
+    const present = list.some(m => m && (m.id === rec.id || m.timestamp === rec.timestamp));
+    importOne(
+      rowKey, present,
+      () => {
+        list.push(rec);
+        scopedSetJSON('metrics', destKey, list);
+        result.counts.metrics++;
+      },
+      () => enqueueMetricUpsert(destKey, rec)
+    );
+  });
+
+  // ---- weekly set states ---------------------------------------------------
+  source.sets.forEach(state => {
+    const rowKey = destKey + '|' + state.weekKey;
+    const local = scopedGetJSON('sets', destKey, null);
+    const present = !!local && typeof local === 'object' && local.weekKey === state.weekKey;
+    importOne(
+      rowKey, present,
+      () => {
+        scopedSetJSON('sets', destKey, state);
+        result.counts.sets++;
+      },
+      () => enqueueSetStateUpsert(destKey, state.weekKey, state)
+    );
+  });
+
+  // ---- drafts (local only: no cloud family exists for drafts) --------------
+  source.drafts.forEach(item => {
+    const sub = destKey + ':' + item.exerciseId;
+    if (scopedGetJSON('draft', sub, null)) { result.skipped++; return; }
+    scopedSetJSON('draft', sub, item.draft);
+    result.counts.drafts++;
+    result.imported++;
+  });
+
+  // ---- custom exercises ----------------------------------------------------
+  source.customExercises.forEach(ex => {
+    const rowKey = deterministicUuid('custom_exercise', ex.id);
+    const dest = JSON.parse(JSON.stringify(ex));
+    dest.id = ex.id;                          // the original id, verbatim
+    delete dest.ownerId;                      // never carry a legacy ownerId
+    dest.ownerId = userId;                    // owned by the authenticated UUID
+    const present = customExercises.some(e => e && e.id === ex.id);
+    importOne(
+      rowKey, present,
+      () => {
+        customExercises.push(dest);
+        scopedSetJSON('custom_exercises', null, customExercises);
+        result.counts.customExercises++;
+      },
+      () => enqueueCustomExerciseUpsert(dest)
+    );
+  });
+
+  result.queued = queuedRowKeys.length;
+
+  // 4. transmit through the existing outbox -> RPC path and verify
+  if (result.queued) {
+    try { await syncFromCloudNow(); } catch (e) {}
+    const wanted = {};
+    queuedRowKeys.forEach(k => { wanted[k] = true; });
+    readOutbox().forEach(op => {
+      if (!op || !wanted[op.rowKey]) return;
+      if (op.status === 'conflict') result.conflictsLeft++;
+      else if (op.status === 'pending') result.pendingLeft++;
+      else if (op.status === 'failed') result.failed++;
+    });
+  }
+  result.conflict += result.conflictsLeft;
+  result.verified = result.queued > 0 && result.pendingLeft === 0 &&
+                    result.conflictsLeft === 0 && result.failed === 0;
+  if (result.queued === 0) {
+    // Nothing needed uploading (everything was already present).
+    result.verified = result.failed === 0;
+  }
+  result.status = result.verified ? 'completed' : 'partial';
+  result.ok = result.status === 'completed';
+
+  // 5. bookkeeping. "Completed" is only recorded once every intended record is
+  //    confirmed: transmitted with no pending/conflict/failed operation left.
+  const marker = scopedGetJSON(MORVARID_MIGRATION_MARKER, null, null) || {};
+  const runs = Array.isArray(marker.runs) ? marker.runs : [];
+  runs.push({
+    at: Date.now(),
+    scope: result.destinationScope,
+    sourceScope: MORVARID_SOURCE_SCOPE,
+    sourceProfileId: result.sourceProfileId,
+    destinationProfileKey: destKey,
+    status: result.status,
+    imported: result.imported, skipped: result.skipped, conflict: result.conflict,
+    failed: result.failed, invalid: result.invalid,
+    counts: result.counts, verified: result.verified
+  });
+  marker.runs = runs.slice(-10);
+  marker.lastRun = runs[runs.length - 1];
+  marker.completed = result.status === 'completed';
+  scopedSetJSON(MORVARID_MIGRATION_MARKER, null, marker);
+
+  // The legacy source is deliberately untouched: no write, no remove, no clear.
+  if (typeof renderApp === 'function') { try { renderApp(true); } catch (e) {} }
+  return result;
+}
+
+// --- UX ----------------------------------------------------------------------
+function openMorvaridMigrationModal() {
+  const modal = document.getElementById('morvaridMigrationModal');
+  if (!modal) return;
+  const isEn = (typeof currentLang !== 'undefined' && currentLang === 'en');
+  const box = document.getElementById('morvaridMigrationPreview');
+  const resultBox = document.getElementById('morvaridMigrationResult');
+  if (resultBox) { resultBox.style.display = 'none'; resultBox.textContent = ''; }
+
+  const plan = planMorvaridMigration();
+  if (box) {
+    if (!plan.authenticated) {
+      box.innerHTML = isEn
+        ? '<div style="color:#fbbf24;">Sign in to your cloud account first. The old local data is left untouched.</div>'
+        : '<div style="color:#fbbf24;">ابتدا وارد حساب ابری خود شوید. داده‌های محلی قدیمی دست‌نخورده باقی می‌مانند.</div>';
+    } else if (!plan.source.sourcePresent && !plan.counts.routine && !plan.counts.logs &&
+               !plan.counts.metrics && !plan.counts.sets && !plan.counts.customExercises) {
+      box.innerHTML = isEn
+        ? '<div style="color:#94a3b8;">No old Morvarid data was found on this device.</div>'
+        : '<div style="color:#94a3b8;">داده قدیمی مربوط به مروارید روی این دستگاه پیدا نشد.</div>';
+    } else {
+      const c = plan.counts;
+      const rows = [
+        [isEn ? 'Workout plan' : 'برنامه تمرینی', c.routine],
+        [isEn ? 'Workout logs' : 'سوابق تمرین', c.logs],
+        [isEn ? 'Body metrics' : 'اندازه‌های بدنی', c.metrics],
+        [isEn ? 'Weekly set states' : 'وضعیت ست‌های هفتگی', c.sets],
+        [isEn ? 'Custom exercises' : 'حرکات سفارشی', c.customExercises],
+        [isEn ? 'Drafts (device only)' : 'پیش‌نویس‌ها (فقط این دستگاه)', c.drafts]
+      ].map(r => `<tr><td style="padding:2px 8px; color:#cbd5e1;">${r[0]}</td><td style="padding:2px 8px; font-weight:800; color:#38bdf8;">${r[1]}</td></tr>`).join('');
+      box.innerHTML =
+        `<div style="font-size:12px; color:#f8fafc; margin-bottom:6px;">${isEn ? 'Old profile' : 'پروفایل قدیمی'}: <b style="color:#34d399;">${plan.source.detectedProfileName || '—'}</b></div>` +
+        `<div style="font-size:11.5px; color:#fbbf24; margin-bottom:6px;">${isEn ? 'Destination account' : 'حساب مقصد'}: <bdi>${plan.destinationEmail || plan.destinationScope}</bdi></div>` +
+        `<table style="font-size:12px; margin-bottom:6px;">${rows}</table>` +
+        `<div style="font-size:11px; color:#94a3b8;">${isEn
+          ? 'The old local data stays on this device and is never deleted. Records already present in the account are reported as skipped and are never overwritten.'
+          : 'داده‌های قدیمی روی این دستگاه باقی می‌مانند و هرگز حذف نمی‌شوند. رکوردهایی که از قبل در حساب موجودند «رد شده» گزارش می‌شوند و بازنویسی نمی‌شوند.'}</div>`;
+    }
+  }
+  modal.classList.add('open');
+}
+
+function closeMorvaridMigrationModal() {
+  document.getElementById('morvaridMigrationModal')?.classList.remove('open');
+}
+
+async function confirmMorvaridMigration() {
+  const isEn = (typeof currentLang !== 'undefined' && currentLang === 'en');
+  const resultBox = document.getElementById('morvaridMigrationResult');
+  const plan = planMorvaridMigration();
+  if (!plan.authenticated) {
+    showToast(isEn ? '⚠️ Sign in to your cloud account first.' : '⚠️ ابتدا وارد حساب ابری خود شوید.');
+    return;
+  }
+
+  const c = plan.counts;
+  const ok = confirm(isEn
+    ? `Import Morvarid's old local data into "${plan.destinationEmail || plan.destinationScope}"?\n\n` +
+      `Plan: ${c.routine}, logs: ${c.logs}, metrics: ${c.metrics}, set states: ${c.sets}, custom exercises: ${c.customExercises}.\n\n` +
+      `The old local data is left untouched and is never deleted.`
+    : `اطلاعات قدیمی مروارید روی این دستگاه به حساب «${plan.destinationEmail || plan.destinationScope}» منتقل شود؟\n\n` +
+      `برنامه: ${c.routine}، سوابق تمرین: ${c.logs}، اندازه‌های بدنی: ${c.metrics}، ست‌های هفتگی: ${c.sets}، حرکات سفارشی: ${c.customExercises}.\n\n` +
+      `داده‌های قدیمی دست‌نخورده می‌مانند و هرگز حذف نمی‌شوند.`);
+  if (!ok) return;
+
+  const result = await runMorvaridMigration({ confirmed: true });
+  if (resultBox) {
+    resultBox.style.display = '';
+    const verified = result.verified
+      ? (isEn ? 'verified on the cloud' : 'در فضای ابری تأیید شد')
+      : (isEn ? 'NOT verified' : 'تأیید نشد');
+    resultBox.textContent = isEn
+      ? `Imported ${result.imported}, skipped ${result.skipped}, conflicts ${result.conflict}, failed ${result.failed} — ${verified}.`
+      : `${result.imported} منتقل شد، ${result.skipped} رد شد، ${result.conflict} تعارض، ${result.failed} ناموفق — ${verified}.`;
+  }
+  showToast(result.verified
+    ? (isEn ? `✅ Old data imported and verified (${result.imported} records).` : `✅ اطلاعات قدیمی منتقل و تأیید شد (${result.imported} رکورد).`)
+    : (isEn ? `⚠️ Import finished with ${result.conflict} conflict(s) and ${result.failed} failure(s). The old data is untouched.`
+            : `⚠️ انتقال با ${result.conflict} تعارض و ${result.failed} خطا تمام شد. داده‌های قدیمی دست‌نخورده‌اند.`));
+  openMorvaridMigrationModal();
+}
+// <<< MORVARID_MIGRATION_END
 
 // >>> PASSWORD_RECOVERY_BEGIN
 // ==============================================================================
