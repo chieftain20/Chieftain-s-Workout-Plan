@@ -1083,6 +1083,14 @@ function isPasswordRecoveryActive() {
   return passwordRecoveryActive === true;
 }
 
+// True when the URL fragment belongs to a Supabase Auth redirect (recovery,
+// invite, magic link, or an auth error). Such fragments MUST survive startup:
+// supabase-js reads them via detectSessionInUrl when createClient() runs, and
+// removing them first silently disables the PASSWORD_RECOVERY event.
+function isSupabaseAuthFragment(hash) {
+  return /(^#|&)(access_token|refresh_token|provider_token|error|error_code|error_description|token_hash|type)=/.test(hash || '');
+}
+
 // Supabase reports a failed/expired recovery link in the URL fragment.
 function detectRecoveryUrlError() {
   try {
@@ -3507,7 +3515,10 @@ function navigateToDaySection(e, secId) {
     const pos = el.getBoundingClientRect().top + (window.scrollY || document.documentElement.scrollTop) - navBarHeight;
     window.scrollTo({ top: pos, behavior: 'smooth' });
   }
-  if (window.location.hash && !window.location.hash.startsWith('#sync=')) {
+  // Never strip a Supabase Auth fragment: supabase-js needs it to establish the
+  // session and to emit PASSWORD_RECOVERY. Only clean up other hashes.
+  if (window.location.hash && !window.location.hash.startsWith('#sync=') &&
+      !(typeof isSupabaseAuthFragment === 'function' && isSupabaseAuthFragment(window.location.hash))) {
     try {
       history.replaceState(null, null, window.location.pathname + window.location.search);
     } catch(err) {}
@@ -6856,7 +6867,12 @@ document.addEventListener('DOMContentLoaded', () => {
   loadAppData();
   checkUrlSyncData();
   
-  if (window.location.hash && !window.location.hash.startsWith('#sync=')) {
+  // Never strip a Supabase Auth fragment: supabase-js reads it via
+  // detectSessionInUrl inside createClient() (called further below), and removing
+  // it here first silently disables the PASSWORD_RECOVERY event. Only clean up
+  // other hashes, e.g. leftovers from deep links.
+  if (window.location.hash && !window.location.hash.startsWith('#sync=') &&
+      !(typeof isSupabaseAuthFragment === 'function' && isSupabaseAuthFragment(window.location.hash))) {
     try {
       history.replaceState(null, null, window.location.pathname + window.location.search);
     } catch(err) {}
