@@ -6898,6 +6898,23 @@ function enqueueMetricUpsert(profileKey, metricRecord) {
   });
 }
 
+// CAS soft-delete of a body metric. Only ever queued when the record's cloud
+// revision is known: tombstone_body_metric is a pure CAS update, so a tombstone
+// for a record the cloud has never seen would return NULL and surface as a
+// spurious conflict.
+function enqueueMetricTombstone(profileKey, metricId) {
+  if (!profileKey || !metricId) return null;
+  const clientId = deterministicUuid('metric', profileKey, metricId);
+  const known = (typeof knownRevisionFor === 'function') ? knownRevisionFor(clientId) : null;
+  if (known === null) return null;
+  return enqueueOutboxOp({
+    kind: 'tombstone_body_metric',
+    rowKey: clientId,
+    payload: { p_client_record_id: clientId, p_expected_revision: known },
+    expectedRevision: known
+  });
+}
+
 function enqueueSetStateUpsert(profileKey, weekKey, stateData) {
   if (!profileKey || !weekKey) return null;
   return enqueueOutboxOp({
@@ -8901,12 +8918,63 @@ function mergeCloudLog(row, stats) {
   if (typeof row.revision === 'number') rememberRevision(clientId, row.revision);
 }
 
-function mergeCloudMetric(row, stats) {
-  const pid = row && row.profile_key;
+// The profile families this app already treats as one person's measurements:
+// getProfileBodyMetrics() reads across these ids and saveProfileBodyMetrics()
+// mirrors a write into all of them.
+// Measurements deleted locally that have NO cloud counterpart to tombstone (legacy
+// rows the client cannot address by client_record_id). They are remembered here so
+// the adoption step below cannot resurrect them on the next pull.
+const LEGACY_METRIC_DELETIONS_KIND = 'metric_deletions';
+
+function locallyDeletedMetricIds() {
+  const raw = scopedGetJSON(LEGACY_METRIC_DELETIONS_KIND, null, null);
+  return Array.isArray(raw) ? raw : [];
+}
+
+function rememberLocallyDeletedMetric(id) {
+  if (!id) return;
+  const list = locallyDeletedMetricIds();
+  if (list.indexOf(id) >= 0) return;
+  list.push(id);
+  scopedSetJSON(LEGACY_METRIC_DELETIONS_KIND, null, list.slice(-500));
+}
+
+const METRIC_PROFILE_FAMILIES = [
+  ['template_male', 'hossein_chieftain', 'admin_hossein'],
+  ['template_female', 'morvarid', 'user_morvarid']
+];
+
+// The live cloud profile key a local metrics bucket may be uploaded under: the
+// bucket's own key when the account owns it, otherwise the first key of the SAME
+// app-level family that the account owns. Returns null when the account owns no
+// key in that family, so nothing is ever uploaded under an invented profile.
+function metricProfileUploadKey(localKey, cloudProfileKeys) {
+  if (cloudProfileKeys[localKey]) return localKey;
+  for (let i = 0; i < METRIC_PROFILE_FAMILIES.length; i++) {
+    const family = METRIC_PROFILE_FAMILIES[i];
+    if (family.indexOf(localKey) < 0) continue;
+    for (let j = 0; j < family.length; j++) {
+      if (cloudProfileKeys[family[j]]) return family[j];
+    }
+    return null;
+  }
+  return null;
+}
+
+// mergeCloudMetric
+//   fallbackProfileKey is used ONLY for a legacy row that has no profile_key at
+//   all (rows written before the account-scoped migration). The caller passes it
+//   only when the account has exactly ONE live cloud profile, so the association
+//   is unambiguous - never a guess.
+function mergeCloudMetric(row, stats, fallbackProfileKey) {
+  const pid = (row && row.profile_key) || fallbackProfileKey || null;
   const clientId = row && row.client_record_id;
   const rec = row && row.metric_record;
-  if (!pid || !clientId || !rec) return;
-  if (outboxHasUnresolvedFor(clientId)) { stats.deferred++; return; }
+  if (!pid || !rec) return;
+  // A legacy row the user already deleted locally must never be adopted back.
+  if (!row.profile_key && rec.id && locallyDeletedMetricIds().indexOf(rec.id) >= 0) return;
+  // A legacy row has no client_record_id, so no outbox operation can refer to it.
+  if (clientId && outboxHasUnresolvedFor(clientId)) { stats.deferred++; return; }
 
   const local = scopedGetJSON('metrics', pid, []);
   const list = Array.isArray(local) ? local : [];
@@ -8920,8 +8988,67 @@ function mergeCloudMetric(row, stats) {
     list.push(rec);
     scopedSetJSON('metrics', pid, list);
     stats.metrics++;
+  } else if (!row.profile_key && fallbackProfileKey) {
+    stats.legacyAdopted = (stats.legacyAdopted || 0) + 1;
   }
-  if (typeof row.revision === 'number') rememberRevision(clientId, row.revision);
+  if (clientId && typeof row.revision === 'number') rememberRevision(clientId, row.revision);
+}
+
+// A measurement written locally through saveProfileBodyMetrics() - which is what
+// the encrypted-vault restore and the legacy import use - is persisted but NOT
+// enqueued, so the cloud never receives it and the second device shows nothing.
+// The pull is the one place that knows the account's live cloud profiles, so it is
+// the safe place to upload them: only buckets whose profile (or a profile in the
+// same app-level family) the account actually owns are uploaded, so no operation
+// can ever fail the server-side ownership check and stall the queue.
+function backfillMissingBodyMetrics(metricRows, routineRows, stats) {
+  if (typeof scopedSubKeys !== 'function') return;
+
+  const knownClientIds = {};
+  // Legacy rows are already IN the cloud: they have no client_record_id, so they are
+  // tracked by the measurement id instead. Without this the backfill would re-upload
+  // each adopted legacy row as a brand-new row - a duplicate.
+  const cloudResidentMetricIds = {};
+  (metricRows || []).forEach(r => {
+    const id = r && r.client_record_id;
+    if (id) { knownClientIds[id] = true; return; }
+    const rec = r && r.metric_record;
+    if (rec && rec.id) cloudResidentMetricIds[rec.id] = true;
+  });
+
+  const cloudProfileKeys = {};
+  (routineRows || []).forEach(r => {
+    if (r && r.profile_key && !r.deleted_at) cloudProfileKeys[r.profile_key] = true;
+  });
+
+  scopedSubKeys('metrics').forEach(localKey => {
+    const list = scopedGetJSON('metrics', localKey, null);
+    if (!Array.isArray(list) || !list.length) return;
+
+    const uploadKey = metricProfileUploadKey(localKey, cloudProfileKeys);
+    if (!uploadKey) { stats.metricsUnassigned = (stats.metricsUnassigned || 0) + list.length; return; }
+
+    list.forEach(rec => {
+      if (!rec) return;
+      // A stable identity is required for an idempotent cloud upsert.
+      if (!rec.id && rec.timestamp !== undefined) rec.id = 'mig_' + String(rec.timestamp);
+      if (!rec.id) { stats.metricsUnassigned = (stats.metricsUnassigned || 0) + 1; return; }
+
+      if (cloudResidentMetricIds[rec.id]) return;       // already in the cloud (legacy row)
+      const clientId = deterministicUuid('metric', uploadKey, rec.id);
+      if (knownClientIds[clientId]) return;             // the cloud already has it
+      if (outboxHasUnresolvedFor(clientId)) return;     // already queued
+
+      if (enqueueMetricUpsert(uploadKey, rec)) {
+        stats.metricsQueued = (stats.metricsQueued || 0) + 1;
+        if (uploadKey !== localKey) {
+          // The bucket was adopted by a family sibling; keep the local store
+          // consistent with where the record now lives.
+          stats.metricsReassigned = (stats.metricsReassigned || 0) + 1;
+        }
+      }
+    });
+  });
 }
 
 // The identity a locally-created custom exercise is stamped with. Used for the
@@ -9053,15 +9180,28 @@ async function pullFromCloudNow() {
       return { skipped: true, reason: 'scope_changed', stats: stats };
     }
 
+    // A legacy body metric has no profile_key. Adopt it only when the account has
+    // exactly ONE live cloud profile - then the association is unambiguous. With
+    // two or more profiles the record is left alone and counted, never guessed.
+    const liveCloudProfileKeys = routineRows
+      .filter(r => r && r.profile_key && !r.deleted_at)
+      .map(r => r.profile_key);
+    const fallbackMetricProfileKey = (liveCloudProfileKeys.length === 1) ? liveCloudProfileKeys[0] : null;
+
     routineRows.forEach(r => mergeCloudRoutine(r, stats));
     logRows.forEach(r => mergeCloudLog(r, stats));
-    metricRows.forEach(r => mergeCloudMetric(r, stats));
+    metricRows.forEach(r => mergeCloudMetric(r, stats, fallbackMetricProfileKey));
     customExerciseRows.forEach(r => mergeCloudCustomExercise(r, stats));
     setStateRows.forEach(r => mergeCloudSetState(r, stats));
 
     // Any custom exercise this account owns locally but that has no cloud row is
     // queued for upload, so the OTHER device can resolve its id to a name.
     backfillMissingCustomExercises(customExerciseRows, stats);
+
+    // Measurements persisted locally but never enqueued (the encrypted-vault
+    // restore, the legacy import) are queued for upload here, gated on the
+    // account actually owning the profile.
+    backfillMissingBodyMetrics(metricRows, routineRows, stats);
 
     scopedSetJSON('profiles', null, allProfiles);
     if (typeof renderApp === 'function') { try { renderApp(true); } catch (e) {} }
@@ -18067,6 +18207,13 @@ function deleteBodyMetricRecord(id) {
   if (confirm(`آیا از حذف رکورد اندازه‌گیری تاریخ «${item.date}» اطمینان دارید؟`)) {
     list = list.filter(m => m.id !== id);
     saveProfileBodyMetrics(prof.id, list);
+    // Tell the cloud as well: without this the record is still live remotely and
+    // the next pull resurrects it on every device.
+    const tombstoned = (typeof enqueueMetricTombstone === 'function')
+      ? enqueueMetricTombstone(prof.id, id) : null;
+    // A record the cloud cannot address (legacy row) has nothing to tombstone, so
+    // remember the deletion locally instead of letting the pull adopt it back.
+    if (!tombstoned) rememberLocallyDeletedMetric(id);
     openBodyMetricHistoryModal();
     renderBodyMetricsView();
     showToast('🗑️ رکورد با موفقیت حذف شد.');

@@ -40,6 +40,7 @@ EXPECTED = {
     "test_custom_exercise_pull.py": True,
     "test_morvarid_migration.py": True,
     "test_legacy_import_identity_scope.py": True,
+    "test_body_metrics_sync.py": True,
     "test_e2e_staging_safety.py": True,
 }
 
