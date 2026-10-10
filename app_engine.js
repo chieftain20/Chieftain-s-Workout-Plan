@@ -831,6 +831,76 @@ const LEGACY_EXACT_KEYS = [
 const LEGACY_PREFIXES = ['chieftain_logs_', 'chieftain_metrics_', 'chieftain_sets_', 'chieftain_draft_log_'];
 const LEGACY_IMPORT_MARKER = 'legacy_import';
 
+// ------------------------------------------------------------------------------
+// Identity scoping (FIX A)
+//
+// The legacy store is UNSCOPED: chieftain_profiles_v* holds the profiles of every
+// local identity that ever used this device. Copying all of them into whatever
+// account is signed in is how a foreign profile ("hossein_chieftain") ended up in
+// another person's cloud account: the import had NO identity predicate, so the
+// profile was copied in and the next saveProfiles() uploaded it.
+//
+// A legacy profile is therefore classified before it is touched:
+//   own      -> owned by THIS scope's identity          -> import
+//   user     -> a user-created profile (prof_*)         -> import
+//   template -> an app default, regenerated every load  -> never import
+//   foreign  -> owned by a DIFFERENT local identity     -> skip unless explicitly allowed
+// ------------------------------------------------------------------------------
+const LEGACY_IDENTITY_PROFILE_IDS = {
+  admin_hossein: ['admin_hossein', 'hossein_chieftain'],
+  user_morvarid: ['user_morvarid', 'morvarid']
+};
+const LEGACY_APP_TEMPLATE_IDS = ['template_male', 'template_female'];
+
+// The profile ids the CURRENT scope's identity owns. A cloud (uuid:) account maps
+// to no legacy identity, so it owns none of them - which is exactly why a cloud
+// account must never silently inherit another identity's profile.
+function currentIdentityProfileIds() {
+  const own = (typeof currentLocalUser !== 'undefined' && currentLocalUser && currentLocalUser.id)
+    ? String(currentLocalUser.id) : '';
+  return own ? (LEGACY_IDENTITY_PROFILE_IDS[own] || []) : [];
+}
+
+function classifyLegacyProfileId(id) {
+  if (!id) return 'user';
+  const value = String(id);
+  if (LEGACY_APP_TEMPLATE_IDS.indexOf(value) >= 0) return 'template';
+  if (currentIdentityProfileIds().indexOf(value) >= 0) return 'own';
+  const identities = Object.keys(LEGACY_IDENTITY_PROFILE_IDS);
+  for (let i = 0; i < identities.length; i++) {
+    if (LEGACY_IDENTITY_PROFILE_IDS[identities[i]].indexOf(value) >= 0) return 'foreign';
+  }
+  return 'user';
+}
+
+// Which identity a foreign profile id belongs to, for the confirmation text.
+function legacyIdentityLabelForProfileId(id) {
+  const value = String(id || '');
+  const identities = Object.keys(LEGACY_IDENTITY_PROFILE_IDS);
+  for (let i = 0; i < identities.length; i++) {
+    if (LEGACY_IDENTITY_PROFILE_IDS[identities[i]].indexOf(value) >= 0) return identities[i];
+  }
+  return '';
+}
+
+// True when the user explicitly allowed THIS identity. The opt-in is per identity,
+// never a blanket switch: allowing one identity can never pull in another one's
+// profiles or data.
+function isLegacyIdentityAllowed(profileId, allowIdentities) {
+  const label = legacyIdentityLabelForProfileId(profileId);
+  return !!label && (allowIdentities || []).indexOf(label) >= 0;
+}
+
+// The identity rule applies to every per-profile family, not just to profiles: a
+// log/metric/set/draft key that names a foreign identity or an app template is
+// never imported into this account either.
+function shouldImportLegacyProfileData(profileId, allowIdentities) {
+  const kind = classifyLegacyProfileId(profileId);
+  if (kind === 'template') return false;
+  if (kind === 'foreign') return isLegacyIdentityAllowed(profileId, allowIdentities);
+  return true;
+}
+
 function isLegacyUserDataKey(key) {
   if (!key || typeof key !== 'string') return false;
   if (key.indexOf(SCOPE_STORAGE_PREFIX) === 0) return false;      // already scoped
@@ -899,6 +969,24 @@ function discoverLegacyData() {
 
   preview.totalRecords = preview.counts.profiles + preview.counts.logs + preview.counts.metrics +
     preview.counts.sets + preview.counts.drafts + preview.counts.customExercises + preview.counts.masterOverrides;
+
+  // Identity classification of every discovered profile, so the confirmation can
+  // name exactly which profiles belong to another local identity.
+  preview.profileClasses = (preview.profileNames || []).map(p => ({
+    id: p && p.id,
+    name: (p && p.name) || (p && p.id),
+    kind: classifyLegacyProfileId(p && p.id),
+    identity: legacyIdentityLabelForProfileId(p && p.id)
+  }));
+  preview.foreignProfiles = preview.profileClasses.filter(c => c.kind === 'foreign');
+  const identityMap = {};
+  preview.foreignProfiles.forEach(f => {
+    if (!f.identity) return;
+    if (!identityMap[f.identity]) identityMap[f.identity] = { identity: f.identity, profiles: [] };
+    identityMap[f.identity].profiles.push({ id: f.id, name: f.name });
+  });
+  preview.foreignIdentities = Object.keys(identityMap).map(k => identityMap[k]);
+
   preview._legacyProfiles = legacyProfiles;
   return preview;
 }
@@ -940,7 +1028,15 @@ function splitLegacyProfileKey(rest, ids) {
 // adds nothing, because every merge is keyed by a stable identity.
 async function runLegacyImport(options) {
   const opts = options || {};
-  const result = { imported: 0, skipped: 0, conflict: 0, invalid: 0, keys: [], scope: getAccountScope(), details: {} };
+  const result = {
+    imported: 0, skipped: 0, conflict: 0, invalid: 0, queued: 0,
+    keys: [], scope: getAccountScope(),
+    details: { foreignProfiles: [] },
+    // FIX B: the exact records this import selected, so the upload is explicit and
+    // never depends on a later blanket saveProfiles().
+    importedProfiles: [], importedLogs: [], importedMetrics: [],
+    importedSets: [], importedCustomExercises: []
+  };
 
   if (!opts.confirmed) {
     result.skipped = 1;
@@ -958,16 +1054,32 @@ async function runLegacyImport(options) {
 
   const ids = (preview.profileNames || []).map(p => p && p.id).filter(Boolean);
   const include = opts.include || { profiles: true, logs: true, metrics: true, sets: true, drafts: true, customExercises: true, masterOverrides: true };
+  // Per-identity opt-in. Default is empty: NOTHING belonging to another local
+  // identity is imported unless the user ticked that exact identity.
+  const allowIdentities = Array.isArray(opts.includeIdentityIds) ? opts.includeIdentityIds.map(String) : [];
 
   // ---- profiles first: log/draft keys resolve against profile ids -----------
   if (include.profiles) {
     const legacyProfiles = Array.isArray(preview._legacyProfiles) ? preview._legacyProfiles : [];
     legacyProfiles.forEach(p => {
       if (!p || !p.id) { result.invalid++; return; }
+
+      // FIX A: never copy a profile that this scope's identity does not own.
+      const kind = classifyLegacyProfileId(p.id);
+      if (kind === 'template') { result.skipped++; return; }
+      if (kind === 'foreign' && !isLegacyIdentityAllowed(p.id, allowIdentities)) {
+        result.skipped++;
+        result.details.foreignProfiles.push({
+          id: p.id, name: p.name || p.id, identity: legacyIdentityLabelForProfileId(p.id)
+        });
+        return;
+      }
+
       const existing = allProfiles.find(x => x.id === p.id);
       if (existing) { result.skipped++; return; }
       const copy = JSON.parse(JSON.stringify(p));
       allProfiles.push(copy);
+      result.importedProfiles.push(copy.id);
       result.imported++;
     });
     if (legacyProfiles.length) scopedSetJSON('profiles', null, allProfiles);
@@ -978,7 +1090,12 @@ async function runLegacyImport(options) {
     }
   }
 
-  const knownIds = allProfiles.map(p => p && p.id).filter(Boolean);
+  // Resolve "<profileId>_<rest>" against EVERY legacy profile id as well as the
+  // current ones. Without this a foreign key such as
+  // chieftain_logs_hossein_chieftain_squat cannot be matched, falls back to a
+  // mis-split "hossein" profile id, and would then be imported as user data.
+  const knownIds = allProfiles.map(p => p && p.id).filter(Boolean)
+    .concat(ids);
 
   // ---- logs ----------------------------------------------------------------
   if (include.logs) {
@@ -986,6 +1103,7 @@ async function runLegacyImport(options) {
       const rest = key.slice('chieftain_logs_'.length);
       const split = splitLegacyProfileKey(rest, knownIds);
       if (!split.profileId || !split.sub) { result.invalid++; return; }
+      if (!shouldImportLegacyProfileData(split.profileId, allowIdentities)) { result.skipped++; return; }
       const incoming = readLegacyJson(key, []);
       if (!Array.isArray(incoming)) { result.invalid++; return; }
       const sub = split.profileId + ':' + split.sub;
@@ -997,6 +1115,7 @@ async function runLegacyImport(options) {
         if (!item || item.timestamp === undefined) { result.invalid++; return; }
         if (seen.has(item.timestamp)) { result.skipped++; return; }
         list.push(item); seen.add(item.timestamp); added++; result.imported++;
+        result.importedLogs.push({ profileId: split.profileId, exerciseId: split.sub, entry: item });
       });
       if (added) {
         list.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
@@ -1009,6 +1128,7 @@ async function runLegacyImport(options) {
   if (include.metrics) {
     preview.keys.filter(k => k.indexOf('chieftain_metrics_') === 0).forEach(key => {
       const profileId = key.slice('chieftain_metrics_'.length);
+      if (!shouldImportLegacyProfileData(profileId, allowIdentities)) { result.skipped++; return; }
       const incoming = readLegacyJson(key, []);
       if (!Array.isArray(incoming)) { result.invalid++; return; }
       const local = scopedGetJSON('metrics', profileId, null);
@@ -1019,12 +1139,24 @@ async function runLegacyImport(options) {
         incoming.forEach(m => {
           if (!m) { result.invalid++; return; }
           if ((m.id && seen.has(m.id)) || seenTs.has(m.timestamp)) { result.skipped++; return; }
+          // A stable identity is required for an idempotent cloud upsert. Records
+          // that only carry a timestamp get a deterministic id derived from it.
+          if (!m.id && m.timestamp !== undefined) m.id = 'mig_' + String(m.timestamp);
           local.push(m); if (m.id) seen.add(m.id); seenTs.add(m.timestamp); added++; result.imported++;
+          if (m.id) result.importedMetrics.push({ profileId: profileId, record: m });
         });
         if (added) scopedSetJSON('metrics', profileId, local);
       } else {
-        scopedSetJSON('metrics', profileId, incoming);
-        result.imported += incoming.length;
+        // First import for this profile: normalise a stable id, then persist.
+        const fresh = incoming.map(m => {
+          if (m && !m.id && m.timestamp !== undefined) m.id = 'mig_' + String(m.timestamp);
+          return m;
+        });
+        scopedSetJSON('metrics', profileId, fresh);
+        result.imported += fresh.length;
+        fresh.forEach(m => {
+          if (m && m.id) result.importedMetrics.push({ profileId: profileId, record: m });
+        });
       }
     });
   }
@@ -1033,11 +1165,15 @@ async function runLegacyImport(options) {
   if (include.sets) {
     preview.keys.filter(k => k.indexOf('chieftain_sets_') === 0).forEach(key => {
       const profileId = key.slice('chieftain_sets_'.length);
+      if (!shouldImportLegacyProfileData(profileId, allowIdentities)) { result.skipped++; return; }
       const incoming = readLegacyJson(key, null);
       if (!incoming || typeof incoming !== 'object') { result.invalid++; return; }
       if (scopedGetJSON('sets', profileId, null)) { result.skipped++; return; }
       scopedSetJSON('sets', profileId, incoming);
       result.imported++;
+      if (incoming.weekKey) {
+        result.importedSets.push({ profileId: profileId, weekKey: incoming.weekKey, state: incoming });
+      }
     });
   }
 
@@ -1047,6 +1183,7 @@ async function runLegacyImport(options) {
       const rest = key.slice('chieftain_draft_log_'.length);
       const split = splitLegacyProfileKey(rest, knownIds);
       if (!split.profileId || !split.sub) { result.invalid++; return; }
+      if (!shouldImportLegacyProfileData(split.profileId, allowIdentities)) { result.skipped++; return; }
       const incoming = readLegacyJson(key, null);
       if (!incoming || typeof incoming !== 'object') { result.invalid++; return; }
       const sub = split.profileId + ':' + split.sub;
@@ -1064,8 +1201,18 @@ async function runLegacyImport(options) {
       let added = 0;
       incoming.forEach(e => {
         if (!e || !e.id) { result.invalid++; return; }
+        // A custom exercise owned by ANOTHER identity is that identity's data and
+        // is never imported into this account unless its owner is explicitly allowed.
+        const owner = (e.ownerId === undefined || e.ownerId === null) ? '' : String(e.ownerId);
+        if (owner && classifyLegacyProfileId(owner) === 'foreign' &&
+            !isLegacyIdentityAllowed(owner, allowIdentities)) { result.skipped++; return; }
         if (seen.has(e.id)) { result.skipped++; return; }
+        // The imported record is now owned by whoever imported it. A legacy ownerId
+        // is never carried across, and is never used as an authorization value.
+        delete e.ownerId;
+        if (typeof currentAccountExerciseOwner === 'function') e.ownerId = currentAccountExerciseOwner();
         customExercises.push(e); seen.add(e.id); added++; result.imported++;
+        result.importedCustomExercises.push(e);
       });
       if (added) scopedSetJSON('custom_exercises', null, customExercises);
     } else if (incoming !== null) {
@@ -1104,9 +1251,50 @@ async function runLegacyImport(options) {
   marker.lastRun = runs[runs.length - 1];
   scopedSetJSON(LEGACY_IMPORT_MARKER, null, marker);
 
-  // Local data changed: refresh the view and queue nothing implicitly.
+  // ---- FIX B: upload EXACTLY what this import selected ----------------------
+  // The import used to upload nothing itself and rely on a later blanket
+  // saveProfiles(), which queues every profile in the account - including ones the
+  // user never touched. The upload is now explicit and limited to the records this
+  // confirmed import actually added.
+  queueLegacyImportUploads(result);
+
+  // Local data changed: refresh the view. Nothing else is queued implicitly.
   if (typeof renderApp === 'function') { try { renderApp(true); } catch (e) {} }
   return result;
+}
+
+// Uploads only the records the confirmed import selected, through the existing
+// outbox -> allowlisted RPC path. In an offline (local:) scope every enqueue is a
+// no-op by contract, so an offline import stays local and uploads nothing.
+function queueLegacyImportUploads(result) {
+  let queued = 0;
+  const attempt = (fn) => {
+    try { return fn(); } catch (e) { return null; }
+  };
+
+  (result.importedProfiles || []).forEach(id => {
+    const prof = allProfiles.find(p => p && p.id === id);
+    if (prof && typeof enqueueRoutineUpsert === 'function' && attempt(() => enqueueRoutineUpsert(prof))) queued++;
+  });
+  (result.importedLogs || []).forEach(item => {
+    if (typeof enqueueLogUpsert === 'function' &&
+        attempt(() => enqueueLogUpsert(item.profileId, item.exerciseId, item.entry))) queued++;
+  });
+  (result.importedMetrics || []).forEach(item => {
+    if (typeof enqueueMetricUpsert === 'function' &&
+        attempt(() => enqueueMetricUpsert(item.profileId, item.record))) queued++;
+  });
+  (result.importedSets || []).forEach(item => {
+    if (typeof enqueueSetStateUpsert === 'function' &&
+        attempt(() => enqueueSetStateUpsert(item.profileId, item.weekKey, item.state))) queued++;
+  });
+  (result.importedCustomExercises || []).forEach(ex => {
+    if (typeof enqueueCustomExerciseUpsert === 'function' &&
+        attempt(() => enqueueCustomExerciseUpsert(ex))) queued++;
+  });
+
+  result.queued = queued;
+  return queued;
 }
 
 function openLegacyImportModal() {
@@ -1131,10 +1319,28 @@ function openLegacyImportModal() {
         ['sets', c.sets], ['drafts', c.drafts],
         ['customExercises', c.customExercises], ['masterOverrides', c.masterOverrides]
       ].map(r => `<tr><td style="padding:2px 8px; color:#cbd5e1;">${r[0]}</td><td style="padding:2px 8px; font-weight:800; color:#38bdf8;">${r[1]}</td></tr>`).join('');
+      // Profiles owned by a DIFFERENT local identity are listed explicitly and are
+      // not imported unless the user ticks the opt-in below.
+      const identities = preview.foreignIdentities || [];
+      const foreignHtml = identities.length
+        ? `<div style="font-size:11.5px; color:#fbbf24; margin-bottom:4px;">${isEn
+            ? 'Belonging to other local accounts (NOT imported by default):'
+            : 'متعلق به حساب‌های محلی دیگر (به‌صورت پیش‌فرض منتقل نمی‌شود):'}</div>` +
+          identities.map(g =>
+            `<label style="display:flex; align-items:flex-start; gap:6px; font-size:11.5px; color:#cbd5e1; margin-bottom:4px; cursor:pointer;">
+               <input type="checkbox" class="legacyImportIdentityToggle" value="${g.identity}" style="width:auto; margin-top:2px;">
+               <span><b>${g.identity}</b> — ${g.profiles.map(x => x.name).join('، ')}
+                 <span style="color:#94a3b8;">(${g.profiles.map(x => x.id).join(', ')})</span><br>
+                 <span style="color:#94a3b8; font-size:10.5px;">${isEn ? 'tick only if this account belongs to that person' : 'فقط اگر این حساب متعلق به همان شخص است تیک بزنید'}</span>
+               </span>
+             </label>`).join('')
+        : '';
+
       box.innerHTML =
         `<div style="font-size:11.5px; color:#fbbf24; margin-bottom:6px;">${isEn ? 'Destination account scope' : 'حساب مقصد'}: <bdi>${getAccountScope()}</bdi></div>` +
         `<table style="font-size:12px; margin-bottom:6px;">${rows}</table>` +
-        `<div style="font-size:11px; color:#94a3b8;">${isEn ? 'Legacy keys are read only and will remain untouched.' : 'کلیدهای قدیمی فقط خوانده می‌شوند و دست‌نخورده می‌مانند.'}</div>`;
+        foreignHtml +
+        `<div style="font-size:11px; color:#94a3b8; margin-top:6px;">${isEn ? 'Legacy keys are read only and will remain untouched. Only the records this import selects are uploaded.' : 'کلیدهای قدیمی فقط خوانده می‌شوند و دست‌نخورده می‌مانند. فقط رکوردهایی که همین انتقال انتخاب کند به سرور می‌رود.'}</div>`;
     }
   }
   modal.classList.add('open');
@@ -1150,22 +1356,33 @@ async function confirmLegacyImport() {
   const preview = discoverLegacyData();
   if (!preview.keys.length) return;
 
+  const includeIdentityIds = Array.prototype.slice.call(
+    document.querySelectorAll('.legacyImportIdentityToggle')
+  ).filter(el => el.checked).map(el => el.value);
+  const foreign = preview.foreignProfiles || [];
+  const foreignNote = (foreign.length && !includeIdentityIds.length)
+    ? (isEn
+        ? `\n\n${foreign.length} profile(s) belonging to another local account will NOT be imported: ${foreign.map(f => f.name).join(', ')}.`
+        : `\n\n${foreign.length} پروفایل متعلق به حساب محلی دیگر منتقل نمی‌شود: ${foreign.map(f => f.name).join('، ')}.`)
+    : '';
+
   const ok = confirm(isEn
-    ? `Import ${preview.totalRecords} legacy record(s) into the account scope "${getAccountScope()}"?\n\nLegacy keys stay untouched. This never uploads anything.`
-    : `آیا ${preview.totalRecords} رکورد قدیمی به حساب «${getAccountScope()}» منتقل شود؟\n\nکلیدهای قدیمی دست‌نخورده می‌مانند و هیچ چیزی به سرور ارسال نمی‌شود.`);
+    ? `Import ${preview.totalRecords} legacy record(s) into the account scope "${getAccountScope()}"?\n\nLegacy keys stay untouched. Only the records this import selects are uploaded.${foreignNote}`
+    : `آیا ${preview.totalRecords} رکورد قدیمی به حساب «${getAccountScope()}» منتقل شود؟\n\nکلیدهای قدیمی دست‌نخورده می‌مانند و فقط رکوردهای انتخاب‌شده به سرور می‌روند.${foreignNote}`);
   if (!ok) return;
 
-  const result = await runLegacyImport({ confirmed: true });
+  const result = await runLegacyImport({ confirmed: true, includeIdentityIds: includeIdentityIds });
+  // Re-render the preview first: openLegacyImportModal() clears the result box.
+  openLegacyImportModal();
   if (resultBox) {
     resultBox.style.display = '';
     resultBox.textContent = isEn
-      ? `Imported ${result.imported}, skipped ${result.skipped}, invalid ${result.invalid}.`
-      : `${result.imported} وارد شد، ${result.skipped} رد شد، ${result.invalid} نامعتبر.`;
+      ? `Imported ${result.imported}, skipped ${result.skipped}, invalid ${result.invalid}, uploaded ${result.queued}.`
+      : `${result.imported} وارد شد، ${result.skipped} رد شد، ${result.invalid} نامعتبر، ${result.queued} ارسال شد.`;
   }
   showToast(isEn
-    ? `✅ Legacy import finished (${result.imported} imported).`
-    : `✅ انتقال داده‌های قدیمی تمام شد (${result.imported} مورد).`);
-  openLegacyImportModal();
+    ? `✅ Legacy import finished (${result.imported} imported, ${result.queued} uploaded).`
+    : `✅ انتقال داده‌های قدیمی تمام شد (${result.imported} مورد، ${result.queued} ارسال).`);
 }
 // <<< LEGACY_IMPORT_END
 
